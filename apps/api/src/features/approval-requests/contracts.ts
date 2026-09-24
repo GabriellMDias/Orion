@@ -60,6 +60,7 @@ export const pageSchema = Type.Object(
 const commonErrors = {
   400: errorEnvelopeSchema,
   401: errorEnvelopeSchema,
+  429: errorEnvelopeSchema,
   500: errorEnvelopeSchema,
   503: errorEnvelopeSchema,
 };
@@ -91,6 +92,7 @@ export const approvalOperations = [
       "VALIDATION_FAILED",
       "AUTHENTICATION_REQUIRED",
       "IDEMPOTENCY_KEY_REUSED",
+      "RATE_LIMITED",
     ],
   },
   {
@@ -114,6 +116,7 @@ export const approvalOperations = [
       "VALIDATION_FAILED",
       "AUTHENTICATION_REQUIRED",
       "PERMISSION_DENIED",
+      "RATE_LIMITED",
     ],
   },
   {
@@ -125,6 +128,7 @@ export const approvalOperations = [
       "VALIDATION_FAILED",
       "AUTHENTICATION_REQUIRED",
       "RESOURCE_NOT_FOUND",
+      "RATE_LIMITED",
     ],
   },
   {
@@ -149,6 +153,7 @@ export const approvalOperations = [
       "RESOURCE_NOT_FOUND",
       "APPROVAL_REQUEST_INVALID_STATE",
       "RESOURCE_VERSION_CONFLICT",
+      "RATE_LIMITED",
     ],
   },
   {
@@ -166,6 +171,7 @@ export const approvalOperations = [
       "RESOURCE_NOT_FOUND",
       "APPROVAL_REQUEST_INVALID_STATE",
       "RESOURCE_VERSION_CONFLICT",
+      "RATE_LIMITED",
     ],
   },
   {
@@ -184,6 +190,7 @@ export const approvalOperations = [
       "RESOURCE_NOT_FOUND",
       "APPROVAL_REQUEST_INVALID_STATE",
       "RESOURCE_VERSION_CONFLICT",
+      "RATE_LIMITED",
     ],
   },
   {
@@ -205,6 +212,7 @@ export const approvalOperations = [
       "RESOURCE_NOT_FOUND",
       "APPROVAL_REQUEST_INVALID_STATE",
       "RESOURCE_VERSION_CONFLICT",
+      "RATE_LIMITED",
     ],
   },
   {
@@ -222,6 +230,7 @@ export const approvalOperations = [
       "RESOURCE_NOT_FOUND",
       "APPROVAL_REQUEST_INVALID_STATE",
       "RESOURCE_VERSION_CONFLICT",
+      "RATE_LIMITED",
     ],
   },
 ] as const;

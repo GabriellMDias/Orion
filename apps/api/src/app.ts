@@ -23,6 +23,7 @@ export function createApp(
     service: ApprovalRequestService;
     verifier: AccessTokenVerifier;
     checkReady?: () => Promise<boolean>;
+    rateLimit?: { max: number; timeWindow: number };
   },
 ) {
   const app = Fastify({
@@ -60,8 +61,18 @@ export function createApp(
   app.setErrorHandler((error, request, reply) => {
     const validation =
       typeof error === "object" && error !== null && "validation" in error;
-    const code: ErrorCode = validation ? "VALIDATION_FAILED" : "INTERNAL_ERROR";
-    const errorId = validation ? undefined : `err_${randomUUID()}`;
+    const rateLimited =
+      typeof error === "object" &&
+      error !== null &&
+      "statusCode" in error &&
+      error.statusCode === 429;
+    const code: ErrorCode = rateLimited
+      ? "RATE_LIMITED"
+      : validation
+        ? "VALIDATION_FAILED"
+        : "INTERNAL_ERROR";
+    const errorId =
+      code === "INTERNAL_ERROR" ? `err_${randomUUID()}` : undefined;
     if (errorId) {
       // One authoritative diagnostic; arbitrary exception messages/stacks may contain secrets.
       const safeErrorType =
@@ -86,7 +97,7 @@ export function createApp(
       );
     }
     reply
-      .code(validation ? 400 : 500)
+      .code(rateLimited ? 429 : validation ? 400 : 500)
       .send(publicError(code, request.id, currentTraceId(), errorId));
   });
 
@@ -133,6 +144,12 @@ export function createApp(
       return { status: ready ? "ok" : "unavailable" } as const;
     },
   );
-  if (feature) registerApprovalRoutes(app, feature.service, feature.verifier);
+  if (feature)
+    registerApprovalRoutes(
+      app,
+      feature.service,
+      feature.verifier,
+      feature.rateLimit,
+    );
   return { app, lifecycle };
 }

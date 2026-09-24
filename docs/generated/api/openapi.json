@@ -454,6 +454,52 @@
               }
             }
           },
+          "429": {
+            "description": "Response",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until a bounded retry is allowed.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": ["code", "message", "requestId"],
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "pattern": "^[A-Z][A-Z0-9_]*$"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "traceId": {
+                          "type": "string"
+                        },
+                        "errorId": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Response",
             "content": {
@@ -532,7 +578,8 @@
         "x-expected-error-codes": [
           "VALIDATION_FAILED",
           "AUTHENTICATION_REQUIRED",
-          "IDEMPOTENCY_KEY_REUSED"
+          "IDEMPOTENCY_KEY_REUSED",
+          "RATE_LIMITED"
         ]
       },
       "get": {
@@ -814,6 +861,52 @@
               }
             }
           },
+          "429": {
+            "description": "Response",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until a bounded retry is allowed.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": ["code", "message", "requestId"],
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "pattern": "^[A-Z][A-Z0-9_]*$"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "traceId": {
+                          "type": "string"
+                        },
+                        "errorId": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Response",
             "content": {
@@ -892,7 +985,8 @@
         "x-expected-error-codes": [
           "VALIDATION_FAILED",
           "AUTHENTICATION_REQUIRED",
-          "PERMISSION_DENIED"
+          "PERMISSION_DENIED",
+          "RATE_LIMITED"
         ]
       }
     },
@@ -1128,6 +1222,52 @@
               }
             }
           },
+          "429": {
+            "description": "Response",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until a bounded retry is allowed.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": ["code", "message", "requestId"],
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "pattern": "^[A-Z][A-Z0-9_]*$"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "traceId": {
+                          "type": "string"
+                        },
+                        "errorId": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Response",
             "content": {
@@ -1206,7 +1346,8 @@
         "x-expected-error-codes": [
           "VALIDATION_FAILED",
           "AUTHENTICATION_REQUIRED",
-          "RESOURCE_NOT_FOUND"
+          "RESOURCE_NOT_FOUND",
+          "RATE_LIMITED"
         ]
       }
     },
@@ -1553,6 +1694,52 @@
               }
             }
           },
+          "429": {
+            "description": "Response",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until a bounded retry is allowed.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": ["code", "message", "requestId"],
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "pattern": "^[A-Z][A-Z0-9_]*$"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "traceId": {
+                          "type": "string"
+                        },
+                        "errorId": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Response",
             "content": {
@@ -1633,7 +1820,8 @@
           "AUTHENTICATION_REQUIRED",
           "RESOURCE_NOT_FOUND",
           "APPROVAL_REQUEST_INVALID_STATE",
-          "RESOURCE_VERSION_CONFLICT"
+          "RESOURCE_VERSION_CONFLICT",
+          "RATE_LIMITED"
         ]
       }
     },
@@ -1961,6 +2149,52 @@
               }
             }
           },
+          "429": {
+            "description": "Response",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until a bounded retry is allowed.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": ["code", "message", "requestId"],
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "pattern": "^[A-Z][A-Z0-9_]*$"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "traceId": {
+                          "type": "string"
+                        },
+                        "errorId": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Response",
             "content": {
@@ -2041,7 +2275,8 @@
           "AUTHENTICATION_REQUIRED",
           "RESOURCE_NOT_FOUND",
           "APPROVAL_REQUEST_INVALID_STATE",
-          "RESOURCE_VERSION_CONFLICT"
+          "RESOURCE_VERSION_CONFLICT",
+          "RATE_LIMITED"
         ]
       }
     },
@@ -2369,6 +2604,52 @@
               }
             }
           },
+          "429": {
+            "description": "Response",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until a bounded retry is allowed.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": ["code", "message", "requestId"],
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "pattern": "^[A-Z][A-Z0-9_]*$"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "traceId": {
+                          "type": "string"
+                        },
+                        "errorId": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Response",
             "content": {
@@ -2450,7 +2731,8 @@
           "PERMISSION_DENIED",
           "RESOURCE_NOT_FOUND",
           "APPROVAL_REQUEST_INVALID_STATE",
-          "RESOURCE_VERSION_CONFLICT"
+          "RESOURCE_VERSION_CONFLICT",
+          "RATE_LIMITED"
         ]
       }
     },
@@ -2784,6 +3066,52 @@
               }
             }
           },
+          "429": {
+            "description": "Response",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until a bounded retry is allowed.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": ["code", "message", "requestId"],
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "pattern": "^[A-Z][A-Z0-9_]*$"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "traceId": {
+                          "type": "string"
+                        },
+                        "errorId": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Response",
             "content": {
@@ -2865,7 +3193,8 @@
           "PERMISSION_DENIED",
           "RESOURCE_NOT_FOUND",
           "APPROVAL_REQUEST_INVALID_STATE",
-          "RESOURCE_VERSION_CONFLICT"
+          "RESOURCE_VERSION_CONFLICT",
+          "RATE_LIMITED"
         ]
       }
     },
@@ -3193,6 +3522,52 @@
               }
             }
           },
+          "429": {
+            "description": "Response",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until a bounded retry is allowed.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error"],
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "required": ["code", "message", "requestId"],
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "pattern": "^[A-Z][A-Z0-9_]*$"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "traceId": {
+                          "type": "string"
+                        },
+                        "errorId": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Response",
             "content": {
@@ -3273,7 +3648,8 @@
           "AUTHENTICATION_REQUIRED",
           "RESOURCE_NOT_FOUND",
           "APPROVAL_REQUEST_INVALID_STATE",
-          "RESOURCE_VERSION_CONFLICT"
+          "RESOURCE_VERSION_CONFLICT",
+          "RATE_LIMITED"
         ]
       }
     }

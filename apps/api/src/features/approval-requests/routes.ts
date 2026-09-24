@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import type { Server, IncomingMessage, ServerResponse } from "node:http";
 import type { Logger } from "pino";
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
+import rateLimit from "@fastify/rate-limit";
 import { publicError, errorRegistry } from "../../errors.js";
 import { currentTraceId } from "../../request-context.js";
 import {
@@ -31,10 +32,30 @@ export function registerApprovalRoutes(
   >,
   service: ApprovalRequestService,
   verifier: AccessTokenVerifier,
+  limit: { max: number; timeWindow: number } = {
+    max: 120,
+    timeWindow: 60_000,
+  },
 ): void {
   const principals = new WeakMap<FastifyRequest, Principal>();
-  void app.register((feature, _options, done) => {
-    feature.addHook("onRequest", async (request, reply) => {
+  void app.register(async (feature) => {
+    await feature.register(rateLimit, {
+      max: limit.max,
+      timeWindow: limit.timeWindow,
+      hook: "onRequest",
+      addHeadersOnExceeding: {
+        "x-ratelimit-limit": false,
+        "x-ratelimit-remaining": false,
+        "x-ratelimit-reset": false,
+      },
+      addHeaders: {
+        "x-ratelimit-limit": false,
+        "x-ratelimit-remaining": false,
+        "x-ratelimit-reset": false,
+        "retry-after": true,
+      },
+    });
+    feature.addHook("preValidation", async (request, reply) => {
       const principal = await verifier.verify(request.headers.authorization);
       if (!principal) {
         reply
@@ -161,6 +182,5 @@ export function registerApprovalRoutes(
         },
       });
     }
-    done();
   });
 }

@@ -43,6 +43,12 @@ export const errorRegistry = Object.freeze({
     category: "not_found",
     retryable: false,
   }),
+  RATE_LIMITED: Object.freeze({
+    status: 429,
+    message: "Too many requests. Try again later.",
+    category: "rate_limit",
+    retryable: true,
+  }),
   INTERNAL_ERROR: Object.freeze({
     status: 500,
     message: "An unexpected error occurred.",

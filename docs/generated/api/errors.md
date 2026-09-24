@@ -13,5 +13,6 @@
 | `IDEMPOTENCY_KEY_REUSED` | 409 | conflict | no | The creation key was used for different content. |
 | `VALIDATION_FAILED` | 400 | validation | no | The request is invalid. |
 | `RESOURCE_NOT_FOUND` | 404 | not_found | no | The resource was not found. |
+| `RATE_LIMITED` | 429 | rate_limit | yes | Too many requests. Try again later. |
 | `INTERNAL_ERROR` | 500 | internal | no | An unexpected error occurred. |
 | `SERVICE_UNAVAILABLE` | 503 | availability | yes | The service is unavailable. |

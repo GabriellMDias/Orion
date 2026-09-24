@@ -149,6 +149,56 @@ describe("Approval Request on migrated PostgreSQL", () => {
         .status,
     ).toBe(400);
   });
+  it("limits feature requests before authentication without limiting health", async () => {
+    let verifications = 0;
+    const limited = createApp(
+      createLogger(parseServerConfig({ ORION_ENV: "test" })),
+      undefined,
+      {
+        service: new ApprovalRequestService(repo),
+        verifier: {
+          verify: () => {
+            verifications++;
+            return Promise.resolve(null);
+          },
+        },
+        rateLimit: { max: 2, timeWindow: 3_600_000 },
+      },
+    );
+    try {
+      limited.lifecycle.markReady();
+      for (const [index, url] of [
+        "/approval-requests",
+        "/approval-requests/not-an-id",
+      ].entries()) {
+        const denied = await limited.app.inject({
+          method: "GET",
+          url,
+          headers: { "x-forwarded-for": `192.0.2.${index + 1}` },
+        });
+        expect(denied.statusCode).toBe(401);
+      }
+      const exceeded = await limited.app.inject({
+        method: "POST",
+        url: "/approval-requests",
+        headers: { "x-forwarded-for": "192.0.2.3" },
+        payload: {},
+      });
+      expect(exceeded.statusCode).toBe(429);
+      expect(exceeded.json()).toEqual({
+        error: {
+          code: "RATE_LIMITED",
+          message: "Too many requests. Try again later.",
+          requestId: exceeded.headers["x-request-id"],
+        },
+      });
+      expect(Number(exceeded.headers["retry-after"])).toBeGreaterThan(0);
+      expect(verifications).toBe(2);
+      expect((await limited.app.inject("/health/live")).statusCode).toBe(200);
+    } finally {
+      await limited.app.close();
+    }
+  });
   it("replays a creation intent and rejects conflicting reuse", async () => {
     const key = randomUUID();
     const first = await call(

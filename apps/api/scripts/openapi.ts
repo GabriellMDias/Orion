@@ -7,9 +7,19 @@ type Schema = Record<string, unknown>;
 function asSchema(value: object): Schema {
   return value as Schema;
 }
-function response(schema: unknown) {
+function response(schema: unknown, status: string) {
   return {
     description: "Response",
+    ...(status === "429"
+      ? {
+          headers: {
+            "Retry-After": {
+              description: "Seconds until a bounded retry is allowed.",
+              schema: { type: "integer", minimum: 1 },
+            },
+          },
+        }
+      : {}),
     content: { "application/json": { schema } },
   };
 }
@@ -54,7 +64,7 @@ export async function generateOpenApi(): Promise<string> {
     const responses = Object.fromEntries(
       Object.entries(schema.response).map(([code, value]) => [
         code,
-        response(value),
+        response(value, code),
       ]),
     );
     if ("expectedErrors" in operation) {
