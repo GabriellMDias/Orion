@@ -6,7 +6,7 @@
 
 This checklist records implementation prerequisites that require a project-owner decision, human-controlled account action, unavailable privilege, or securely supplied external configuration. Codex must maintain it throughout implementation and must never silently skip work because human intervention is needed.
 
-Phase 1 local tooling is complete. Phase 2 repository configuration is in progress; external activation and protection remain open below. Conditional items become necessary only when their trigger applies. There are currently no implemented application configuration schemas or `.env` variable names.
+Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; branch protection and conditional security settings remain open below. Conditional items become necessary only when their trigger applies. There are currently no implemented application configuration schemas or `.env` variable names.
 
 ## How Codex maintains this checklist
 
@@ -29,9 +29,9 @@ Phase 1 local tooling is complete. Phase 2 repository configuration is in progre
 
 ## H-01
 
-- [ ] **Enable the Renovate GitHub App for Orion.**
+- [x] **Enable the Renovate GitHub App for Orion.**
 
-**Status:** blocked. **Owner:** repository owner or an administrator who can authorize GitHub Apps.
+**Status:** completed. **Owner:** repository owner or an administrator who can authorize GitHub Apps.
 
 **What needs to be done:** Install or authorize the Renovate GitHub App for `GabriellMDias/Orion` with repository access, if it is not already installed. Confirm its onboarding and Dependency Dashboard after `renovate.json` reaches the default branch. Existing repository access is sufficient for Codex to prepare CI and inspect settings; no new personal token is requested.
 
@@ -43,43 +43,43 @@ Phase 1 local tooling is complete. Phase 2 repository configuration is in progre
 
 **Codex verification:** Validate `renovate.json`, inspect the app installation or its first run, and confirm the expected onboarding/Dependency Dashboard issue and update PR behavior on the repository. Record safe URLs or IDs and any remaining external limitation.
 
-**Evidence / blocker:** Repository identity, admin permission, and Git/Actions access are verified. Renovate configuration validates locally. App installation status could not be read with the available GitHub credential (`GET /user/installations` returned 403 because that endpoint needs a GitHub App-authorized user token); the app cannot read an unmerged branch configuration yet. Owner action or verified existing installation is still required.
+**Evidence / verification (2026-09-24):** The owner reported authorizing the Renovate GitHub App for `GabriellMDias/Orion`. The committed `renovate.json` passed Renovate's strict configuration validator, and GitHub confirms it is present on default branch `main`. Open [Dependency Dashboard issue #2](https://github.com/GabriellMDias/Orion/issues/2) was created by `renovate[bot]` and lists dependencies detected from the committed workflow, `.node-version`, and package manifest. It shows major updates pending Dashboard approval and routine updates awaiting schedule, consistent with the repository configuration. No Renovate update PR was found at verification; inspect its contents and lockfile change when one is created. The bot-authored Dashboard and repository-specific dependency inventory verify that the integration processed this repository without requiring a readable app-installation API response.
 
 ## H-02
 
-- [ ] **Make the private repository eligible for branch protection and require Orion's CI gate.**
+- [x] **Protect Orion's default branch and require its CI gate.**
 
-**Status:** blocked. **Owner:** repository owner/account administrator for the entitlement decision; Codex can apply settings after eligibility is available.
+**Status:** completed. **Owner:** repository owner/account administrator.
 
-**What needs to be done:** Decide how to make this currently private repository eligible for GitHub branch protection or rulesets. GitHub Pro (or another eligible plan) preserves privacy; making the repository public is a separate visibility decision and must not be assumed. Once eligible and after the check appears on a real run, require `Orion required gate` on `main` before normal merge, with no ordinary bypass. Codex will apply or verify the settings using existing admin access where possible.
+**What needs to be done:** Configure and verify an active ruleset for the default branch that requires pull requests and the `Orion required gate`, blocks branch deletion and force pushes, and has no bypass actors. Orion is now public, making repository rulesets available.
 
 **Why:** Required validation must be enforced outside the workflow; a successful workflow definition does not prevent merging unvalidated changes.
 
 **When / dependency:** [Phase 2](implementation-plan.md#phase-2), P2.3 and P2.6, after the aggregate check exists.
 
-**Values / configuration:** Repository `GabriellMDias/Orion` (currently private); primary branch `main`; exact required check `Orion required gate` from `.github/workflows/ci.yml`; no application `.env` variables. Record any actual ruleset/protection ID and approved exceptional bypass after setup.
+**Values / configuration:** Repository `GabriellMDias/Orion` (public); default branch `main`; ruleset `Protect main` (ID `23941496`); exact required check `Orion required gate` from `.github/workflows/ci.yml`; no bypass actors; no application `.env` variables.
 
 **Codex verification:** Read the effective protection/ruleset settings and confirm the correct check is required on the correct branch. Use a safe test PR or platform evidence to verify a failing required check prevents normal merge; do not weaken protection to test it.
 
-**Evidence / blocker:** The workflow now defines the aggregate gate. GitHub returned HTTP 403 for both `GET /branches/main/protection` and `GET /rulesets?includes_parents=true`: “Upgrade to GitHub Pro or make this repository public to enable this feature.” The repository is private. Codex cannot purchase a plan or change visibility without an owner decision, so enforcement cannot yet be configured or verified.
+**Evidence / verification (2026-09-24):** GitHub repository metadata reports `visibility=public` and `default_branch=main`. The authenticated GitHub REST API returned active repository ruleset `Protect main` (ID `23941496`, source `GabriellMDias/Orion`) with condition `ref_name.include=["~DEFAULT_BRANCH"]`; its rules include `pull_request`, `deletion`, `non_fast_forward`, and `required_status_checks`. The required check context is `Orion required gate` from GitHub Actions, and `bypass_actors` is empty. The check is registered and passed on the current `main` commit (`3543ca4393411e914428b5224c265dff5aa50dcf`; [run #3](https://github.com/GabriellMDias/Orion/actions/runs/36004323007)). The active effective rule configuration is platform evidence that normal merges require the PR and status check; no failing test PR was created.
 
 ## H-03
 
-- [ ] **Enable available GitHub security features or document verified entitlement limitations.**
+- [x] **Verify Orion's enabled GitHub security features in the repository and CI.**
 
-**Status:** blocked. **Owner:** repository/organization administrator where settings or entitlements are unavailable to Codex.
+**Status:** completed. **Owner:** repository owner/account administrator; Codex verified effective settings and CI behavior.
 
-**What needs to be done:** Confirm whether GitHub Code Security and Secret Protection are available for this private repository. If available, enable dependency review, CodeQL default setup, secret scanning, and push protection as applicable; set repository Actions variable `DEPENDENCY_REVIEW_ENABLED=true` only when dependency review is available so the PR gate requires it. If unavailable, record the feature-specific entitlement limits. Codex has already verified the dependency graph and enabled vulnerability alerts.
+**What needs to be done:** Enable applicable code and dependency security features for the public repository and verify that `DEPENDENCY_REVIEW_ENABLED=true` causes the dependency-review job to execute in PR CI. This action and verification are complete.
 
 **Why:** Accepted supply-chain controls include platform settings that may require administrative privileges or depend on repository visibility and entitlement.
 
 **When / dependency:** [Phase 2](implementation-plan.md#phase-2), P2.6. Code analysis becomes meaningful when supported code exists. Unavailable paid features are not mandatory architectural dependencies.
 
-**Values / configuration:** Repository `GabriellMDias/Orion` (private), repository Actions variable `DEPENDENCY_REVIEW_ENABLED=true` only when available, CodeQL default setup, secret scanning and push protection settings, and any reviewed exceptions. Dependency review's accepted initial threshold is newly introduced high/critical vulnerabilities. No production secrets or application `.env` values. Do not enable competing Dependabot version updates for ecosystems managed by Renovate.
+**Values / configuration:** Public repository `GabriellMDias/Orion`; Actions variable `DEPENDENCY_REVIEW_ENABLED=true`; CodeQL default setup, secret scanning, and push protection. Dependency review's accepted initial threshold is newly introduced high/critical vulnerabilities. No production secrets or application `.env` values. Do not enable competing Dependabot version updates for ecosystems managed by Renovate.
 
-**Codex verification:** Inspect effective settings and relevant checks/results. For unavailable features, record feature-specific evidence and qualified applicability rather than reporting the feature enabled. Split entries if some settings remain outstanding; do not check the whole item while an applicable requirement is unresolved.
+**Codex verification:** Read the repository security configuration and CodeQL default-setup API, confirm secret scanning and push-protection status and the exact Actions variable value, then inspect a PR workflow run showing Dependency Review completed successfully. For unavailable features, record feature-specific evidence and qualified applicability rather than reporting the feature enabled. Split entries if some settings remain outstanding; do not check the whole item while an applicable requirement is unresolved.
 
-**Evidence / blocker:** `GET /dependency-graph/sbom` returned HTTP 200. Codex enabled vulnerability alerts (`PUT /vulnerability-alerts` HTTP 204; subsequent GET HTTP 204), and `GET /dependabot/alerts` returned HTTP 200. `GET /code-scanning/default-setup` returned HTTP 403 saying code scanning is not enabled; `GET /secret-scanning/alerts` returned HTTP 404 saying secret scanning is disabled. The dependency-review variable is absent. Whether private-repository security entitlements are available remains unverified. No purchase is requested or implied; features unavailable under the current entitlement are conditional, not a reason to weaken the CI gate.
+**Evidence / verification (2026-09-24):** GitHub repository metadata confirms `visibility=public` and `default_branch=main`. `GET /code-scanning/default-setup` returned HTTP 200 with `state=configured`, languages `actions,javascript,javascript-typescript,typescript`, and weekly schedule. Repository security settings report `secret_scanning=enabled` and `secret_scanning_push_protection=enabled`; `GET /secret-scanning/alerts` returned HTTP 200. `GET /actions/variables/DEPENDENCY_REVIEW_ENABLED` returned the exact value `true`. Dependency graph, Dependabot alerts, and vulnerability alerts endpoints returned HTTP 200. On [PR #3 CI run #6](https://github.com/GabriellMDias/Orion/actions/runs/36009789640), Dependency Review executed with `fail-on-severity: high`, completed successfully, and reported no newly introduced high-or-higher vulnerable packages; validation and `Orion required gate` also succeeded. This verifies the enabled workflow path and the configured severity threshold.
 
 ## H-04
 
