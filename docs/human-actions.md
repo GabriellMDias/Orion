@@ -6,7 +6,7 @@
 
 This checklist records implementation prerequisites that require a project-owner decision, human-controlled account action, unavailable privilege, or securely supplied external configuration. Codex must maintain it throughout implementation and must never silently skip work because human intervention is needed.
 
-Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; branch protection and conditional security settings remain open below. Conditional items become necessary only when their trigger applies. There are currently no implemented application configuration schemas or `.env` variable names.
+Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-04 and H-05, with [implementation conventions](domains/approval-request-implementation.md) and [execution/artifact conventions](architecture/backend-execution-and-generated-artifacts.md) ready for later phases. No new human action is required before Phase 4. Conditional items become necessary only when their trigger applies. There are currently no implemented application configuration schemas or `.env` variable names.
 
 ## How Codex maintains this checklist
 
@@ -83,9 +83,9 @@ Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; bran
 
 ## H-04
 
-- [ ] **Define the reference feature and its business acceptance criteria.**
+- [x] **Define the reference feature and its business acceptance criteria.**
 
-**Status:** pending. **Owner:** project owner.
+**Status:** completed. **Owner:** project owner.
 
 **What needs to be done:** Choose the reference capability and supply its business meaning: actors, supported operations, invariants, state transitions, failures, side effects, data ownership, classification, lifecycle/retention needs, and acceptance scenarios. Codex should present bounded options or identify the specific missing decisions rather than ask the owner to design the entire implementation.
 
@@ -97,25 +97,25 @@ Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; bran
 
 **Codex verification:** Link the owner's recorded decision to the feature specification and acceptance scenarios. Check that every implemented business rule traces to the specification and explicitly list any remaining ambiguity. Do not require an additional ceremonial sign-off when the existing user instruction already supplies the decision.
 
-**Evidence / blocker:** No reference business feature has been selected in the documentation.
+**Evidence / verification (2026-09-24):** The project owner selected **Approval Request** and supplied its purpose, logical actors, five states, operations, transition constraints, rejection-reason requirement, concurrency and repeat-operation guarantees, internal data classification, persistence direction, and lack of default external integrations, legal retention duration, automatic deletion, or authoritative business-audit requirement. The canonical [feature specification](domains/approval-request.md) records these as use cases, invariants, valid/invalid transitions, expected failures, lifecycle and side-effect boundaries, and acceptance scenarios including stale/concurrent writes. [P3.1 and P3.2](implementation-plan.md#phase-3) are complete; the H-04 portion of P3.3 is recorded. Identity and access decisions were separately resolved in [H-05](#h-05). No credentials or `.env` values are needed for H-04.
 
 ## H-05
 
-- [ ] **Resolve required identity, access, and tenancy decisions for the reference feature.**
+- [x] **Resolve required identity, access, and tenancy decisions for the reference feature.**
 
-**Status:** pending. **Owner:** project owner, with identity/security administration if relevant.
+**Status:** completed. **Owner:** project owner, with identity/security administration if relevant.
 
-**What needs to be done:** Define public versus protected operations, human/machine actors, ownership or tenancy boundaries, required permissions, and session/revocation expectations. Select an authentication mechanism/provider only if required by the feature. Codex prepares suitable scoped choices; do not assume RBAC, ABAC, multi-tenancy, or a particular provider.
+**What needs to be done:** Define public versus protected operations, human/machine actors, ownership or tenancy boundaries, required permissions, and session/revocation expectations. Select an authentication boundary; select a concrete provider only if needed for later integration. Codex prepares suitable scoped choices; do not assume RBAC, ABAC, multi-tenancy, or a particular provider.
 
 **Why:** Security policies define constraints but intentionally leave these product choices open. Protected functionality cannot be implemented safely by guessing them.
 
 **When / dependency:** [Phase 3](implementation-plan.md#phase-3), P3.3; before P5.4 or P6.6 exposes protected behavior. If the selected feature is explicitly anonymous, record that decision and change inapplicable tasks rather than fabricate identities.
 
-**Values / configuration:** Actor/capability rules, resource/tenant scope, chosen identity strategy, and applicable lifetime/revocation requirements. Provider-specific issuer, audience, client identifiers, redirect origins, and configuration key names remain not defined yet; record exact non-secret names once selected. Provisioning and secret delivery are tracked separately in [H-07](#h-07).
+**Values / configuration:** The [feature specification](domains/approval-request.md#identity-and-authorization-boundary) records actor/capability and ownership rules, absence of tenancy, and the provider-agnostic OIDC/OAuth 2.0 bearer access-token boundary. Token expiration and validation belong to that boundary. A concrete provider, provider-specific session/refresh/revocation behavior, issuer, audience, client identifiers, redirect origins, and `.env` key names are not selected. If needed later, record exact non-secret names and track provisioning or secrets under [H-07](#h-07).
 
 **Codex verification:** Link the recorded decision and any required ADR; trace protected operations to enforceable policies and allow/deny tests. Verify the implementation respects anonymous behavior and denied resource/tenant access where applicable.
 
-**Evidence / blocker:** Product identity and access requirements remain unresolved.
+**Evidence / verification (2026-09-24):** The project owner specified authenticated human access for every operation, no anonymous or machine actors, creator ownership, owner-scoped read/edit/submit/cancel, review capability for relevant reads and decisions, a mandatory self-review denial even when a user has both capabilities, no tenancy, and no admin override. The [canonical feature specification](domains/approval-request.md#identity-and-authorization-boundary) records the authorization matrix and [allow/deny scenarios](domains/approval-request.md#acceptance-scenarios), including invalid-state denials. The owner selected a provider-agnostic OIDC/OAuth 2.0 bearer access-token boundary and explicitly deferred a concrete provider and provider-specific session/refresh/revocation details. Synthetic-identity testing needs no external accounts; [H-07](#h-07) remains conditional for future provider provisioning. This resolves H-05's product and boundary decisions without treating a provider as selected.
 
 ## H-06
 
@@ -151,7 +151,7 @@ Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; bran
 
 **Codex verification:** Validate configuration without printing values; perform a bounded non-destructive connectivity or authentication test and the relevant integration flow. For identity, test intended redirects and claims plus denial/revocation behavior where required. Use provider evidence if Codex cannot inspect account settings and record outstanding technical verification separately.
 
-**Evidence / blocker:** No service-specific provisioning request or variable name exists yet.
+**Evidence / blocker:** H-05 selected a provider-agnostic token boundary but no concrete identity provider. No service-specific provisioning request or variable name exists yet; this action remains conditional.
 
 ## H-08
 

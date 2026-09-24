@@ -53,7 +53,7 @@ This table owns phase-level status; the tables within each phase own task-level 
 | --- | --- | --- | --- | --- |
 | [1](#phase-1) | Reproducible workspace and local validation | completed | None | Frozen install and `pnpm validate` pass; validation changed zero source files. |
 | [2](#phase-2) | CI and dependency security | completed | 1 | [H-01](human-actions.md#h-01), [H-02](human-actions.md#h-02), and [H-03](human-actions.md#h-03) are complete. On [PR #3 CI run #6](https://github.com/GabriellMDias/Orion/actions/runs/36009789640), validation, Dependency Review with `DEPENDENCY_REVIEW_ENABLED=true`, and the aggregate gate all passed. All applicable Phase 2 acceptance criteria are satisfied. |
-| [3](#phase-3) | Reference feature and immediate decisions | pending | 1-2; discovery may begin earlier | Not started; owner inputs tracked in H-04 and H-05. |
+| [3](#phase-3) | Reference feature and immediate decisions | completed | 1-2; discovery may begin earlier | [Business specification](domains/approval-request.md), [feature implementation conventions](domains/approval-request-implementation.md), and [build/artifact workflow](architecture/backend-execution-and-generated-artifacts.md) resolve P3.1-P3.6; H-04/H-05 complete. No new ADR required under [authoring criteria](adr/authoring.md#when-a-decision-needs-an-adr). |
 | [4](#phase-4) | Observable API runtime | pending | 1-3 | Not started. |
 | [5](#phase-5) | Secure persistence-backed API feature | pending | 3-4 and CI | Not started. |
 | [6](#phase-6) | Generated client and complete web workflow | pending | 5 | Not started. |
@@ -135,12 +135,12 @@ This table owns phase-level status; the tables within each phase own task-level 
 
 | Task | Main work | Status | Evidence / dependency |
 | --- | --- | --- | --- |
-| P3.1 | Select the reference feature with the project owner; orders/payments in existing examples are not product requirements. | pending | [H-04](human-actions.md#h-04). |
-| P3.2 | Define actors, use cases, ownership, invariants, state transitions, expected failures, side effects, and acceptance scenarios. | pending | [H-04](human-actions.md#h-04). |
-| P3.3 | Specify data classifications/lifecycle and determine required authentication, authorization, tenancy, audit history, and integrations. | pending | [H-04](human-actions.md#h-04), [H-05](human-actions.md#h-05). |
-| P3.4 | Resolve feature placement, identifiers, timestamps, transaction ownership, schema metadata, API errors, and pagination where applicable. | pending | Implementation decisions after requirements are known. |
-| P3.5 | Decide backend development/build execution and generated-artifact storage conventions. | pending | Not started. |
-| P3.6 | Record significant new architectural choices through the ADR process; keep ordinary conventions near their owners. | pending | Not started. |
+| P3.1 | Select the reference feature with the project owner; orders/payments in existing examples are not product requirements. | completed | Owner selected [Approval Request](domains/approval-request.md); [H-04](human-actions.md#h-04). |
+| P3.2 | Define actors, use cases, ownership, invariants, state transitions, expected failures, side effects, and acceptance scenarios. | completed | Canonical [business specification and acceptance scenarios](domains/approval-request.md); H-05 now specifies enforceable ownership and review rules. |
+| P3.3 | Specify data classifications/lifecycle and determine required authentication, authorization, tenancy, audit history, and integrations. | completed | [Data and lifecycle](domains/approval-request.md#data-ownership-classification-and-lifecycle), [side-effect boundary](domains/approval-request.md#side-effect-boundary), and [identity and authorization](domains/approval-request.md#identity-and-authorization-boundary) record the H-04/H-05 decisions. No concrete identity provider is selected; future provisioning is conditional [H-07](human-actions.md#h-07). |
+| P3.4 | Resolve feature placement, identifiers, timestamps, transaction ownership, schema metadata, API errors, and pagination where applicable. | completed | [Feature implementation conventions](domains/approval-request-implementation.md) cover placement, identity/time, versioned writes, transaction ownership, create idempotency, authorized cursor lists, error mapping, and database metadata. |
+| P3.5 | Decide backend development/build execution and generated-artifact storage conventions. | completed | [Backend execution and generated artifacts](architecture/backend-execution-and-generated-artifacts.md) specifies `tsx` development, `tsc` emit/Node runtime, single-source generated outputs, commit/ignore rules, and future non-mutating drift checks. Commands are planned, not yet available. |
+| P3.6 | Record significant new architectural choices through the ADR process; keep ordinary conventions near their owners. | completed | [ADR authoring criteria](adr/authoring.md#when-a-decision-needs-an-adr) assessed: ADR-0001/0002/0004/0006/0007 and existing policies already establish runtime, workspace, transport, persistence, and contract/generation boundaries. P3.4 feature-local choices and P3.5 reversible execution/output conventions implement those decisions without changing cross-system ownership or technology; no new ADR is required. |
 
 **Expected deliverables:** A bounded feature specification, acceptance scenarios, dependency/ownership map, and explicit decisions needed by later phases.
 
@@ -153,6 +153,8 @@ This table owns phase-level status; the tables within each phase own task-level 
 - Required security choices are resolved before protected operations are exposed.
 - No invented tenancy, permissions model, retention duration, authentication provider, or deployment target.
 - The feature can be delivered incrementally without speculative infrastructure.
+
+**Completion evidence (2026-09-24):** [H-04](human-actions.md#h-04) and [H-05](human-actions.md#h-05) own the project decisions; the [business specification](domains/approval-request.md) traces every planned operation, state change, failure, concurrency case, and access denial to those inputs. The [feature implementation design](domains/approval-request-implementation.md) distinguishes protected operations from the absence of anonymous business operations and gives later phases explicit persistence, contract, and test boundaries. [Execution/artifact conventions](architecture/backend-execution-and-generated-artifacts.md) use existing accepted directions without adding infrastructure. A concrete identity provider, tenancy, legal retention duration, and deployment target were not invented. Application, API, database, authentication, and web code remain unimplemented; Phase 4 may start from this validated decision baseline. `pnpm validate` passed for this documentation change.
 
 **Usable state:** A validated repository with an executable backlog and clear decision gates.
 
