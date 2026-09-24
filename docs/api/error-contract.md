@@ -39,7 +39,7 @@ into an API-facing contract.
 
 This document is technology-agnostic.
 
-The transport/schema/OpenAPI/SDK strategy is selected by ADR-0004 and ADR-0007. The API runtime now owns a foundational [error registry and envelope schema](../../apps/api/src/errors.ts), with a [generated registry reference](../generated/api/errors.md); feature-specific errors, OpenAPI, SDK behavior, and remaining conventions will be added when their boundaries exist.
+The transport/schema/OpenAPI/SDK strategy is selected by ADR-0004 and ADR-0007. The API runtime owns the [error registry and envelope schema](../../apps/api/src/errors.ts), including Approval Request errors, with a [generated registry reference](../generated/api/errors.md) and [OpenAPI contract](../generated/api/openapi.json). The generated frontend SDK remains Phase 6 work.
 
 This document complements:
 

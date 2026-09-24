@@ -61,7 +61,8 @@ export default {
   ],
   options: {
     doNotFollow: { path: "node_modules" },
-    exclude: "(^|/)(node_modules|coverage|test-results|playwright-report)/",
+    exclude:
+      "(^|/)(node_modules|coverage|test-results|playwright-report|generated)/",
     tsConfig: { fileName: "tsconfig.json" },
   },
 };

@@ -1,6 +1,6 @@
 # Documentation Task Index
 
-Choose the route relevant to the change. Policy pages provide section links for focused reading; related policies apply when the change crosses their boundaries. The repository has an API runtime foundation; feature and persistence capabilities remain planned. [Selected technologies](architecture/technology-decisions.md) are not proof of [implemented commands](validation.md).
+Choose the route relevant to the change. Policy pages provide section links for focused reading; related policies apply when the change crosses their boundaries. The repository has the Phase 5 Approval Request server and persistence feature; web and frontend-client capabilities remain planned. [Selected technologies](architecture/technology-decisions.md) are not proof of [implemented commands](validation.md).
 
 ## Architecture and implementation
 
@@ -21,7 +21,7 @@ Choose the route relevant to the change. Policy pages provide section links for 
 | Handle delivery, retries, and external side effects | [Delivery and side effects](architecture/delivery-and-side-effects.md) |
 | Implement CI or dependency automation | [Continuous integration](architecture/continuous-integration.md) |
 | Build the first API or regenerate derived references | [Backend execution and generated artifacts](architecture/backend-execution-and-generated-artifacts.md) |
-| Run or extend the current API foundation | [API runtime](../apps/api/README.md), [API-local instructions](../apps/api/AGENTS.md) |
+| Run or extend the current API feature | [API runtime](../apps/api/README.md), [API-local instructions](../apps/api/AGENTS.md), [generated OpenAPI](generated/api/openapi.json) |
 
 ## APIs and data
 
@@ -33,6 +33,7 @@ Choose the route relevant to the change. Policy pages provide section links for 
 | Model persistent data and ownership | [Database principles](database/principles.md) |
 | Change durable schema or migration history | [Migrations](database/migrations.md) |
 | Document or generate database reference | [Schema documentation](database/schema-documentation.md) |
+| Inspect the migrated Approval Request schema | [Generated database reference](generated/database/approval-requests.md) |
 | Protect atomicity or concurrent writes | [Transactions and concurrency](database/transactions-and-concurrency.md) |
 
 ## Reliability

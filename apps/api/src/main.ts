@@ -8,7 +8,47 @@ const logger = createLogger(config);
 const telemetry = initializeTelemetry(config, logger);
 // Load Fastify and the application only after instrumentation is registered.
 const { createApp } = await import("./app.js");
-const { app, lifecycle } = createApp(logger);
+const { createRepository } =
+  await import("./features/approval-requests/prisma-repository.js");
+const { ApprovalRequestService } =
+  await import("./features/approval-requests/service.js");
+const { createAccessTokenVerifier } =
+  await import("./features/approval-requests/authentication.js");
+const repository = config.databaseUrl
+  ? createRepository(config.databaseUrl)
+  : undefined;
+const feature =
+  repository &&
+  config.tokenIssuer &&
+  config.tokenAudience &&
+  config.tokenJwksUrl
+    ? {
+        service: new ApprovalRequestService(repository),
+        checkReady: async () => {
+          try {
+            await repository.db.$queryRaw`SELECT 1`;
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        verifier: createAccessTokenVerifier({
+          issuer: config.tokenIssuer,
+          audience: config.tokenAudience,
+          jwksUrl: config.tokenJwksUrl,
+        }),
+      }
+    : undefined;
+const { app, lifecycle } = createApp(logger, undefined, feature);
+const resources = {
+  shutdown: async () => {
+    try {
+      await repository?.db.$disconnect();
+    } finally {
+      await telemetry.shutdown();
+    }
+  },
+};
 
 let shuttingDown = false;
 async function shutdown(signal: string): Promise<void> {
@@ -18,7 +58,7 @@ async function shutdown(signal: string): Promise<void> {
   await shutdownRuntime(
     app,
     lifecycle,
-    telemetry,
+    resources,
     config.shutdownTimeoutMs,
     (boundary) => logger.warn({ boundary }, "shutdown_deadline_exceeded"),
   );
@@ -33,6 +73,7 @@ process.once("SIGTERM", () => {
 });
 
 try {
+  if (repository) await repository.db.$queryRaw`SELECT 1`;
   await app.listen({ host: config.host, port: config.port });
   lifecycle.markReady();
   logger.info(
@@ -44,7 +85,7 @@ try {
   await shutdownRuntime(
     app,
     lifecycle,
-    telemetry,
+    resources,
     config.shutdownTimeoutMs,
     () => logger.warn("startup_cleanup_deadline_exceeded"),
   );

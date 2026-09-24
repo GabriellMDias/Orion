@@ -10,6 +10,7 @@ export default defineConfig(
       "playwright-report/**",
       "test-results/**",
       "**/dist/**",
+      "apps/api/src/generated/**",
     ],
   },
   {

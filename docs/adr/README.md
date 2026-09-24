@@ -19,3 +19,4 @@ For a new decision, read [authoring policy](authoring.md), inspect related recor
 | [ADR-0009](0009-establish-testing-strategy-and-tooling.md) | Establish Testing Strategy and Tooling |
 | [ADR-0010](0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md) | Establish Observability, Logging, Tracing, Metrics, and Error Reporting Strategy |
 | [ADR-0011](0011-establish-continuous-integration-dependency-automation-and-supply-chain-security-strategy.md) | Establish Continuous Integration, Dependency Automation, and Supply Chain Security Strategy |
+| [ADR-0012](0012-verify-jwt-access-tokens-at-the-first-api-boundary.md) | Verify JWT Access Tokens at the First API Boundary |

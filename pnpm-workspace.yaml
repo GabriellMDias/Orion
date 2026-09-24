@@ -2,6 +2,13 @@ packages:
   - tooling/*
   - apps/*
   - packages/*
+overrides:
+  "@prisma/config@7.10.0>deepmerge-ts": 8.0.2
+  "prisma@7.10.0>mysql2": 3.24.4
 allowBuilds:
+  "@prisma/engines": true
+  cpu-features: false
   esbuild: true
+  prisma: true
   protobufjs: false
+  ssh2: false

@@ -35,6 +35,8 @@ This document is technology-agnostic.
 
 ADR-0006 establishes the fully migrated PostgreSQL schema as the complete physical reference. The semantic metadata format, comment mechanism, generator, and output format remain implementation decisions.
 
+For the first application-owned table, [schema-adjacent metadata](../../apps/api/prisma/schema-metadata.json) supplies semantics and the [generated Approval Request reference](../generated/database/approval-requests.md) combines it with a freshly migrated PostgreSQL catalog. `pnpm references:check` fails on missing or stale table, column, enum, constraint, or index metadata and on generated-reference drift. Broader database documentation mechanisms remain requirement-driven.
+
 This document complements:
 
 - [docs/database/principles.md](principles.md);

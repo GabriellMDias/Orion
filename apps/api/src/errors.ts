@@ -1,6 +1,36 @@
 import { Type, type Static } from "typebox";
 
 export const errorRegistry = Object.freeze({
+  AUTHENTICATION_REQUIRED: Object.freeze({
+    status: 401,
+    message: "Authentication is required.",
+    category: "authentication",
+    retryable: false,
+  }),
+  PERMISSION_DENIED: Object.freeze({
+    status: 403,
+    message: "Permission denied.",
+    category: "authorization",
+    retryable: false,
+  }),
+  APPROVAL_REQUEST_INVALID_STATE: Object.freeze({
+    status: 409,
+    message: "The request cannot be changed in its current state.",
+    category: "conflict",
+    retryable: false,
+  }),
+  RESOURCE_VERSION_CONFLICT: Object.freeze({
+    status: 409,
+    message: "The request changed; reload it before trying again.",
+    category: "conflict",
+    retryable: false,
+  }),
+  IDEMPOTENCY_KEY_REUSED: Object.freeze({
+    status: 409,
+    message: "The creation key was used for different content.",
+    category: "conflict",
+    retryable: false,
+  }),
   VALIDATION_FAILED: Object.freeze({
     status: 400,
     message: "The request is invalid.",
@@ -12,6 +42,12 @@ export const errorRegistry = Object.freeze({
     message: "The resource was not found.",
     category: "not_found",
     retryable: false,
+  }),
+  RATE_LIMITED: Object.freeze({
+    status: 429,
+    message: "Too many requests. Try again later.",
+    category: "rate_limit",
+    retryable: true,
   }),
   INTERNAL_ERROR: Object.freeze({
     status: 500,

@@ -3,9 +3,16 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import { configReference } from "../src/config.js";
 import { errorRegistry } from "../src/errors.js";
+import { generateOpenApi } from "./openapi.js";
+import { generateDatabaseReference } from "./database-reference.js";
+import { withMigratedDatabase } from "./migrated-database.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const generated = [
+  {
+    path: resolve(root, "docs/generated/api/openapi.json"),
+    content: await generateOpenApi(),
+  },
   {
     path: resolve(root, "docs/generated/configuration/api.md"),
     content: [
@@ -15,7 +22,7 @@ const generated = [
       "",
       "[Configuration policy](../../architecture/configuration.md) · [API runtime](../../../apps/api/README.md)",
       "",
-      "No values are currently eligible for client exposure. Only `ORION_ENV` is required; all other values have safe defaults.",
+      "No values are eligible for client exposure. `ORION_ENV` is always required; the database and token settings are required together to enable the Approval Request feature and in production.",
       "",
       "| Environment variable | Type | Required | Default | Visibility | Purpose |",
       "| --- | --- | --- | --- | --- | --- |",
@@ -49,6 +56,12 @@ const generated = [
 const write = process.argv[2] === "--write";
 if (!write && process.argv[2] !== "--check")
   throw new Error("Expected --check or --write");
+generated.push({
+  path: resolve(root, "docs/generated/database/approval-requests.md"),
+  content: await withMigratedDatabase((_runtimeUrl, migrationUrl) =>
+    generateDatabaseReference(migrationUrl),
+  ),
+});
 for (const artifact of generated) {
   if (write) {
     await mkdir(dirname(artifact.path), { recursive: true });

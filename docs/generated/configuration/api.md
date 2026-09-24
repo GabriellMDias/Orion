@@ -4,7 +4,7 @@
 
 [Configuration policy](../../architecture/configuration.md) · [API runtime](../../../apps/api/README.md)
 
-No values are currently eligible for client exposure. Only `ORION_ENV` is required; all other values have safe defaults.
+No values are eligible for client exposure. `ORION_ENV` is always required; the database and token settings are required together to enable the Approval Request feature and in production.
 
 | Environment variable | Type | Required | Default | Visibility | Purpose |
 | --- | --- | --- | --- | --- | --- |
@@ -15,3 +15,7 @@ No values are currently eligible for client exposure. Only `ORION_ENV` is requir
 | `ORION_SHUTDOWN_TIMEOUT_MS` | integer 100..30000 | no | `5000` | server | Total graceful shutdown deadline. |
 | `ORION_OTLP_ENDPOINT` | http(s) URL | no | — | server | Optional OTLP HTTP collector base URL. |
 | `ORION_TRACE_SAMPLE_RATIO` | number 0..1 | no | `1` | server | Trace sampling probability. |
+| `ORION_DATABASE_URL` | PostgreSQL URL | no | — | server | Runtime database credential; required to activate Approval Request routes. |
+| `ORION_TOKEN_ISSUER` | issuer URL | no | — | server | Expected access-token issuer; configure with audience and JWKS URL. |
+| `ORION_TOKEN_AUDIENCE` | nonempty string | no | — | server | Expected API access-token audience. |
+| `ORION_TOKEN_JWKS_URL` | http(s) URL | no | — | server | Trusted issuer public-key endpoint. |
