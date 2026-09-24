@@ -6,7 +6,7 @@
 
 This checklist records implementation prerequisites that require a project-owner decision, human-controlled account action, unavailable privilege, or securely supplied external configuration. Codex must maintain it throughout implementation and must never silently skip work because human intervention is needed.
 
-Phase 1 local tooling is complete. Phase 2 repository configuration is in progress; external activation and protection remain open below. Conditional items become necessary only when their trigger applies. There are currently no implemented application configuration schemas or `.env` variable names.
+Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; branch protection and conditional security settings remain open below. Conditional items become necessary only when their trigger applies. There are currently no implemented application configuration schemas or `.env` variable names.
 
 ## How Codex maintains this checklist
 
@@ -29,9 +29,9 @@ Phase 1 local tooling is complete. Phase 2 repository configuration is in progre
 
 ## H-01
 
-- [ ] **Enable the Renovate GitHub App for Orion.**
+- [x] **Enable the Renovate GitHub App for Orion.**
 
-**Status:** blocked. **Owner:** repository owner or an administrator who can authorize GitHub Apps.
+**Status:** completed. **Owner:** repository owner or an administrator who can authorize GitHub Apps.
 
 **What needs to be done:** Install or authorize the Renovate GitHub App for `GabriellMDias/Orion` with repository access, if it is not already installed. Confirm its onboarding and Dependency Dashboard after `renovate.json` reaches the default branch. Existing repository access is sufficient for Codex to prepare CI and inspect settings; no new personal token is requested.
 
@@ -43,7 +43,7 @@ Phase 1 local tooling is complete. Phase 2 repository configuration is in progre
 
 **Codex verification:** Validate `renovate.json`, inspect the app installation or its first run, and confirm the expected onboarding/Dependency Dashboard issue and update PR behavior on the repository. Record safe URLs or IDs and any remaining external limitation.
 
-**Evidence / blocker:** Repository identity, admin permission, and Git/Actions access are verified. Renovate configuration validates locally. App installation status could not be read with the available GitHub credential (`GET /user/installations` returned 403 because that endpoint needs a GitHub App-authorized user token); the app cannot read an unmerged branch configuration yet. Owner action or verified existing installation is still required.
+**Evidence / verification (2026-09-24):** The owner reported authorizing the Renovate GitHub App for `GabriellMDias/Orion`. The committed `renovate.json` passed Renovate's strict configuration validator, and GitHub confirms it is present on default branch `main`. Open [Dependency Dashboard issue #2](https://github.com/GabriellMDias/Orion/issues/2) was created by `renovate[bot]` and lists dependencies detected from the committed workflow, `.node-version`, and package manifest. It shows major updates pending Dashboard approval and routine updates awaiting schedule, consistent with the repository configuration. No Renovate update PR was found at verification; inspect its contents and lockfile change when one is created. The bot-authored Dashboard and repository-specific dependency inventory verify that the integration processed this repository without requiring a readable app-installation API response.
 
 ## H-02
 
