@@ -6,9 +6,9 @@ Its purpose is a reusable engineering environment that remains understandable as
 
 ## Current state
 
-Orion is in its foundation phase. The repository contains documentation, eleven architectural decision records, a pnpm workspace, local validation tooling, CI configuration, and the observable `apps/api` runtime foundation. The Approval Request feature, persistence, authentication provider, and web application have not been implemented. Consult the [CI status](docs/architecture/continuous-integration.md) for remote execution and repository-setting availability.
+Orion is in its foundation phase. The repository contains documentation, twelve accepted architectural decision records, a pnpm workspace, local validation tooling, CI configuration, and the Approval Request reference feature across the API, PostgreSQL, generated SDK, and web application. A concrete authentication provider has not been selected. Consult the [CI status](docs/architecture/continuous-integration.md) for remote execution and repository-setting availability.
 
-Accepted architecture and implemented capability are different states. Consult the [technology map](docs/architecture/technology-decisions.md) for selected directions and deliberately deferred choices, and [validation availability](docs/validation.md) for current checks. With Node.js 24.13.0 and pnpm 11.25.0, run `pnpm install --frozen-lockfile` and `pnpm validate`. See the [API runtime](apps/api/README.md) for local execution and build commands.
+Accepted architecture and implemented capability are different states. Consult the [technology map](docs/architecture/technology-decisions.md) for selected directions and deliberately deferred choices, and [validation availability](docs/validation.md) for current checks. With Node.js 24.13.0 and pnpm 11.25.0, run `pnpm install --frozen-lockfile` and `pnpm validate`. See the [API runtime](apps/api/README.md) and [web workflow](apps/web/README.md) for local execution and build commands.
 
 Directory trees in architecture documents describe intended responsibilities, not proof that those directories exist. The physical repository takes precedence over illustrations. English is the canonical repository language; product localization is separate.
 

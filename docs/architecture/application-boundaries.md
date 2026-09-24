@@ -344,7 +344,7 @@ It is not a general-purpose shared package.
 
 ## Web Application
 
-The [accepted web direction](../adr/0008-select-react-vite-and-tanstack-for-web-applications.md#decision) is a React 19.x client-first SPA with Vite 8.x and React Compiler when compatible. TanStack Router owns URL/navigation state, TanStack Query owns server state through the generated OpenAPI client, and React state/context handles local UI state. No general global-state library or full-stack web framework is selected by default. Server rendering remains justified by product requirements; Fastify retains authoritative backend responsibilities. These choices are not yet implemented.
+The [accepted web direction](../adr/0008-select-react-vite-and-tanstack-for-web-applications.md#decision) is a React 19.x client-first SPA with Vite 8.x and React Compiler when compatible. The Phase 6 reference workflow implements it in `apps/web`: TanStack Router owns URL/navigation state, TanStack Query owns server state through the generated OpenAPI client, and React state/context handles local UI state. No general global-state library or full-stack web framework is selected by default. Server rendering remains justified by product requirements; Fastify retains authoritative backend responsibilities.
 
 The web application owns browser-specific delivery and user experience concerns.
 

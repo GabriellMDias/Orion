@@ -54,4 +54,4 @@ The Phase 5 executable contract defines `title` as required nonblank text up to 
 ## Verification handoff
 
 
-Phase 5 tests cover the authorization matrix with synthetic principals, error mappings at the HTTP boundary, create-key replay/conflict, conditional updates against migrated PostgreSQL, cursor authorization and ordering, and generated-artifact freshness. See [validation](../validation.md) for the current executable checks. The generated frontend client and browser workflow remain Phase 6 work.
+Phase 5 tests cover the authorization matrix with synthetic principals, error mappings at the HTTP boundary, create-key replay/conflict, conditional updates against migrated PostgreSQL, cursor authorization and ordering, and generated-artifact freshness. The Phase 6 [generated SDK](../../packages/sdk/src/index.ts) and [web workflow](../../apps/web/README.md) consume that contract and add browser coverage. See [validation](../validation.md) for current executable checks.

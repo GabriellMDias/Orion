@@ -6,7 +6,7 @@
 
 This is the living execution plan for Orion, based on the repository review and ten-phase plan. It tracks implementation progress; it does not replace current architectural policy or accepted ADRs. Preserve accepted decisions, rationale, exceptions, and technology responsibilities.
 
-Orion now contains documentation, a pnpm workspace, local validation tooling, a GitHub Actions workflow, and the Phase 4 API runtime foundation. `pnpm validate` runs the checks listed in [validation](validation.md). The Approval Request feature, persistence, authentication integration, generated OpenAPI/client, and web application remain future work. Creating this plan and its companion checklist did not itself start an implementation phase; Phase 1 progress is recorded below.
+Orion now contains documentation, a pnpm workspace, local validation tooling and CI, plus the Approval Request API, PostgreSQL persistence, generated OpenAPI/client, and web reference workflow. `pnpm validate` runs the checks listed in [validation](validation.md). A concrete identity provider and production deployment remain conditional future work. The phase tables below record the implementation history and current status.
 
 The documented destination is a reusable engineering foundation demonstrated by a complete reference feature: persistence, domain/application behavior, API contracts, generated client, web UI, tests, telemetry, and documentation. A particular business product and production environment have not been defined. Foundation completion is Phase 9; Phase 10 is conditional on concrete deployment requirements.
 
@@ -243,14 +243,14 @@ This table owns phase-level status; the tables within each phase own task-level 
 
 | Task | Main work | Status | Evidence / dependency |
 | --- | --- | --- | --- |
-| P6.1 | Generate client types from OpenAPI with openapi-typescript and compose the thin openapi-fetch client. | pending | Not started. |
-| P6.2 | Preserve structured errors and unknown safe error codes without importing backend implementation. | pending | Not started. |
-| P6.3 | Create `apps/web` with React 19.x, Vite 8.x, React Compiler where compatible, TanStack Router, and TanStack Query. | pending | Not started. |
-| P6.4 | Assign server state to Query, navigation/shareable state to Router, and interaction state to React. | pending | Not started. |
-| P6.5 | Implement loading, empty, success, validation, denied, conflict, and failure states for the reference workflow. | pending | Not started. |
-| P6.6 | Integrate the selected authentication flow when required. | pending | [H-05](human-actions.md#h-05), [H-07](human-actions.md#h-07) if applicable. |
-| P6.7 | Address keyboard interaction, focus, accessibility, and client-safe configuration. | pending | Not started. |
-| P6.8 | Add real-browser component/feature tests and critical full-stack Playwright journeys. | pending | Not started. |
+| P6.1 | Generate client types from OpenAPI with openapi-typescript and compose the thin openapi-fetch client. | completed | `packages/sdk` generates from committed OpenAPI; deterministic `references:check` passes. |
+| P6.2 | Preserve structured errors and unknown safe error codes without importing backend implementation. | completed | Web API adapter retains status/code/request ID, uses safe fallback for unknown codes; Node test passes; architecture check finds no cross-application import. |
+| P6.3 | Create `apps/web` with React 19.x, Vite 8.x, React Compiler where compatible, TanStack Router, and TanStack Query. | completed | Pinned workspace dependencies, Vite build with React Compiler, typed Router/Query application. |
+| P6.4 | Assign server state to Query, navigation/shareable state to Router, and interaction state to React. | completed | Query keys/invalidation own API state; route path and validated scope/cursor own URL state; forms/credential handoff use React state. |
+| P6.5 | Implement loading, empty, success, validation, denied, conflict, and failure states for the reference workflow. | completed | List/detail/forms expose each state, including accessible reload after conflict; API remains the authority. Browser and E2E cases exercise representative states. |
+| P6.6 | Integrate the selected authentication flow when required. | completed | H-05 bearer boundary is consumed through an in-memory token handoff; synthetic signed identities exercise it end to end. No concrete provider is selected, so [H-07](human-actions.md#h-07) stays conditional. |
+| P6.7 | Address keyboard interaction, focus, accessibility, and client-safe configuration. | completed | Native labeled forms/buttons, live status/alert regions, visible keyboard focus, responsive layout, and TypeBox-validated same-origin public API path. Browser keyboard test passes. |
+| P6.8 | Add real-browser component/feature tests and critical full-stack Playwright journeys. | completed | Two Vitest Browser Mode component tests and two Playwright Chromium journeys pass through migrated Testcontainers PostgreSQL, emitted API, and web app; aggregate `pnpm validate` passed locally. |
 
 **Expected deliverables:** Generated client integration, working web application, complete reference workflow, production builds, and browser/E2E checks.
 
@@ -265,6 +265,8 @@ This table owns phase-level status; the tables within each phase own task-level 
 - Browser bundles contain no server-only dependencies or secrets.
 - Client contracts regenerate without manual changes.
 - Browser-dependent tests use real browser behavior; pure logic stays in cheaper Node tests.
+
+**Completion evidence (2026-09-24):** `pnpm validate` passed locally on Node.js 24.13.0 / pnpm 11.25.0. It checked formatting, lint, strict types, import boundaries, 71 Markdown files/1097 links/12 ADRs, API/database/SDK reference freshness, 36 API Vitest tests, one web Node error-boundary test, two real-browser component tests, emitted API and Vite builds, the browser bundle for known server-only markers, both API smokes, and two Playwright Chromium journeys against freshly migrated PostgreSQL with signed synthetic principals. The browser journey proves create/edit/submit, self-review denial, reviewer approval, stale-version conflict, URL scope/detail preservation across refresh, Query list invalidation, and the documented loss of reviewer access after a decision. [H-06](human-actions.md#h-06) required no host intervention; [H-07](human-actions.md#h-07) remains conditional. PR CI evidence will be appended after the Phase 6 pull request runs.
 
 **Usable state:** The complete database-to-browser reference feature.
 
