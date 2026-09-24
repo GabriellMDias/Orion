@@ -18,7 +18,8 @@ export async function withMigratedDatabase<T>(
     })
     .withExposedPorts(5432)
     .withWaitStrategy(
-      Wait.forLogMessage("database system is ready to accept connections"),
+      // Initialization starts a temporary server before the final mapped server.
+      Wait.forLogMessage("database system is ready to accept connections", 2),
     )
     .start();
   try {
