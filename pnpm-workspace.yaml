@@ -2,6 +2,8 @@ packages:
   - tooling/*
   - apps/*
   - packages/*
+overrides:
+  "@prisma/config@7.10.0>deepmerge-ts": 8.0.2
 allowBuilds:
   "@prisma/engines": true
   cpu-features: false
