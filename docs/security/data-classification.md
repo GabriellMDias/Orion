@@ -1,5 +1,15 @@
 # Data Classification
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+## Read for this change
+
+- [Classification Levels](#classification-levels)
+- [Classification Summary](#classification-summary)
+- [Data Categories](#data-categories)
+- [Mechanical Enforcement](#mechanical-enforcement)
+- [Initial Classification Rules](#initial-classification-rules)
+
 ## Purpose
 
 This document defines the data-classification model used by Orion.
@@ -42,7 +52,7 @@ Data should not be copied, logged, exported, or exposed merely because doing so 
 
 ---
 
-# Classification Levels
+## Classification Levels
 
 Orion defines four primary data-classification levels:
 
@@ -59,7 +69,7 @@ When classification is unclear, use the more restrictive reasonable classificati
 
 ---
 
-# PUBLIC
+## PUBLIC
 
 `PUBLIC` data is intentionally approved for unrestricted disclosure.
 
@@ -80,7 +90,7 @@ The absence of a secret does not automatically make information public.
 
 ---
 
-## PUBLIC Handling
+### PUBLIC Handling
 
 Public data may generally be:
 
@@ -96,7 +106,7 @@ Public data may still require protection against unauthorized modification.
 
 ---
 
-# INTERNAL
+## INTERNAL
 
 `INTERNAL` data is intended for use within the project or organization but is not particularly sensitive if accidentally disclosed.
 
@@ -115,7 +125,7 @@ Internal data should not be published deliberately unless reviewed.
 
 ---
 
-## INTERNAL Handling
+### INTERNAL Handling
 
 Internal data may generally be accessible to authorized project contributors and development tooling.
 
@@ -134,7 +144,7 @@ It should not automatically be treated as public information.
 
 ---
 
-# CONFIDENTIAL
+## CONFIDENTIAL
 
 `CONFIDENTIAL` data could cause privacy, security, commercial, or operational harm if disclosed improperly.
 
@@ -155,7 +165,7 @@ Confidential data requires explicit access control and careful handling.
 
 ---
 
-## CONFIDENTIAL Handling
+### CONFIDENTIAL Handling
 
 Confidential data should:
 
@@ -172,7 +182,7 @@ AI-agent access to confidential data must be intentional and governed by the sam
 
 ---
 
-# RESTRICTED
+## RESTRICTED
 
 `RESTRICTED` data represents the highest sensitivity level.
 
@@ -197,7 +207,7 @@ Restricted data requires the strongest available protections.
 
 ---
 
-## RESTRICTED Handling
+### RESTRICTED Handling
 
 Restricted data must:
 
@@ -216,7 +226,7 @@ Restricted data should normally be stored only in systems specifically designed 
 
 ---
 
-# Classification Summary
+## Classification Summary
 
 | Classification | Disclosure Impact | Typical Access                            |
 | -------------- | ----------------- | ----------------------------------------- |
@@ -231,7 +241,7 @@ More restrictive handling may always be applied when justified.
 
 ---
 
-# Data Categories
+## Data Categories
 
 Classification level and data category are related but separate concepts.
 
@@ -266,7 +276,7 @@ secrets
 
 ---
 
-# Personal Data
+## Personal Data
 
 Personal data is information related to an identifiable individual.
 
@@ -290,7 +300,7 @@ Whether a specific identifier constitutes personal data depends on context.
 
 ---
 
-# Sensitive Personal Data
+## Sensitive Personal Data
 
 Some personal data requires stronger protection because disclosure may create greater harm or because applicable law gives it special treatment.
 
@@ -313,7 +323,7 @@ The exact legal definition depends on applicable law and product jurisdiction.
 
 ---
 
-# Authentication Data
+## Authentication Data
 
 Authentication data includes information used to establish identity.
 
@@ -335,7 +345,7 @@ Authentication-related metadata that does not grant access may have a lower clas
 
 ---
 
-# Passwords
+## Passwords
 
 Plaintext passwords are `RESTRICTED`.
 
@@ -354,7 +364,7 @@ Applications should minimize the amount of time plaintext passwords exist in mem
 
 ---
 
-# Password Hashes
+## Password Hashes
 
 Password hashes are also `RESTRICTED`.
 
@@ -364,7 +374,7 @@ They must not be treated as ordinary database fields.
 
 ---
 
-# Session and Access Tokens
+## Session and Access Tokens
 
 Session tokens, access tokens, refresh tokens, bearer tokens, and equivalent credentials are `RESTRICTED`.
 
@@ -384,7 +394,7 @@ Telemetry infrastructure should actively redact common credential locations.
 
 ---
 
-# API Keys and Secrets
+## API Keys and Secrets
 
 Private API keys and application secrets are `RESTRICTED`.
 
@@ -405,7 +415,7 @@ They must never be committed to the repository.
 
 ---
 
-# Public Keys and Public Identifiers
+## Public Keys and Public Identifiers
 
 The word `key` does not automatically imply restricted data.
 
@@ -425,7 +435,7 @@ Naming should make this distinction clear.
 
 ---
 
-# Authorization Data
+## Authorization Data
 
 Authorization data may include:
 
@@ -443,7 +453,7 @@ Authorization policy itself may be `INTERNAL` or `CONFIDENTIAL` depending on whe
 
 ---
 
-# Financial Data
+## Financial Data
 
 Financial information may include:
 
@@ -462,7 +472,7 @@ Some financial credentials or payment information may be `RESTRICTED`.
 
 ---
 
-# Payment Data
+## Payment Data
 
 Payment data requires particular care.
 
@@ -483,7 +493,7 @@ Provider-generated non-sensitive references may have a lower classification.
 
 ---
 
-# User-Generated Content
+## User-Generated Content
 
 User-generated content must not automatically be considered harmless.
 
@@ -502,7 +512,7 @@ Therefore arbitrary user content should generally be treated as `CONFIDENTIAL` u
 
 ---
 
-# Files and Attachments
+## Files and Attachments
 
 Uploaded files inherit classification from their content and intended use.
 
@@ -521,7 +531,7 @@ File storage, telemetry, scanning, preview generation, and AI processing must re
 
 ---
 
-# Business Data
+## Business Data
 
 Non-public business information may include:
 
@@ -540,7 +550,7 @@ Publicly released business information may be `PUBLIC`.
 
 ---
 
-# Operational Data
+## Operational Data
 
 Operational data includes:
 
@@ -559,7 +569,7 @@ Detailed infrastructure topology may require stronger classification than ordina
 
 ---
 
-# Security Data
+## Security Data
 
 Security-related data may include:
 
@@ -578,7 +588,7 @@ Unresolved vulnerability details and sensitive incident information should gener
 
 ---
 
-# Telemetry Data
+## Telemetry Data
 
 Telemetry inherits the classification of the data it contains.
 
@@ -604,7 +614,7 @@ Telemetry design must therefore control the fields being collected.
 
 ---
 
-# Derived Data
+## Derived Data
 
 Derived data may remain sensitive even when the original value is not directly present.
 
@@ -622,7 +632,7 @@ Classification must consider what can be inferred from the derived information.
 
 ---
 
-# Identifiers
+## Identifiers
 
 Identifiers require classification based on what they reveal.
 
@@ -643,7 +653,7 @@ Do not treat all identifiers as interchangeable.
 
 ---
 
-## Internal Entity IDs
+### Internal Entity IDs
 
 Internal identifiers such as:
 
@@ -659,7 +669,7 @@ They should normally be treated as `CONFIDENTIAL` when they can be linked to pri
 
 ---
 
-## Correlation IDs
+### Correlation IDs
 
 Values such as:
 
@@ -676,7 +686,7 @@ They may often be safely shown to users as support references.
 
 ---
 
-# Data Classification and Logs
+## Data Classification and Logs
 
 Logging policy must follow classification.
 
@@ -700,7 +710,7 @@ Structured fields should make it possible to control, review, and redact sensiti
 
 ---
 
-# Data Classification and Traces
+## Data Classification and Traces
 
 Trace attributes are production data.
 
@@ -722,7 +732,7 @@ Prefer explicit safe attributes.
 
 ---
 
-# Data Classification and Metrics
+## Data Classification and Metrics
 
 Metrics should generally contain aggregated information.
 
@@ -741,7 +751,7 @@ should normally not be used as metric dimensions.
 
 ---
 
-# Data Classification and Error Reporting
+## Data Classification and Error Reporting
 
 Error-reporting systems may capture:
 
@@ -762,7 +772,7 @@ Sensitive fields must be explicitly removed or prevented from being collected.
 
 ---
 
-# Data Classification and AI Agents
+## Data Classification and AI Agents
 
 AI agents are consumers of data.
 
@@ -772,13 +782,13 @@ The fact that an agent could use data to improve debugging does not automaticall
 
 ---
 
-## AI and PUBLIC Data
+### AI and PUBLIC Data
 
 Public data may generally be provided to approved AI tooling.
 
 ---
 
-## AI and INTERNAL Data
+### AI and INTERNAL Data
 
 Internal project information may generally be provided to approved project AI agents when consistent with repository and organizational policy.
 
@@ -795,7 +805,7 @@ when the corresponding repository is authorized for agent access.
 
 ---
 
-## AI and CONFIDENTIAL Data
+### AI and CONFIDENTIAL Data
 
 Confidential data should be provided to AI agents only when required for an authorized task and when the AI environment is approved to handle that data.
 
@@ -813,7 +823,7 @@ may be preferable to supplying an entire customer record.
 
 ---
 
-## AI and RESTRICTED Data
+### AI and RESTRICTED Data
 
 Restricted data must not be provided to AI agents by default.
 
@@ -833,7 +843,7 @@ It must not emerge accidentally through logs, files, environment dumps, or debug
 
 ---
 
-# Production Data
+## Production Data
 
 Production data must not be copied into development or test environments by default.
 
@@ -853,7 +863,7 @@ Any exception requires explicit justification.
 
 ---
 
-# Development Data
+## Development Data
 
 Development environments should use synthetic or purpose-created data whenever practical.
 
@@ -863,7 +873,7 @@ Fixtures and seed data must not contain real credentials or personal data copied
 
 ---
 
-# Test Data
+## Test Data
 
 Automated tests should use synthetic data.
 
@@ -881,7 +891,7 @@ A test-secret value should be obviously non-production and incapable of granting
 
 ---
 
-# Demo and Sample Data
+## Demo and Sample Data
 
 Sample data included in the repository must be safe for public exposure unless the repository's classification explicitly allows otherwise.
 
@@ -891,7 +901,7 @@ This reduces the risk of accidental publication later.
 
 ---
 
-# Local Development
+## Local Development
 
 Local machines should not become uncontrolled replicas of production data.
 
@@ -901,7 +911,7 @@ Local caches, database dumps, downloaded logs, and debugging artifacts must foll
 
 ---
 
-# Temporary Files
+## Temporary Files
 
 Temporary storage does not remove security requirements.
 
@@ -914,7 +924,7 @@ Sensitive temporary files must:
 
 ---
 
-# Clipboard and Screenshots
+## Clipboard and Screenshots
 
 Copying data into a clipboard, screenshot, chat, issue, or support system creates another copy.
 
@@ -924,7 +934,7 @@ Confidential information should be minimized and redacted when screenshots or su
 
 ---
 
-# Source Control
+## Source Control
 
 Source control is not a secret-management system.
 
@@ -948,7 +958,7 @@ The secret must be considered exposed and rotated according to incident procedur
 
 ---
 
-# Configuration Files
+## Configuration Files
 
 Configuration templates may contain placeholders.
 
@@ -964,7 +974,7 @@ Configuration documentation should describe where a value comes from without exp
 
 ---
 
-# Environment Variables
+## Environment Variables
 
 Environment variables may carry secrets, but they are not automatically secure merely because they are environment variables.
 
@@ -982,7 +992,7 @@ Applications should access only the configuration they require.
 
 ---
 
-# CI and Build Systems
+## CI and Build Systems
 
 CI systems may have access to credentials.
 
@@ -994,7 +1004,7 @@ Pull requests from less-trusted contexts must not automatically gain access to p
 
 ---
 
-# Generated Artifacts
+## Generated Artifacts
 
 Generated files inherit the classification of their source data.
 
@@ -1012,7 +1022,7 @@ Generation pipelines must apply classification rules intentionally.
 
 ---
 
-# Database Schemas
+## Database Schemas
 
 Database structure itself is generally `INTERNAL` or `CONFIDENTIAL`.
 
@@ -1022,7 +1032,7 @@ Schema comments should describe semantics rather than real data examples when ex
 
 ---
 
-# Database Rows
+## Database Rows
 
 Classification belongs to data semantics, not merely the containing table.
 
@@ -1043,7 +1053,7 @@ Field-level classification may therefore be necessary.
 
 ---
 
-# Database Metadata
+## Database Metadata
 
 As Orion evolves, database schema metadata should eventually make sensitive fields machine-discoverable where practical.
 
@@ -1060,7 +1070,7 @@ The exact implementation depends on the selected database tooling.
 
 ---
 
-# Data in Transit
+## Data in Transit
 
 Confidential and restricted information must use protected transport across untrusted networks.
 
@@ -1070,7 +1080,7 @@ Sensitive protocols must not silently downgrade to unprotected transport.
 
 ---
 
-# Data at Rest
+## Data at Rest
 
 Confidential and restricted data should use appropriate storage protections.
 
@@ -1090,7 +1100,7 @@ Encryption does not replace access control.
 
 ---
 
-# Application-Level Encryption
+## Application-Level Encryption
 
 Application-level or field-level encryption should be introduced when it provides meaningful protection beyond infrastructure encryption.
 
@@ -1111,7 +1121,7 @@ A significant encryption strategy should be documented through an ADR.
 
 ---
 
-# Access Control
+## Access Control
 
 Data access should follow least privilege.
 
@@ -1121,7 +1131,7 @@ Physical availability of data does not imply authorization.
 
 ---
 
-# Service Access
+## Service Access
 
 Backend applications should not automatically receive access to all organizational data.
 
@@ -1129,7 +1139,7 @@ As application boundaries mature, services and modules should receive only the d
 
 ---
 
-# Administrative Access
+## Administrative Access
 
 Administrative access to production data should be exceptional, authenticated, authorized, and auditable.
 
@@ -1137,7 +1147,7 @@ Routine application development should not depend on unrestricted production dat
 
 ---
 
-# Database Administration
+## Database Administration
 
 Database administrators may require broad technical access.
 
@@ -1153,7 +1163,7 @@ Broad access does not remove data-classification obligations.
 
 ---
 
-# Data Minimization
+## Data Minimization
 
 Applications should collect only data that has a concrete product, operational, security, or legal purpose.
 
@@ -1172,7 +1182,7 @@ Unnecessary data creates unnecessary risk.
 
 ---
 
-# Purpose Limitation
+## Purpose Limitation
 
 Data collected for one purpose should not automatically be reused for unrelated purposes.
 
@@ -1194,7 +1204,7 @@ New uses of sensitive data should be deliberate.
 
 ---
 
-# Retention
+## Retention
 
 Data should not be retained indefinitely by default.
 
@@ -1213,7 +1223,7 @@ Different data categories may require different retention periods.
 
 ---
 
-# Telemetry Retention
+## Telemetry Retention
 
 Telemetry retention deserves separate consideration because telemetry can contain confidential information.
 
@@ -1232,7 +1242,7 @@ Retention policies should be defined once the observability platform is selected
 
 ---
 
-# Data Deletion
+## Data Deletion
 
 Systems that store personal or confidential data should be designed so data can be deleted when policy or product requirements require it.
 
@@ -1252,7 +1262,7 @@ Deletion requirements should be understood before promising behavior externally.
 
 ---
 
-# Soft Delete
+## Soft Delete
 
 Soft deletion does not necessarily mean data has been deleted from a privacy perspective.
 
@@ -1268,7 +1278,7 @@ Soft delete should be used for business semantics where justified, not as a subs
 
 ---
 
-# Backups
+## Backups
 
 Backups inherit the classification of the source data.
 
@@ -1280,7 +1290,7 @@ Backup policy should therefore be considered part of data lifecycle design.
 
 ---
 
-# Data Export
+## Data Export
 
 Exporting data creates a new copy and potentially a new security boundary.
 
@@ -1294,7 +1304,7 @@ Exports containing confidential or restricted information should:
 
 ---
 
-# Bulk Access
+## Bulk Access
 
 Bulk access to data creates greater risk than individual-record access.
 
@@ -1311,7 +1321,7 @@ should receive additional scrutiny.
 
 ---
 
-# Analytics
+## Analytics
 
 Analytics systems should receive only data required for their purpose.
 
@@ -1335,7 +1345,7 @@ when detailed content is unnecessary.
 
 ---
 
-# Data Warehouses
+## Data Warehouses
 
 If analytical data stores are introduced, data classification still applies.
 
@@ -1345,7 +1355,7 @@ Access, retention, and deletion policies must remain explicit.
 
 ---
 
-# Caches
+## Caches
 
 Cached data retains the classification of the original data.
 
@@ -1365,7 +1375,7 @@ Cache expiration is not a replacement for authorization.
 
 ---
 
-# Client Storage
+## Client Storage
 
 Client devices are untrusted environments.
 
@@ -1384,7 +1394,7 @@ Restricted credentials must use platform-appropriate secure storage where client
 
 ---
 
-# Browser Storage
+## Browser Storage
 
 Do not place restricted secrets in browser storage merely for convenience.
 
@@ -1394,7 +1404,7 @@ The selected authentication architecture should define where credentials may saf
 
 ---
 
-# Mobile and Desktop Storage
+## Mobile and Desktop Storage
 
 Mobile and desktop applications may have access to operating-system secure-storage mechanisms.
 
@@ -1404,7 +1414,7 @@ The existence of secure storage does not justify storing unnecessary secrets.
 
 ---
 
-# Search Indexes
+## Search Indexes
 
 Search indexes contain copies of application data.
 
@@ -1422,7 +1432,7 @@ provider exposure
 
 ---
 
-# External Providers
+## External Providers
 
 Sending data to an external provider creates a new data-processing boundary.
 
@@ -1442,7 +1452,7 @@ Do not send entire application objects when only a small subset is needed.
 
 ---
 
-# Webhooks
+## Webhooks
 
 Webhook payloads should contain the minimum information required by the recipient.
 
@@ -1452,7 +1462,7 @@ Webhook bodies may contain confidential information and must be protected accord
 
 ---
 
-# Email
+## Email
 
 Email should not be treated as a secure channel for arbitrary restricted information.
 
@@ -1462,7 +1472,7 @@ Sensitive account operations should prefer secure links or authenticated applica
 
 ---
 
-# Notifications
+## Notifications
 
 Push notifications may appear on lock screens or shared devices.
 
@@ -1470,7 +1480,7 @@ Do not include highly sensitive information in notification content unless expli
 
 ---
 
-# Error Messages
+## Error Messages
 
 Public error messages must not reveal confidential or restricted implementation or user data unnecessarily.
 
@@ -1484,7 +1494,7 @@ Prefer safe public errors with correlation identifiers.
 
 ---
 
-# Audit Logs
+## Audit Logs
 
 Audit logs record security- or compliance-relevant actions.
 
@@ -1504,7 +1514,7 @@ They may require stronger integrity, access, and retention guarantees.
 
 ---
 
-# Audit Log Content
+## Audit Log Content
 
 Audit logs should capture enough information to answer:
 
@@ -1520,7 +1530,7 @@ without unnecessarily storing sensitive payloads.
 
 ---
 
-# Security Incidents
+## Security Incidents
 
 Exposure of confidential or restricted data may constitute a security incident.
 
@@ -1542,7 +1552,7 @@ Detailed incident-response procedures will be documented separately.
 
 ---
 
-# Secret Exposure
+## Secret Exposure
 
 If a restricted credential may have been disclosed, assume compromise until evaluated.
 
@@ -1561,7 +1571,7 @@ Deleting a leaked secret from a repository or log does not restore the secrecy o
 
 ---
 
-# Classification Inheritance
+## Classification Inheritance
 
 Derived artifacts inherit at least the sensitivity required by their content.
 
@@ -1588,7 +1598,7 @@ Changing representation does not reduce sensitivity automatically.
 
 ---
 
-# Aggregation
+## Aggregation
 
 Combining individually low-risk data may create higher-risk information.
 
@@ -1607,7 +1617,7 @@ Classification should consider aggregation risk.
 
 ---
 
-# Pseudonymization
+## Pseudonymization
 
 Replacing direct identifiers with alternate identifiers may reduce exposure risk.
 
@@ -1617,7 +1627,7 @@ If the data can reasonably be linked back to an individual, it should still be t
 
 ---
 
-# Anonymization
+## Anonymization
 
 Data should be considered anonymous only when re-identification is not reasonably possible in the relevant context.
 
@@ -1625,7 +1635,7 @@ Simply removing a name or email address does not necessarily anonymize a dataset
 
 ---
 
-# Redaction
+## Redaction
 
 Redaction removes or masks sensitive portions of data before exposure.
 
@@ -1649,7 +1659,7 @@ Authentication tokens should normally be removed entirely.
 
 ---
 
-# Hashing
+## Hashing
 
 Hashing does not automatically make data non-sensitive.
 
@@ -1659,7 +1669,7 @@ Classification must consider whether the original information can reasonably be 
 
 ---
 
-# Encryption
+## Encryption
 
 Encrypted data retains the classification of the plaintext.
 
@@ -1669,7 +1679,7 @@ It is not a change in data classification.
 
 ---
 
-# Data Classification Metadata
+## Data Classification Metadata
 
 As Orion evolves, classification should become machine-readable where practical.
 
@@ -1696,7 +1706,7 @@ The exact format will depend on the selected stack.
 
 ---
 
-# Mechanical Enforcement
+## Mechanical Enforcement
 
 Future tooling may validate rules such as:
 
@@ -1718,7 +1728,7 @@ Machine-readable classification increases the number of rules that can be enforc
 
 ---
 
-# Naming Sensitive Fields
+## Naming Sensitive Fields
 
 Sensitive fields should use clear names.
 
@@ -1747,7 +1757,7 @@ Clear naming improves review and automated detection.
 
 ---
 
-# Classification Review
+## Classification Review
 
 Classification should be reviewed when:
 
@@ -1765,7 +1775,7 @@ Classification is part of schema and architecture evolution.
 
 ---
 
-# Ownership
+## Ownership
 
 Every important data set should have an identifiable owner.
 
@@ -1783,7 +1793,7 @@ Data without ownership tends to accumulate uncontrolled access and retention.
 
 ---
 
-# Unknown Data
+## Unknown Data
 
 If data cannot be classified confidently, do not assume it is safe.
 
@@ -1801,7 +1811,7 @@ free-form JSON
 
 ---
 
-# Free-Form Metadata
+## Free-Form Metadata
 
 Free-form metadata fields require special caution.
 
@@ -1826,7 +1836,7 @@ without explicit controls.
 
 ---
 
-# JSON and Arbitrary Payloads
+## JSON and Arbitrary Payloads
 
 Generic JSON columns or payloads obscure classification.
 
@@ -1847,7 +1857,7 @@ AI reasoning
 
 ---
 
-# Data Classification in APIs
+## Data Classification in APIs
 
 Public and internal API schemas should make sensitive fields explicit.
 
@@ -1865,7 +1875,7 @@ Prefer deliberate response schemas.
 
 ---
 
-# Data Classification in Events
+## Data Classification in Events
 
 Events should contain the minimum information consumers require.
 
@@ -1877,7 +1887,7 @@ Smaller contracts reduce exposure.
 
 ---
 
-# Data Classification in SDKs
+## Data Classification in SDKs
 
 Generated SDKs should expose only fields present in supported contracts.
 
@@ -1885,7 +1895,7 @@ Server-only restricted data must never appear in client SDK schemas.
 
 ---
 
-# Data Classification in Documentation
+## Data Classification in Documentation
 
 Documentation should use synthetic values in examples.
 
@@ -1904,7 +1914,7 @@ Use clearly fictional examples.
 
 ---
 
-# Data Classification in Support Workflows
+## Data Classification in Support Workflows
 
 Support workflows may require customer context.
 
@@ -1914,7 +1924,7 @@ Support access should not automatically imply unrestricted access to production 
 
 ---
 
-# Data Classification in AI-Assisted Debugging
+## Data Classification in AI-Assisted Debugging
 
 A preferred AI-assisted debugging flow is:
 
@@ -1943,7 +1953,7 @@ The debugging workflow should be designed around minimal necessary evidence.
 
 ---
 
-# Security Review Triggers
+## Security Review Triggers
 
 Additional security review should be considered when a change introduces:
 
@@ -1962,7 +1972,7 @@ The exact review process will be defined later.
 
 ---
 
-# Initial Classification Rules
+## Initial Classification Rules
 
 Until more specific policies exist, Orion adopts the following rules:
 
@@ -1984,7 +1994,7 @@ Until more specific policies exist, Orion adopts the following rules:
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should eventually be complemented by:
 
@@ -2003,7 +2013,7 @@ The exact set of documents should grow according to real system requirements.
 
 ---
 
-# Future Machine-Readable Model
+## Future Machine-Readable Model
 
 As Orion's schema and tooling become concrete, data classification should ideally become part of canonical machine-readable definitions.
 
@@ -2037,7 +2047,7 @@ This should be introduced only when the selected technology stack supports it cl
 
 ---
 
-# Summary
+## Summary
 
 Orion uses four primary data classifications:
 

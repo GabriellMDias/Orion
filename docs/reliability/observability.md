@@ -1,5 +1,18 @@
 # Observability
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0010](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Observability Signals](#observability-signals)
+- [Telemetry Correlation](#telemetry-correlation)
+- [Testing Observability](#testing-observability)
+- [Initial Observability Requirements](#initial-observability-requirements)
+
+Related policy: [logging](logging.md), [tracing](tracing.md), [metrics](metrics.md), [error reporting](error-reporting.md), [health checks](health-checks.md), [alerting](alerting.md), [telemetry redaction](../security/telemetry-redaction.md).
+
 ## Purpose
 
 This document defines the observability model for Orion.
@@ -56,7 +69,9 @@ Observability should support both humans and AI agents.
 
 ---
 
-# Observability Signals
+## Observability Signals
+
+The [accepted server-side implementation direction](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md#decision) uses OpenTelemetry for traces and metrics, Pino JSON logs, W3C Trace Context, and OTLP. A Collector is preferred when justified, not mandatory. Backend/vendor choice remains deployment-specific; browser instrumentation and the OpenTelemetry Logs SDK are not initial defaults. Dedicated error reporting is optional and operational telemetry is not authoritative business audit history. Implementation is pending.
 
 Orion recognizes four primary observability signals:
 
@@ -73,7 +88,7 @@ They should complement each other rather than duplicate the same information ind
 
 ---
 
-## Logs
+### Logs
 
 Logs describe discrete events that occurred during execution.
 
@@ -95,7 +110,7 @@ Important diagnostic information should exist as explicit fields rather than bei
 
 ---
 
-## Traces
+### Traces
 
 Traces describe the execution path of an operation across components and dependencies.
 
@@ -138,7 +153,7 @@ Traces are particularly useful for:
 
 ---
 
-## Metrics
+### Metrics
 
 Metrics represent aggregated numerical behavior over time.
 
@@ -161,7 +176,7 @@ They should not be used to carry arbitrary high-cardinality diagnostic context.
 
 ---
 
-## Error Reporting
+### Error Reporting
 
 Error reporting focuses on unexpected failures.
 
@@ -184,7 +199,7 @@ It should not replace them.
 
 ---
 
-# Telemetry Correlation
+## Telemetry Correlation
 
 Observability signals should be correlated whenever practical.
 
@@ -220,7 +235,7 @@ Each identifier has a different purpose.
 
 ---
 
-# Trace ID
+## Trace ID
 
 A trace ID identifies an execution path.
 
@@ -257,7 +272,7 @@ the originating trace relationship should be preserved when the observability mo
 
 ---
 
-# Span ID
+## Span ID
 
 A span identifies an individual operation within a trace.
 
@@ -278,7 +293,7 @@ Avoid producing large numbers of meaningless spans merely because instrumentatio
 
 ---
 
-# Request ID
+## Request ID
 
 A request ID identifies an individual application-boundary request.
 
@@ -296,7 +311,7 @@ A request may participate in a larger distributed trace.
 
 ---
 
-# Error ID
+## Error ID
 
 An error ID identifies a specific failure report.
 
@@ -315,7 +330,7 @@ The reference must not encode sensitive data.
 
 ---
 
-# Job ID
+## Job ID
 
 Asynchronous jobs should have stable identifiers where appropriate.
 
@@ -333,7 +348,7 @@ This is particularly useful when retries occur.
 
 ---
 
-# Event ID
+## Event ID
 
 Events and messages may require unique identifiers for:
 
@@ -350,7 +365,7 @@ They represent different semantics.
 
 ---
 
-# Release Identity
+## Release Identity
 
 Production telemetry should identify the running release whenever practical.
 
@@ -370,7 +385,7 @@ Release identity should be consistent with the repository's release process once
 
 ---
 
-# Environment Identity
+## Environment Identity
 
 Telemetry should distinguish execution environments.
 
@@ -399,7 +414,7 @@ when they all represent the same semantic environment.
 
 ---
 
-# Service and Application Identity
+## Service and Application Identity
 
 Every telemetry-producing runtime should identify itself consistently.
 
@@ -419,7 +434,7 @@ Do not rely solely on hostnames or deployment-generated instance names to determ
 
 ---
 
-# Structured Logging
+## Structured Logging
 
 Production-relevant logs should be structured.
 
@@ -445,7 +460,7 @@ The principle is that relevant context should exist as machine-readable fields.
 
 ---
 
-# Event Names
+## Event Names
 
 Important structured logs should use stable event names.
 
@@ -471,7 +486,7 @@ The stable event name provides machine-readable semantics.
 
 ---
 
-# Logging Levels
+## Logging Levels
 
 Orion should use a small, well-defined logging-level model.
 
@@ -491,7 +506,7 @@ The semantic intent should remain consistent.
 
 ---
 
-## Debug
+### Debug
 
 Used for detailed diagnostic information primarily useful during investigation or development.
 
@@ -499,7 +514,7 @@ Debug logs should not be required for normal production understanding if they ar
 
 ---
 
-## Info
+### Info
 
 Used for meaningful normal operations.
 
@@ -516,7 +531,7 @@ Avoid logging every trivial function call at `info`.
 
 ---
 
-## Warning
+### Warning
 
 Used when something unexpected occurred but the operation may continue.
 
@@ -533,7 +548,7 @@ Warnings should represent something worth investigating if frequent.
 
 ---
 
-## Error
+### Error
 
 Used when an operation failed unexpectedly or could not complete as required.
 
@@ -543,7 +558,7 @@ Expected business failures should not automatically be logged as errors.
 
 ---
 
-## Critical
+### Critical
 
 Used for severe conditions requiring urgent operational attention.
 
@@ -560,7 +575,7 @@ Critical severity should remain rare.
 
 ---
 
-# Avoid Logging Every Error Multiple Times
+## Avoid Logging Every Error Multiple Times
 
 The same failure should not be independently reported at every layer.
 
@@ -593,7 +608,7 @@ The reporting owner should be explicit.
 
 ---
 
-# Context Enrichment
+## Context Enrichment
 
 Telemetry should be enriched with useful context at appropriate boundaries.
 
@@ -622,7 +637,7 @@ Do not attach all available application data indiscriminately.
 
 ---
 
-# Context Ownership
+## Context Ownership
 
 Different layers may add different context.
 
@@ -649,7 +664,7 @@ Telemetry enrichment should preserve architectural ownership.
 
 ---
 
-# Domain Events vs Telemetry Events
+## Domain Events vs Telemetry Events
 
 A domain event and an observability event are different concepts.
 
@@ -677,7 +692,7 @@ Telemetry events have diagnostic semantics.
 
 ---
 
-# Business Observability
+## Business Observability
 
 Important business workflows may expose operational metrics.
 
@@ -706,7 +721,7 @@ may indicate a serious application problem.
 
 ---
 
-# Technical Observability
+## Technical Observability
 
 Technical telemetry may include:
 
@@ -726,7 +741,7 @@ Business and technical signals should complement each other.
 
 ---
 
-# Tracing
+## Tracing
 
 Tracing should focus on meaningful execution boundaries.
 
@@ -748,7 +763,7 @@ Too much instrumentation increases cost and reduces signal quality.
 
 ---
 
-# Trace Naming
+## Trace Naming
 
 Span names should be stable and low-cardinality.
 
@@ -771,7 +786,7 @@ Dynamic identifiers should be attributes, not part of span names.
 
 ---
 
-# Trace Attributes
+## Trace Attributes
 
 Useful attributes may include:
 
@@ -790,7 +805,7 @@ Avoid uncontrolled high-cardinality attributes.
 
 ---
 
-# Metrics
+## Metrics
 
 Metrics should answer operational questions efficiently.
 
@@ -817,7 +832,7 @@ The actual naming convention will be selected with the telemetry stack.
 
 ---
 
-# Metric Labels
+## Metric Labels
 
 Metric labels must remain bounded.
 
@@ -850,7 +865,7 @@ Diagnostic identifiers belong primarily in logs and traces.
 
 ---
 
-# Latency
+## Latency
 
 Latency should be measured where it matters.
 
@@ -870,7 +885,7 @@ The exact service objectives will be defined later.
 
 ---
 
-# Error Rate
+## Error Rate
 
 Unexpected failure rate should be measurable.
 
@@ -898,7 +913,7 @@ It should not automatically count as an infrastructure error.
 
 ---
 
-# Availability
+## Availability
 
 Availability should eventually reflect meaningful user-facing capability rather than process existence alone.
 
@@ -918,7 +933,7 @@ Availability signals should evolve toward meaningful service behavior as the sys
 
 ---
 
-# Health Checks
+## Health Checks
 
 Applications may expose health checks appropriate to their runtime.
 
@@ -936,7 +951,7 @@ A health endpoint must not leak sensitive configuration or infrastructure detail
 
 ---
 
-## Liveness
+### Liveness
 
 Liveness answers:
 
@@ -950,7 +965,7 @@ Otherwise, temporary dependency outages may cause unnecessary restart loops.
 
 ---
 
-## Readiness
+### Readiness
 
 Readiness answers:
 
@@ -964,7 +979,7 @@ Exact semantics depend on deployment architecture.
 
 ---
 
-# Dependency Health
+## Dependency Health
 
 External dependency health should be observable without blindly treating every dependency failure as application death.
 
@@ -981,7 +996,7 @@ Dependency health should be represented separately when operationally useful.
 
 ---
 
-# External Dependency Telemetry
+## External Dependency Telemetry
 
 Outbound dependencies should provide enough telemetry to understand:
 
@@ -998,7 +1013,7 @@ Sensitive payloads must not be captured indiscriminately.
 
 ---
 
-# Database Observability
+## Database Observability
 
 Database telemetry should support investigation of:
 
@@ -1019,7 +1034,7 @@ Parameter redaction or query normalization may be required.
 
 ---
 
-# Queue and Messaging Observability
+## Queue and Messaging Observability
 
 Asynchronous systems should expose telemetry for:
 
@@ -1038,7 +1053,7 @@ Asynchronous telemetry should preserve correlation with the originating operatio
 
 ---
 
-# Background Job Observability
+## Background Job Observability
 
 Background jobs should expose:
 
@@ -1059,7 +1074,7 @@ A job that silently fails and disappears is an observability defect.
 
 ---
 
-# Cache Observability
+## Cache Observability
 
 If caching is introduced, relevant telemetry may include:
 
@@ -1075,7 +1090,7 @@ Do not introduce complex cache telemetry before caching itself has a justified r
 
 ---
 
-# Client Observability
+## Client Observability
 
 Web, mobile, and desktop applications should have observability appropriate to their runtime.
 
@@ -1095,7 +1110,7 @@ Client telemetry must respect privacy constraints.
 
 ---
 
-# Browser Observability
+## Browser Observability
 
 Browser applications may provide:
 
@@ -1111,7 +1126,7 @@ Browser telemetry must not expose server secrets.
 
 ---
 
-# Mobile Observability
+## Mobile Observability
 
 Mobile applications may require:
 
@@ -1128,7 +1143,7 @@ Device information should be limited to what is operationally justified.
 
 ---
 
-# Desktop Observability
+## Desktop Observability
 
 Desktop applications may require:
 
@@ -1144,7 +1159,7 @@ Local file paths or usernames should not be captured blindly.
 
 ---
 
-# Source Maps and Symbols
+## Source Maps and Symbols
 
 Production builds that transform code should preserve diagnostic mapping artifacts when required.
 
@@ -1162,7 +1177,7 @@ They do not necessarily need to be publicly accessible.
 
 ---
 
-# Open Standards
+## Open Standards
 
 Orion should prefer open telemetry standards when they provide sufficient capability.
 
@@ -1174,7 +1189,7 @@ The exact telemetry standard and vendor integrations will be selected through ar
 
 ---
 
-# Vendor Isolation
+## Vendor Isolation
 
 Vendor-specific telemetry APIs should not spread arbitrarily through business code.
 
@@ -1204,7 +1219,7 @@ Isolation should exist where it improves consistency, portability, testing, or p
 
 ---
 
-# Telemetry Must Not Change Business Behavior
+## Telemetry Must Not Change Business Behavior
 
 Observability should normally fail safely.
 
@@ -1226,7 +1241,7 @@ Telemetry infrastructure must avoid becoming an accidental critical dependency.
 
 ---
 
-# Telemetry Failures
+## Telemetry Failures
 
 Failures in telemetry export should themselves be diagnosable when practical.
 
@@ -1248,7 +1263,7 @@ Observability infrastructure must fail in a controlled manner.
 
 ---
 
-# Sensitive Information
+## Sensitive Information
 
 Telemetry systems must not become uncontrolled data stores.
 
@@ -1280,7 +1295,7 @@ user feedback attachments
 
 ---
 
-# Personal Data
+## Personal Data
 
 Personal data should be collected only when operationally justified.
 
@@ -1304,7 +1319,7 @@ Collection, retention, redaction, and access must follow explicit privacy policy
 
 ---
 
-# Data Minimization
+## Data Minimization
 
 The default should be:
 
@@ -1324,7 +1339,7 @@ It must be treated accordingly.
 
 ---
 
-# Redaction
+## Redaction
 
 Orion should support centralized redaction mechanisms.
 
@@ -1344,7 +1359,7 @@ Redaction rules should be reusable across applications where the semantics are s
 
 ---
 
-# Allowlist Over Blocklist
+## Allowlist Over Blocklist
 
 For sensitive payload capture, prefer explicit allowlisting where practical.
 
@@ -1369,7 +1384,7 @@ especially for public or evolving APIs.
 
 ---
 
-# Telemetry Retention
+## Telemetry Retention
 
 Telemetry retention should eventually be explicitly defined.
 
@@ -1400,7 +1415,7 @@ The exact policy will be defined after telemetry providers are selected.
 
 ---
 
-# Access Control
+## Access Control
 
 Observability systems may contain sensitive operational information.
 
@@ -1420,7 +1435,7 @@ Access architecture should be defined with the selected operational platform.
 
 ---
 
-# User Context
+## User Context
 
 Attaching user context to telemetry may help diagnose issues.
 
@@ -1441,7 +1456,7 @@ User context should be removed or updated appropriately when authentication stat
 
 ---
 
-# Anonymous Operations
+## Anonymous Operations
 
 Telemetry must not assume that every operation has an authenticated user.
 
@@ -1458,7 +1473,7 @@ without inventing fake user identities.
 
 ---
 
-# Sampling
+## Sampling
 
 High-volume telemetry may require sampling.
 
@@ -1480,7 +1495,7 @@ Sampling strategy should be documented when implemented.
 
 ---
 
-# Cost Awareness
+## Cost Awareness
 
 Observability has operational cost.
 
@@ -1502,7 +1517,7 @@ maximum possible telemetry volume
 
 ---
 
-# Performance Overhead
+## Performance Overhead
 
 Instrumentation adds runtime overhead.
 
@@ -1520,7 +1535,7 @@ Observability must not materially degrade application reliability without justif
 
 ---
 
-# Telemetry During Development
+## Telemetry During Development
 
 Development environments should provide useful observability without requiring the full production stack.
 
@@ -1537,7 +1552,7 @@ Development telemetry should use the same semantic conventions as production whe
 
 ---
 
-# Testing Observability
+## Testing Observability
 
 Important observability behavior should be testable.
 
@@ -1557,7 +1572,7 @@ Avoid tests that tightly couple business logic to the implementation details of 
 
 ---
 
-# Observability in CI
+## Observability in CI
 
 CI should verify observability-related invariants when practical.
 
@@ -1576,7 +1591,7 @@ The exact checks depend on the selected stack.
 
 ---
 
-# Naming Conventions
+## Naming Conventions
 
 Telemetry names should be stable and predictable.
 
@@ -1608,7 +1623,7 @@ should not coexist without semantic reasons.
 
 ---
 
-# Semantic Conventions
+## Semantic Conventions
 
 Where mature standard semantic conventions exist, Orion should prefer them over inventing custom naming.
 
@@ -1618,7 +1633,7 @@ This improves interoperability across telemetry systems and tooling.
 
 ---
 
-# Operational Dashboards
+## Operational Dashboards
 
 Dashboards should answer concrete operational questions.
 
@@ -1642,7 +1657,7 @@ A dashboard should not exist merely to display every metric available.
 
 ---
 
-# Service Overview
+## Service Overview
 
 Each important runtime should eventually have an operational overview showing relevant signals such as:
 
@@ -1659,7 +1674,7 @@ The exact indicators depend on the runtime.
 
 ---
 
-# Business Workflow Dashboards
+## Business Workflow Dashboards
 
 Critical product workflows may require dedicated views.
 
@@ -1676,7 +1691,7 @@ This helps identify semantic failure even when infrastructure metrics appear hea
 
 ---
 
-# Alerting Principles
+## Alerting Principles
 
 Alerts should indicate conditions that require action.
 
@@ -1703,7 +1718,7 @@ Where should I investigate?
 
 ---
 
-# Alert Sources
+## Alert Sources
 
 Alerts may be based on:
 
@@ -1722,7 +1737,7 @@ The exact alert thresholds should be based on operational evidence rather than a
 
 ---
 
-# Alert Fatigue
+## Alert Fatigue
 
 Too many low-value alerts make important alerts easier to ignore.
 
@@ -1740,7 +1755,7 @@ A significant change in authentication failure rate might be.
 
 ---
 
-# Release Monitoring
+## Release Monitoring
 
 Deployments should be observable.
 
@@ -1760,7 +1775,7 @@ This supports rapid investigation of deployment-related regressions.
 
 ---
 
-# Deployment Correlation
+## Deployment Correlation
 
 Operational systems should make it possible to answer:
 
@@ -1781,7 +1796,7 @@ when the deployment architecture allows it.
 
 ---
 
-# Rollback Visibility
+## Rollback Visibility
 
 If a deployment is rolled back, telemetry should reflect the active release afterward.
 
@@ -1789,7 +1804,7 @@ This prevents investigations from attributing post-rollback behavior to the wron
 
 ---
 
-# Operational Events
+## Operational Events
 
 Important operational changes may be represented as events.
 
@@ -1808,7 +1823,7 @@ These events can provide context when analyzing changes in metrics or errors.
 
 ---
 
-# Database Migration Observability
+## Database Migration Observability
 
 Database migrations should be observable.
 
@@ -1830,7 +1845,7 @@ Long-running or risky migrations may require additional monitoring.
 
 ---
 
-# Feature Flags
+## Feature Flags
 
 If feature flags are introduced, important telemetry may include flag state when necessary to investigate behavior.
 
@@ -1840,7 +1855,7 @@ Feature-flag observability should be deliberate.
 
 ---
 
-# Configuration Observability
+## Configuration Observability
 
 Applications should make relevant non-secret configuration state discoverable where operationally useful.
 
@@ -1859,7 +1874,7 @@ Configuration fingerprints or safe summaries may be useful in some cases.
 
 ---
 
-# Incident Investigation
+## Incident Investigation
 
 A normal investigation path should be possible from evidence.
 
@@ -1887,7 +1902,7 @@ Runbooks should describe specific investigation paths for known incidents.
 
 ---
 
-# AI-Assisted Investigation
+## AI-Assisted Investigation
 
 Orion should be designed so that AI agents can investigate runtime failures using structured evidence.
 
@@ -1915,7 +1930,7 @@ This reduces speculation and improves the reliability of AI-generated fixes.
 
 ---
 
-# Telemetry Accessibility for AI Agents
+## Telemetry Accessibility for AI Agents
 
 If AI agents are eventually given access to observability systems, access must follow the same security and privacy rules as human access.
 
@@ -1936,7 +1951,7 @@ collect everything because an agent may need it
 
 ---
 
-# From Incident to Regression Test
+## From Incident to Regression Test
 
 A desirable production-debugging workflow is:
 
@@ -1964,7 +1979,7 @@ Observability and testing should reinforce each other.
 
 ---
 
-# Runbooks
+## Runbooks
 
 Known operational failure modes should have runbooks.
 
@@ -1991,7 +2006,7 @@ They should remain actionable.
 
 ---
 
-# Observability Ownership
+## Observability Ownership
 
 Cross-cutting observability conventions should have explicit ownership.
 
@@ -2010,7 +2025,7 @@ Applications remain responsible for instrumenting application-specific behavior.
 
 ---
 
-# Instrumentation Ownership
+## Instrumentation Ownership
 
 The module that owns an operation should generally own its semantic instrumentation.
 
@@ -2033,7 +2048,7 @@ It should not guess every business event automatically.
 
 ---
 
-# Automatic Instrumentation
+## Automatic Instrumentation
 
 Automatic instrumentation is useful for generic infrastructure such as:
 
@@ -2062,7 +2077,7 @@ Both may be valuable.
 
 ---
 
-# Manual Instrumentation
+## Manual Instrumentation
 
 Manual telemetry should be introduced when it answers a meaningful operational question.
 
@@ -2076,7 +2091,7 @@ If this operation fails in production, what evidence would we need to understand
 
 ---
 
-# Telemetry Quality
+## Telemetry Quality
 
 Useful telemetry should be:
 
@@ -2101,7 +2116,7 @@ ambiguous
 
 ---
 
-# Missing Telemetry Is a Defect
+## Missing Telemetry Is a Defect
 
 If an important production failure cannot be diagnosed because required evidence was not captured, that should be treated as a reliability defect.
 
@@ -2120,7 +2135,7 @@ Observability should improve as operational experience grows.
 
 ---
 
-# Excessive Telemetry Is Also a Defect
+## Excessive Telemetry Is Also a Defect
 
 More telemetry is not automatically better.
 
@@ -2138,9 +2153,9 @@ Instrumentation should optimize for information quality.
 
 ---
 
-# Initial Observability Requirements
+## Initial Observability Requirements
 
-Until stack-specific implementation is selected, Orion adopts the following requirements:
+The following foundational requirements apply alongside the accepted implementation direction:
 
 1. Production-relevant applications must be observable.
 2. Logs must be structured where operationally relevant.
@@ -2160,14 +2175,11 @@ Until stack-specific implementation is selected, Orion adopts the following requ
 
 ---
 
-# Future Implementation Decisions
+## Remaining Implementation Decisions
 
-The following decisions are intentionally deferred:
+The accepted choices are linked above. These remaining details are intentionally deferred:
 
 ```text
-telemetry standard
-logging library
-trace implementation
 metrics backend
 error tracking provider
 dashboard platform
@@ -2181,27 +2193,24 @@ These choices should be made through explicit architecture decisions once the te
 
 ---
 
-# Future Documentation
+## Related Documentation
 
-This document may later be complemented by:
+Signal-specific and security details are maintained in:
 
-```text
-docs/reliability/logging.md
-docs/reliability/tracing.md
-docs/reliability/metrics.md
-docs/reliability/error-reporting.md
-docs/reliability/alerting.md
-docs/reliability/health-checks.md
-
-docs/security/data-classification.md
-docs/security/telemetry-redaction.md
-```
+- [docs/reliability/logging.md](logging.md)
+- [docs/reliability/tracing.md](tracing.md)
+- [docs/reliability/metrics.md](metrics.md)
+- [docs/reliability/error-reporting.md](error-reporting.md)
+- [docs/reliability/alerting.md](alerting.md)
+- [docs/reliability/health-checks.md](health-checks.md)
+- [docs/security/data-classification.md](../security/data-classification.md)
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md)
 
 Implementation-specific documentation should reference this file rather than redefine its principles independently.
 
 ---
 
-# Summary
+## Summary
 
 Observability exists so that production behavior can be understood from evidence.
 

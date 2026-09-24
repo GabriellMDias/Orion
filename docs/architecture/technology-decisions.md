@@ -1,0 +1,31 @@
+# Technology Decision Map
+
+This is a navigation summary, not an independent technology specification. Each linked ADR owns the decision, exceptions, rationale, and version policy. All eleven records currently state `accepted`; workspace and local validation tooling now exist, while application capabilities remain unimplemented. Consult [validation availability](../validation.md) before running commands.
+
+## Selected directions
+
+| Governing decision | Direction | Important scope | Current policy |
+| --- | --- | --- | --- |
+| [ADR-0001](../adr/0001-select-typescript-and-nodejs-as-primary-language-and-runtime.md) | TypeScript 6.x; Node.js 24 LTS initial baseline; ESM | Primary, not exclusive; exact compatible versions belong in tooling. | [Policy](principles.md) |
+| [ADR-0002](../adr/0002-select-pnpm-for-package-and-workspace-management.md) | pnpm and pnpm workspaces | Shared lockfile, workspace protocol, catalogs when useful; no dedicated task runner initially. | [Policy](repository-structure.md) |
+| [ADR-0003](../adr/0003-establish-repository-validation-and-architecture-enforcement.md) | tsc, ESLint/typescript-eslint, Prettier, dependency-cruiser | Non-mutating canonical validation and separate formatting command are implemented for current tooling. | [Policy](../validation.md) |
+| [ADR-0004](../adr/0004-select-fastify-as-the-backend-http-framework.md) | Fastify; Pino for HTTP runtime logging | Transport/infrastructure adapters do not define business-domain boundaries. | [Policy](application-boundaries.md) |
+| [ADR-0005](../adr/0005-select-postgresql-as-the-primary-database.md) | PostgreSQL | pgvector is preferred when a suitable vector workload requires it, not enabled by default; AI access remains authorized through application capabilities. | [Policy](../database/principles.md) |
+| [ADR-0006](../adr/0006-select-prisma-orm-for-database-access-and-migrations.md) | Prisma ORM 7, Prisma Client, Prisma Migrate | Parameterized SQL/TypedSQL and custom migrations remain available; complete physical schema comes from migrated PostgreSQL. | [Policy](../database/migrations.md) |
+| [ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md) | HTTP/JSON, TypeBox 1.x, generated OpenAPI 3.1.x initially, openapi-typescript and openapi-fetch | Wire contracts, stable operation IDs, and TypeBox bootstrap configuration; client response revalidation is not automatic. | [Policy](../api/principles.md) |
+| [ADR-0008](../adr/0008-select-react-vite-and-tanstack-for-web-applications.md) | React 19.x, React Compiler when compatible, Vite 8.x, TanStack Router and Query | Client-first SPA; URL, server, and local UI state have distinct owners; server rendering is requirement-driven. | [Policy](application-boundaries.md) |
+| [ADR-0009](../adr/0009-establish-testing-strategy-and-tooling.md) | Vitest, Testcontainers, Vitest Browser Mode with Playwright, Playwright Test | Real migrated PostgreSQL; browser fidelity where relevant; no initial global coverage threshold. | [Policy](testing-strategy.md) |
+| [ADR-0010](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md) | OpenTelemetry traces/metrics, Pino logs, W3C Trace Context, OTLP | Collector preferred when justified, not mandatory; no global backend/vendor or baseline browser instrumentation. | [Policy](../reliability/observability.md) |
+| [ADR-0011](../adr/0011-establish-continuous-integration-dependency-automation-and-supply-chain-security-strategy.md) | GitHub Actions and Renovate; available GitHub security capabilities | Same validation as local development; immutable action pins; automerge off initially; CI does not select CD. | [Policy](continuous-integration.md) |
+
+## Deliberately unresolved or conditional choices
+
+- Backend development execution/build details remain implementation choices; `tsc` is already the type-checking authority. Task orchestration and TypeScript project references are not initial requirements. Advanced unused-code analysis is not an initial baseline requirement.
+- UI/design systems, styling, accessibility primitives, charts, grids, and forms depend on product needs. No general global-state library or full-stack web framework is selected by default.
+- GraphQL, tRPC, gRPC, rich SDK generators, and other-language clients require a concrete consumer or boundary. They do not replace the accepted interoperable API by implication.
+- Authentication provider and implementation, authorization model, tenant model, and AI delegation mechanisms depend on the application. Existing security policies still apply.
+- Queue/messaging infrastructure, background-job infrastructure, cache, search, dedicated vector infrastructure, and object-storage providers are not global defaults. Introduce them only for demonstrated requirements.
+- Mobile and desktop stacks, deployment platform, application containerization, cloud provider, infrastructure as code, and continuous delivery remain product/deployment decisions. Testcontainers does not select an application deployment platform.
+- Observability storage/vendors, error-reporting providers, alerting/paging, sampling rates, and retention depend on operational requirements. Do not introduce a provider abstraction solely to hide a vendor without a genuine responsibility.
+
+Compatible version evolution follows the individual ADRs. These recorded baselines are not installed-version claims. Implementation progress belongs in normal work tracking and capability documentation, not new ADR statuses.

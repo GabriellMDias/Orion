@@ -1,5 +1,19 @@
 # Error Reporting
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0010](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Expected vs Unexpected](#expected-vs-unexpected)
+- [Report Once](#report-once)
+- [Public vs Internal Error](#public-vs-internal-error)
+- [Fingerprint Checklist](#fingerprint-checklist)
+- [Source Map Checklist](#source-map-checklist)
+
+Related policy: [error handling](../architecture/error-handling.md), [telemetry redaction](../security/telemetry-redaction.md).
+
 ## Purpose
 
 This document defines the error-reporting principles used by Orion.
@@ -35,12 +49,12 @@ Specific error-tracking providers, SDKs, source-map pipelines, symbolication sys
 
 This document complements:
 
-- `docs/architecture/error-handling.md`;
-- `docs/reliability/observability.md`;
-- `docs/reliability/logging.md`;
-- `docs/reliability/tracing.md`;
-- `docs/security/telemetry-redaction.md`;
-- `docs/security/data-classification.md`.
+- [docs/architecture/error-handling.md](../architecture/error-handling.md);
+- [docs/reliability/observability.md](observability.md);
+- [docs/reliability/logging.md](logging.md);
+- [docs/reliability/tracing.md](tracing.md);
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md);
+- [docs/security/data-classification.md](../security/data-classification.md).
 
 ---
 
@@ -70,7 +84,7 @@ Expected failures should not automatically enter the error tracker.
 
 ---
 
-# Error Reporting Is for Unexpected Failures
+## Error Reporting Is for Unexpected Failures
 
 The error tracker should primarily represent failures that indicate:
 
@@ -87,7 +101,7 @@ It should not become a database of every negative application outcome.
 
 ---
 
-# Expected vs Unexpected
+## Expected vs Unexpected
 
 A foundational distinction is:
 
@@ -122,7 +136,7 @@ unexpected provider response shape
 
 ---
 
-# Expected Failures
+## Expected Failures
 
 Expected failures should generally use:
 
@@ -137,7 +151,7 @@ They should not automatically create error-tracker issues.
 
 ---
 
-# Unexpected Failures
+## Unexpected Failures
 
 Unexpected failures should normally be reported to centralized error tracking.
 
@@ -145,7 +159,7 @@ The report should include enough safe context to support diagnosis.
 
 ---
 
-# Report Once
+## Report Once
 
 The same failure should normally be captured once.
 
@@ -169,7 +183,7 @@ Duplicate reporting produces:
 
 ---
 
-# Authoritative Error Boundary
+## Authoritative Error Boundary
 
 Each execution model should have a clear final failure boundary.
 
@@ -193,7 +207,7 @@ Unexpected failures reaching that boundary should normally be captured there.
 
 ---
 
-# Intermediate Layers
+## Intermediate Layers
 
 Intermediate layers may:
 
@@ -210,7 +224,7 @@ They should not report it unless they become the final authoritative owner of th
 
 ---
 
-# Lost Errors
+## Lost Errors
 
 A failure must not be silently swallowed after being classified as unexpected.
 
@@ -218,7 +232,7 @@ If code intentionally catches an unexpected error and does not rethrow it, it be
 
 ---
 
-# Error Capture
+## Error Capture
 
 A captured error should represent the actual failure object or equivalent structured exception where possible.
 
@@ -238,7 +252,7 @@ The original cause chain is valuable for diagnosis.
 
 ---
 
-# Cause Chain
+## Cause Chain
 
 Wrapped failures should preserve meaningful cause information.
 
@@ -256,7 +270,7 @@ The tracker should retain this relationship where the runtime and provider suppo
 
 ---
 
-# Public vs Internal Error
+## Public vs Internal Error
 
 The public API error and the internal captured error are different representations.
 
@@ -277,7 +291,7 @@ The internal tracker retains diagnostic evidence.
 
 ---
 
-# Error ID
+## Error ID
 
 An unexpected failure may receive an opaque:
 
@@ -309,7 +323,7 @@ where practical.
 
 ---
 
-# Error ID Is Not Access Control
+## Error ID Is Not Access Control
 
 Possession of an `errorId` must not grant access to internal telemetry.
 
@@ -317,7 +331,7 @@ It is a correlation reference, not a secret or authorization credential.
 
 ---
 
-# Trace Correlation
+## Trace Correlation
 
 Captured errors should include:
 
@@ -341,7 +355,7 @@ and understand where the failure originated.
 
 ---
 
-# Span Correlation
+## Span Correlation
 
 The active:
 
@@ -355,7 +369,7 @@ This should generally be attached automatically by observability infrastructure.
 
 ---
 
-# Log Correlation
+## Log Correlation
 
 Logs emitted during the failed operation should carry the same:
 
@@ -371,7 +385,7 @@ The system should not require manual copying of these identifiers across every c
 
 ---
 
-# Request Correlation
+## Request Correlation
 
 Server-side request failures should include:
 
@@ -385,7 +399,7 @@ This can help support teams find request-specific evidence even when tracing is 
 
 ---
 
-# Job Correlation
+## Job Correlation
 
 Background-job error reports should include safe identifiers such as:
 
@@ -401,7 +415,7 @@ Do not attach the entire job payload.
 
 ---
 
-# Event Correlation
+## Event Correlation
 
 Event-consumer failures may include:
 
@@ -418,7 +432,7 @@ The event body should not be captured automatically.
 
 ---
 
-# Release
+## Release
 
 Every error event should be attributable to a deployed release.
 
@@ -441,7 +455,7 @@ Did this failure begin after release X?
 
 ---
 
-# Release Identity
+## Release Identity
 
 A release identifier should be stable enough to correlate:
 
@@ -464,7 +478,7 @@ SDK version
 
 ---
 
-# Environment
+## Environment
 
 Error reports should identify the environment.
 
@@ -481,7 +495,7 @@ Production errors should remain distinguishable from non-production failures.
 
 ---
 
-# Service or Application
+## Service or Application
 
 Every error should identify the producing runtime.
 
@@ -499,7 +513,7 @@ according to the actual repository structure.
 
 ---
 
-# Operation
+## Operation
 
 Where possible, error reports should include the semantic operation.
 
@@ -515,7 +529,7 @@ This provides more stable context than implementation method names.
 
 ---
 
-# Error Code
+## Error Code
 
 If the unexpected failure was translated into an internal or public stable error code, the report may include:
 
@@ -529,7 +543,7 @@ Do not use arbitrary human-readable messages as error-code substitutes.
 
 ---
 
-# Error Category
+## Error Category
 
 A bounded category may classify the failure.
 
@@ -548,7 +562,7 @@ The category should remain semantic and bounded.
 
 ---
 
-# Grouping
+## Grouping
 
 An error tracker should group related occurrences into issues.
 
@@ -568,7 +582,7 @@ where appropriate.
 
 ---
 
-# Automatic Grouping
+## Automatic Grouping
 
 Provider default grouping may use:
 
@@ -583,7 +597,7 @@ Automatic grouping is useful but not always correct.
 
 ---
 
-# Grouping Stability
+## Grouping Stability
 
 Grouping should remain stable across ordinary redeployments where the underlying defect is the same.
 
@@ -591,7 +605,7 @@ Small line-number shifts should not unnecessarily create unrelated issues when t
 
 ---
 
-# Over-Grouping
+## Over-Grouping
 
 Over-grouping occurs when unrelated failures become one issue.
 
@@ -614,7 +628,7 @@ If these require different investigation, grouping may need refinement.
 
 ---
 
-# Under-Grouping
+## Under-Grouping
 
 Under-grouping occurs when one defect creates many issues.
 
@@ -632,7 +646,7 @@ Grouping should not depend on high-cardinality data.
 
 ---
 
-# Fingerprinting
+## Fingerprinting
 
 A custom fingerprint may override or influence grouping.
 
@@ -649,7 +663,7 @@ Only use custom fingerprinting when default grouping is inadequate.
 
 ---
 
-# Fingerprint Stability
+## Fingerprint Stability
 
 Fingerprint values must be:
 
@@ -674,7 +688,7 @@ in fingerprints.
 
 ---
 
-# Fingerprint Ownership
+## Fingerprint Ownership
 
 Custom grouping logic is operational behavior.
 
@@ -682,7 +696,7 @@ It should have clear ownership and tests where it materially affects issue group
 
 ---
 
-# Do Not Fingerprint Every Error Manually
+## Do Not Fingerprint Every Error Manually
 
 Provider grouping systems are generally mature.
 
@@ -692,7 +706,7 @@ Over-customization can make future diagnostics worse.
 
 ---
 
-# Stack Traces
+## Stack Traces
 
 Unexpected errors should preserve stack traces where the runtime supports them.
 
@@ -702,7 +716,7 @@ They must never be exposed directly through public API responses.
 
 ---
 
-# Stack Trace Quality
+## Stack Trace Quality
 
 Useful stack traces should identify application code accurately.
 
@@ -718,7 +732,7 @@ depending on platform.
 
 ---
 
-# Source Maps
+## Source Maps
 
 Minified or transpiled client/server builds may require source maps for useful stack traces.
 
@@ -732,7 +746,7 @@ available to trusted error tooling
 
 ---
 
-# Source Map Exposure
+## Source Map Exposure
 
 Source maps may reveal application source.
 
@@ -742,7 +756,7 @@ The storage and upload strategy must be explicit.
 
 ---
 
-# Release-Specific Source Maps
+## Release-Specific Source Maps
 
 Source maps must correspond to the exact deployed artifact.
 
@@ -750,7 +764,7 @@ Incorrect source maps create misleading diagnostics.
 
 ---
 
-# Source Map Upload Failure
+## Source Map Upload Failure
 
 Failure to upload source maps should become visible in release validation when client-side diagnostics depend on them.
 
@@ -758,7 +772,7 @@ It should not silently degrade production debugging.
 
 ---
 
-# Native Symbolication
+## Native Symbolication
 
 Mobile or desktop native crashes may require:
 
@@ -774,7 +788,7 @@ These artifacts should be associated with the correct release.
 
 ---
 
-# Breadcrumbs
+## Breadcrumbs
 
 Breadcrumbs provide a bounded sequence of recent safe events leading to an error.
 
@@ -792,7 +806,7 @@ They can provide valuable context for client failures.
 
 ---
 
-# Breadcrumb Safety
+## Breadcrumb Safety
 
 Breadcrumbs are telemetry.
 
@@ -810,7 +824,7 @@ full request payloads
 
 ---
 
-# Breadcrumb Volume
+## Breadcrumb Volume
 
 Breadcrumb buffers should be bounded.
 
@@ -818,7 +832,7 @@ The tracker should retain recent useful context rather than an unlimited session
 
 ---
 
-# Automatic Breadcrumbs
+## Automatic Breadcrumbs
 
 Provider SDKs may automatically capture:
 
@@ -835,7 +849,7 @@ Automatic capture may violate Orion telemetry policy.
 
 ---
 
-# Console Breadcrumbs
+## Console Breadcrumbs
 
 Capturing arbitrary console output may import unsafe or noisy data into the error tracker.
 
@@ -843,7 +857,7 @@ If enabled, application logging policy still applies.
 
 ---
 
-# Network Breadcrumbs
+## Network Breadcrumbs
 
 Network breadcrumbs should prefer:
 
@@ -865,7 +879,7 @@ response bodies
 
 ---
 
-# Navigation Breadcrumbs
+## Navigation Breadcrumbs
 
 Client navigation breadcrumbs may be useful.
 
@@ -881,7 +895,7 @@ where practical.
 
 ---
 
-# User Context
+## User Context
 
 An error tracker may associate an occurrence with a user or actor identifier.
 
@@ -909,7 +923,7 @@ unless additional personal information is explicitly required and approved.
 
 ---
 
-# Anonymous Sessions
+## Anonymous Sessions
 
 Client-side errors may occur before authentication.
 
@@ -919,7 +933,7 @@ Such identifiers should have bounded retention and clear semantics.
 
 ---
 
-# Tenant Context
+## Tenant Context
 
 Multi-tenant applications may include an opaque:
 
@@ -933,7 +947,7 @@ Do not include tenant names or sensitive tenant metadata unnecessarily.
 
 ---
 
-# Tags
+## Tags
 
 Error trackers often support indexed tags.
 
@@ -958,7 +972,7 @@ provider
 
 ---
 
-# Tag Cardinality
+## Tag Cardinality
 
 Tags should not include high-cardinality values such as:
 
@@ -976,7 +990,7 @@ Such values may belong in non-indexed context fields instead.
 
 ---
 
-# Provider Constraints
+## Provider Constraints
 
 Different error trackers have different indexing and cardinality limits.
 
@@ -984,7 +998,7 @@ Instrumentation should remain compatible with provider constraints without embed
 
 ---
 
-# Context Fields
+## Context Fields
 
 Non-indexed structured context may provide richer investigation data.
 
@@ -1000,7 +1014,7 @@ Do not attach complete domain objects.
 
 ---
 
-# Extra Context
+## Extra Context
 
 Avoid generic APIs such as:
 
@@ -1018,7 +1032,7 @@ Explicit safe projections should be used.
 
 ---
 
-# Error Serialization
+## Error Serialization
 
 Custom error serialization should preserve:
 
@@ -1035,7 +1049,7 @@ without serializing arbitrary nested objects recursively.
 
 ---
 
-# Exception Messages
+## Exception Messages
 
 Internal exception messages may contain sensitive data.
 
@@ -1045,7 +1059,7 @@ Application code should avoid constructing exception messages containing secrets
 
 ---
 
-# Dynamic Exception Messages
+## Dynamic Exception Messages
 
 Messages containing identifiers can degrade grouping.
 
@@ -1071,7 +1085,7 @@ stored separately if safe and useful.
 
 ---
 
-# Sensitive Exception Messages
+## Sensitive Exception Messages
 
 Never construct errors such as:
 
@@ -1089,7 +1103,7 @@ Secrets should not appear in error objects at all.
 
 ---
 
-# Provider Errors
+## Provider Errors
 
 Third-party SDK errors may contain:
 
@@ -1105,7 +1119,7 @@ They must be sanitized before or during centralized capture.
 
 ---
 
-# Database Errors
+## Database Errors
 
 Database errors may contain:
 
@@ -1121,7 +1135,7 @@ Capture should preserve useful cause information without exposing sensitive quer
 
 ---
 
-# ORM Errors
+## ORM Errors
 
 ORM errors should not automatically be captured with all attached metadata.
 
@@ -1129,7 +1143,7 @@ Provider-specific serialization behavior must be reviewed.
 
 ---
 
-# Validation Errors
+## Validation Errors
 
 Ordinary request-validation errors should not be captured as unexpected exceptions.
 
@@ -1137,7 +1151,7 @@ They should use normal API error semantics.
 
 ---
 
-# Authentication Failures
+## Authentication Failures
 
 Expected invalid credentials should not create error-tracker issues.
 
@@ -1158,7 +1172,7 @@ token parser crashes
 
 ---
 
-# Authorization Denials
+## Authorization Denials
 
 Ordinary authorization denials should not create error-tracker events.
 
@@ -1166,7 +1180,7 @@ An authorization subsystem throwing an impossible or unexpected exception should
 
 ---
 
-# Not Found
+## Not Found
 
 Expected resource-not-found conditions should not be reported as application errors.
 
@@ -1176,7 +1190,7 @@ Context determines classification.
 
 ---
 
-# Domain Conflicts
+## Domain Conflicts
 
 Modeled domain conflicts should remain expected errors.
 
@@ -1192,7 +1206,7 @@ They should not create centralized issue noise by default.
 
 ---
 
-# Dependency Failures
+## Dependency Failures
 
 Dependency failures require classification.
 
@@ -1213,7 +1227,7 @@ Different categories should not be reported identically.
 
 ---
 
-# Temporary Dependency Failure
+## Temporary Dependency Failure
 
 Transient dependency failures may be better represented primarily through:
 
@@ -1229,7 +1243,7 @@ Do not generate one error-tracker issue for every transient retry attempt.
 
 ---
 
-# Exhausted Dependency Failure
+## Exhausted Dependency Failure
 
 If all retries fail and the logical operation fails unexpectedly, centralized error reporting may be appropriate.
 
@@ -1237,7 +1251,7 @@ The report should represent the logical failure rather than every failed attempt
 
 ---
 
-# Retry Attempts
+## Retry Attempts
 
 Do not report every retry attempt as an independent error issue.
 
@@ -1255,7 +1269,7 @@ Capture the final unexpected failure when retries are exhausted.
 
 ---
 
-# Database Deadlocks
+## Database Deadlocks
 
 Expected retried database deadlocks should not necessarily enter the error tracker.
 
@@ -1271,7 +1285,7 @@ as appropriate.
 
 ---
 
-# Concurrency Conflicts
+## Concurrency Conflicts
 
 Expected optimistic concurrency conflicts are not tracker-worthy by default.
 
@@ -1279,7 +1293,7 @@ Unexpected impossible-state conflicts may be.
 
 ---
 
-# Configuration Errors
+## Configuration Errors
 
 Invalid critical startup configuration should generally be reported as:
 
@@ -1293,7 +1307,7 @@ A fatal log may also be appropriate.
 
 ---
 
-# Startup Reporting
+## Startup Reporting
 
 Error-reporting SDK initialization often depends on configuration.
 
@@ -1303,7 +1317,7 @@ Do not create circular dependence where failure to initialize error reporting be
 
 ---
 
-# Process Crashes
+## Process Crashes
 
 Unhandled process-level failures should be captured where the runtime permits.
 
@@ -1321,7 +1335,7 @@ Do not continue execution after a known corrupted state merely because the track
 
 ---
 
-# Fatal Errors
+## Fatal Errors
 
 A `fatal` failure means the process cannot continue safely.
 
@@ -1329,7 +1343,7 @@ Capture should be attempted without delaying shutdown indefinitely.
 
 ---
 
-# Flush on Shutdown
+## Flush on Shutdown
 
 Error-reporting SDKs may buffer events.
 
@@ -1339,7 +1353,7 @@ The application must not hang indefinitely waiting for telemetry export.
 
 ---
 
-# Short-Lived Jobs and CLI
+## Short-Lived Jobs and CLI
 
 Short-lived processes may exit before buffered errors are transmitted.
 
@@ -1349,7 +1363,7 @@ Flush behavior should remain bounded.
 
 ---
 
-# Client Error Boundaries
+## Client Error Boundaries
 
 Frontend applications should use suitable error boundaries for unexpected UI failures.
 
@@ -1365,7 +1379,7 @@ where framework capabilities permit.
 
 ---
 
-# Client Error Boundaries Are Not Global Recovery
+## Client Error Boundaries Are Not Global Recovery
 
 An error boundary should not conceal persistent broken application state.
 
@@ -1373,7 +1387,7 @@ Recovery behavior must be intentional.
 
 ---
 
-# Browser Errors
+## Browser Errors
 
 Browser error tracking may capture:
 
@@ -1389,7 +1403,7 @@ Automatic capture must be reviewed for privacy and noise.
 
 ---
 
-# Browser Extensions
+## Browser Extensions
 
 Client-side errors may originate from:
 
@@ -1405,7 +1419,7 @@ Grouping and filtering may be needed to avoid noise outside application ownershi
 
 ---
 
-# Network Errors in Clients
+## Network Errors in Clients
 
 A normal offline state should not necessarily become an error-tracker issue.
 
@@ -1415,7 +1429,7 @@ Unexpected client networking defects may be reported.
 
 ---
 
-# Mobile Errors
+## Mobile Errors
 
 Mobile error reporting may include:
 
@@ -1431,7 +1445,7 @@ Device metadata should be minimized and privacy-safe.
 
 ---
 
-# Native Crashes
+## Native Crashes
 
 Native crash reporting may require dedicated crash pipelines.
 
@@ -1448,7 +1462,7 @@ where possible.
 
 ---
 
-# Application Not Responding
+## Application Not Responding
 
 If the selected platform supports detection of hangs or ANRs, these may be important reliability signals.
 
@@ -1456,7 +1470,7 @@ The exact integration is platform-specific and deferred.
 
 ---
 
-# Desktop Crashes
+## Desktop Crashes
 
 Desktop applications may require crash reporting similar to mobile.
 
@@ -1464,7 +1478,7 @@ Local paths, usernames, machine names, and environment variables must not be cap
 
 ---
 
-# Error Group Ownership
+## Error Group Ownership
 
 Important error groups should eventually have an identifiable owner.
 
@@ -1481,7 +1495,7 @@ This helps route investigation.
 
 ---
 
-# Automatic Ownership
+## Automatic Ownership
 
 The tracker may assign ownership based on:
 
@@ -1498,7 +1512,7 @@ Avoid brittle routing rules based solely on incidental stack frames.
 
 ---
 
-# Triage
+## Triage
 
 An error-tracking issue should be triaged based on:
 
@@ -1515,7 +1529,7 @@ not merely occurrence count.
 
 ---
 
-# One Occurrence Can Be Critical
+## One Occurrence Can Be Critical
 
 A low-frequency error can still be severe.
 
@@ -1531,7 +1545,7 @@ Frequency must not be the only severity signal.
 
 ---
 
-# High Frequency Can Be Low Severity
+## High Frequency Can Be Low Severity
 
 A high-frequency issue may be expected noise caused by:
 
@@ -1545,7 +1559,7 @@ Classification and filtering matter.
 
 ---
 
-# Severity
+## Severity
 
 Error tracker severity should reflect operational significance.
 
@@ -1563,7 +1577,7 @@ Severity should not simply mirror HTTP status.
 
 ---
 
-# Priority
+## Priority
 
 Issue priority may consider:
 
@@ -1580,7 +1594,7 @@ The exact triage process is operational policy and may evolve later.
 
 ---
 
-# Regression Detection
+## Regression Detection
 
 The tracker should identify when an issue that was considered resolved reappears in a newer release where provider capabilities support it.
 
@@ -1588,7 +1602,7 @@ This is especially useful for verifying bug fixes.
 
 ---
 
-# Release Regression
+## Release Regression
 
 A failure first appearing after a deployment should be easy to identify.
 
@@ -1596,7 +1610,7 @@ Release metadata is therefore mandatory for meaningful error tracking.
 
 ---
 
-# Resolved Issues
+## Resolved Issues
 
 Marking an issue resolved is an operational workflow.
 
@@ -1606,7 +1620,7 @@ Regression tests should remain the code-level protection.
 
 ---
 
-# Regression Tests
+## Regression Tests
 
 A bug fix should include a regression test whenever practical.
 
@@ -1618,7 +1632,7 @@ These are complementary mechanisms.
 
 ---
 
-# Issue Suppression
+## Issue Suppression
 
 Known non-actionable issues may be suppressed or filtered.
 
@@ -1628,7 +1642,7 @@ Do not broadly ignore entire exception classes without understanding what else t
 
 ---
 
-# Filtering
+## Filtering
 
 Filtering may occur:
 
@@ -1650,7 +1664,7 @@ but should not hide important failures.
 
 ---
 
-# Client Noise Filtering
+## Client Noise Filtering
 
 Browser and mobile telemetry may require filters for:
 
@@ -1665,7 +1679,7 @@ Filters should use stable evidence rather than fragile message substring matchin
 
 ---
 
-# Ignore Rules
+## Ignore Rules
 
 Ignore rules should have:
 
@@ -1682,7 +1696,7 @@ Permanent invisible filters are risky.
 
 ---
 
-# Sampling
+## Sampling
 
 High-volume identical errors may require sampling.
 
@@ -1698,7 +1712,7 @@ Critical errors should receive higher retention priority.
 
 ---
 
-# Sampling Is Not Classification
+## Sampling Is Not Classification
 
 Do not sample an error merely because it is expected.
 
@@ -1710,7 +1724,7 @@ Classification solves semantics.
 
 ---
 
-# Event Volume
+## Event Volume
 
 An error tracker should not receive one event per:
 
@@ -1725,7 +1739,7 @@ unless a specific security or operational use case justifies it.
 
 ---
 
-# Rate Limiting
+## Rate Limiting
 
 The error-reporting client or collector should protect application stability during failure storms.
 
@@ -1742,7 +1756,7 @@ because millions of identical exceptions are being exported.
 
 ---
 
-# Local Deduplication
+## Local Deduplication
 
 Client-side or collector-side deduplication may reduce repeated identical failures during a short period.
 
@@ -1750,7 +1764,7 @@ The exact strategy depends on provider and runtime.
 
 ---
 
-# Provider Quotas
+## Provider Quotas
 
 The system should understand provider limits such as:
 
@@ -1765,7 +1779,7 @@ Instrumentation must degrade safely if quotas are reached.
 
 ---
 
-# Attachments
+## Attachments
 
 Error trackers may support attachments.
 
@@ -1784,7 +1798,7 @@ Do not upload arbitrary diagnostics automatically.
 
 ---
 
-# Screenshots
+## Screenshots
 
 Automatic screenshots can capture:
 
@@ -1801,7 +1815,7 @@ If introduced, classification, consent, access, and redaction requirements must 
 
 ---
 
-# Session Replay
+## Session Replay
 
 Session replay is a high-risk telemetry capability.
 
@@ -1811,7 +1825,7 @@ It is not part of Orion's default error-reporting foundation.
 
 ---
 
-# Local Variables
+## Local Variables
 
 Some trackers can capture local variables from stack frames.
 
@@ -1821,7 +1835,7 @@ Automatic local-variable capture should be disabled by default unless a safe mec
 
 ---
 
-# Request Capture
+## Request Capture
 
 Automatic request capture should be minimized.
 
@@ -1844,13 +1858,13 @@ query values
 
 ---
 
-# Response Capture
+## Response Capture
 
 Automatic response-body capture should be disabled by default.
 
 ---
 
-# Environment Capture
+## Environment Capture
 
 Automatic environment-variable capture should be disabled.
 
@@ -1858,7 +1872,7 @@ Only explicitly allowlisted safe configuration metadata may be attached.
 
 ---
 
-# Device Metadata
+## Device Metadata
 
 Client trackers may capture:
 
@@ -1873,7 +1887,7 @@ This should be minimized to what diagnosis requires.
 
 ---
 
-# IP Address Capture
+## IP Address Capture
 
 IP addresses may be personal data.
 
@@ -1883,25 +1897,23 @@ Disable or minimize it where unnecessary.
 
 ---
 
-# Geolocation
+## Geolocation
 
 Precise geolocation should not be attached to error reports by default.
 
 ---
 
-# Data Classification
+## Data Classification
 
 Error-reporting telemetry follows:
 
-```text
-docs/security/data-classification.md
-```
+- [docs/security/data-classification.md](../security/data-classification.md)
 
 The error tracker is not exempt from ordinary data-protection rules.
 
 ---
 
-# Restricted Data
+## Restricted Data
 
 `RESTRICTED` data must never be intentionally sent to the error tracker.
 
@@ -1919,7 +1931,7 @@ recovery codes
 
 ---
 
-# Confidential Data
+## Confidential Data
 
 `CONFIDENTIAL` data should be minimized.
 
@@ -1936,7 +1948,7 @@ where diagnostic value is equivalent.
 
 ---
 
-# User-Generated Content
+## User-Generated Content
 
 User-generated content must not be captured automatically.
 
@@ -1944,7 +1956,7 @@ An error occurring while processing a document does not justify attaching the en
 
 ---
 
-# Redaction
+## Redaction
 
 Error-reporting instrumentation must integrate with centralized telemetry-redaction policy.
 
@@ -1954,7 +1966,7 @@ Provider-side filters are defense in depth, not the primary control.
 
 ---
 
-# Safe Failure
+## Safe Failure
 
 If telemetry cannot be sanitized confidently, drop unsafe context.
 
@@ -1962,7 +1974,7 @@ Losing optional diagnostic data is preferable to exposing restricted information
 
 ---
 
-# Security Incidents
+## Security Incidents
 
 A suspected telemetry leak is a security incident.
 
@@ -1981,7 +1993,7 @@ according to incident-response policy.
 
 ---
 
-# Error Tracker Access
+## Error Tracker Access
 
 Production error reports may contain:
 
@@ -1996,19 +2008,17 @@ Access should therefore follow least privilege.
 
 Detailed policy belongs in:
 
-```text
-docs/security/production-access.md
-```
+- [docs/security/production-access.md](../security/production-access.md)
 
 ---
 
-# Provider Access
+## Provider Access
 
 Vendor support personnel access to captured data should be considered during provider selection and configuration.
 
 ---
 
-# Retention
+## Retention
 
 Error-reporting retention should balance:
 
@@ -2021,13 +2031,11 @@ cost
 
 Detailed retention policy belongs in:
 
-```text
-docs/security/data-retention.md
-```
+- [docs/security/data-retention.md](../security/data-retention.md)
 
 ---
 
-# Deletion
+## Deletion
 
 Where privacy or regulatory obligations require deletion, the error-reporting provider must be considered part of the deletion surface if personal data can be present.
 
@@ -2035,7 +2043,7 @@ This is another reason to minimize personal data in telemetry.
 
 ---
 
-# Environment Separation
+## Environment Separation
 
 Production and non-production errors should be distinguishable.
 
@@ -2043,7 +2051,7 @@ If the provider supports projects or environments, configuration should prevent 
 
 ---
 
-# Development Errors
+## Development Errors
 
 Development environments may use the same error-reporting integration for testing.
 
@@ -2051,7 +2059,7 @@ They should not trigger production incident alerts.
 
 ---
 
-# Test Errors
+## Test Errors
 
 Automated test failures should generally remain in CI/test tooling rather than centralized production error tracking.
 
@@ -2061,7 +2069,7 @@ Integration tests may verify tracker behavior using test exporters or isolated e
 
 ---
 
-# Error Reporting Availability
+## Error Reporting Availability
 
 The error-reporting provider is an observability dependency.
 
@@ -2071,7 +2079,7 @@ Failure to report an error must not convert one application failure into a large
 
 ---
 
-# Non-Blocking Reporting
+## Non-Blocking Reporting
 
 Error capture should normally be:
 
@@ -2085,7 +2093,7 @@ where provider SDK capabilities permit.
 
 ---
 
-# Export Failure
+## Export Failure
 
 If error export fails, the system may emit a bounded:
 
@@ -2099,7 +2107,7 @@ It must avoid recursive error reporting.
 
 ---
 
-# Recursive Failure
+## Recursive Failure
 
 Never implement:
 
@@ -2115,7 +2123,7 @@ The observability pipeline must have a safe fallback.
 
 ---
 
-# Error Reporting Metrics
+## Error Reporting Metrics
 
 The observability system may expose aggregate metrics such as:
 
@@ -2129,7 +2137,7 @@ without creating circular dependencies.
 
 ---
 
-# Alerting
+## Alerting
 
 Error tracker alerts should focus on actionable issue conditions.
 
@@ -2145,13 +2153,11 @@ critical workflow failure
 
 Alerting policy belongs in:
 
-```text
-docs/reliability/alerting.md
-```
+- [docs/reliability/alerting.md](alerting.md)
 
 ---
 
-# Do Not Alert on Every Captured Event
+## Do Not Alert on Every Captured Event
 
 One issue may produce thousands of events.
 
@@ -2159,7 +2165,7 @@ Alerts should represent operational conditions, not raw event volume.
 
 ---
 
-# New Issue Alerts
+## New Issue Alerts
 
 A new issue may be alert-worthy in critical production applications.
 
@@ -2167,13 +2173,13 @@ For high-noise surfaces such as browser clients, filtering and severity rules ma
 
 ---
 
-# Regression Alerts
+## Regression Alerts
 
 Regression alerts can be particularly valuable because they identify failures thought to have been resolved.
 
 ---
 
-# Volume Alerts
+## Volume Alerts
 
 Sudden error-frequency changes may be useful.
 
@@ -2181,13 +2187,13 @@ Metrics-based alerting may sometimes be better than provider-specific issue coun
 
 ---
 
-# Fatal Crash Alerts
+## Fatal Crash Alerts
 
 Unexpected fatal process or client crashes may deserve high-priority notification depending on affected application.
 
 ---
 
-# Ownership Routing
+## Ownership Routing
 
 Alerts may route according to:
 
@@ -2203,7 +2209,7 @@ Do not create complex routing before team structure requires it.
 
 ---
 
-# Error Reporting and Logs
+## Error Reporting and Logs
 
 Error tracking should not become another ordinary logger.
 
@@ -2225,7 +2231,7 @@ issue triage
 
 ---
 
-# Error Reporting and Traces
+## Error Reporting and Traces
 
 Tracing explains causal execution.
 
@@ -2249,7 +2255,7 @@ related logs
 
 ---
 
-# Error Reporting and Metrics
+## Error Reporting and Metrics
 
 Metrics show how often failures occur.
 
@@ -2267,7 +2273,7 @@ error tracker:
 
 ---
 
-# Error Reporting and Audit
+## Error Reporting and Audit
 
 Audit logging records accountability-sensitive actions.
 
@@ -2279,7 +2285,7 @@ Audit logs must not depend on tracker retention or grouping.
 
 ---
 
-# Error Reporting and Business Analytics
+## Error Reporting and Business Analytics
 
 The error tracker must not be used as a business analytics system.
 
@@ -2287,7 +2293,7 @@ Do not attach business dimensions solely to make the tracker answer product ques
 
 ---
 
-# Error Reporting and Support
+## Error Reporting and Support
 
 Support workflows may use:
 
@@ -2302,7 +2308,7 @@ Support staff should see only the information authorized by production-access po
 
 ---
 
-# User-Facing Error Reference
+## User-Facing Error Reference
 
 A user-facing support message may safely say:
 
@@ -2314,7 +2320,7 @@ without exposing internal diagnostic content.
 
 ---
 
-# Issue Comments
+## Issue Comments
 
 Human comments added inside an external error-tracking provider may contain operational knowledge.
 
@@ -2324,7 +2330,7 @@ The external tracker is not the sole source of architectural truth.
 
 ---
 
-# Incident Links
+## Incident Links
 
 Important issues may link to:
 
@@ -2341,7 +2347,7 @@ This improves traceability from production evidence to correction.
 
 ---
 
-# Runbooks
+## Runbooks
 
 Recurring high-impact error classes may have runbooks.
 
@@ -2357,7 +2363,7 @@ escalation
 
 ---
 
-# AI Investigation
+## AI Investigation
 
 Under appropriate authorization, an AI agent should be able to use error-reporting evidence to determine:
 
@@ -2374,7 +2380,7 @@ without requiring access to raw restricted data.
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 Before adding explicit error capture, an AI agent should ask:
 
@@ -2390,7 +2396,7 @@ Which safe context is actually required?
 
 ---
 
-# AI and Expected Errors
+## AI and Expected Errors
 
 An AI agent must not send ordinary:
 
@@ -2407,7 +2413,7 @@ Classification is semantic, not syntax-based.
 
 ---
 
-# AI and Catch Blocks
+## AI and Catch Blocks
 
 When adding a catch block, an AI agent should determine whether it:
 
@@ -2425,7 +2431,7 @@ A catch block that logs and rethrows may create duplicate reporting.
 
 ---
 
-# AI and Context
+## AI and Context
 
 AI-generated error context should use explicit safe fields.
 
@@ -2443,7 +2449,7 @@ whole.
 
 ---
 
-# AI and Fingerprinting
+## AI and Fingerprinting
 
 An AI agent should not add custom fingerprints unless a real grouping problem exists.
 
@@ -2451,19 +2457,19 @@ If it does, the fingerprint must use stable bounded semantic values.
 
 ---
 
-# AI and Source Maps
+## AI and Source Maps
 
 When introducing build transformations that make production stack traces unreadable, an AI agent should consider the source-map or symbolication path as part of the deployment design.
 
 ---
 
-# AI and Regression Tests
+## AI and Regression Tests
 
 When an error-tracker issue represents a confirmed bug, the fix should include a regression test whenever practical.
 
 ---
 
-# AI and Noise
+## AI and Noise
 
 An AI agent should not improve observability by indiscriminately increasing capture volume.
 
@@ -2471,7 +2477,7 @@ The objective is actionable signal.
 
 ---
 
-# New Error Capture Checklist
+## New Error Capture Checklist
 
 Before explicitly capturing an error, answer:
 
@@ -2490,7 +2496,7 @@ Before explicitly capturing an error, answer:
 
 ---
 
-# New Error Context Checklist
+## New Error Context Checklist
 
 Before attaching a context field, answer:
 
@@ -2507,7 +2513,7 @@ Before attaching a context field, answer:
 
 ---
 
-# Fingerprint Checklist
+## Fingerprint Checklist
 
 Before adding a custom fingerprint, answer:
 
@@ -2522,7 +2528,7 @@ Before adding a custom fingerprint, answer:
 
 ---
 
-# Source Map Checklist
+## Source Map Checklist
 
 Before enabling source-map upload, answer:
 
@@ -2537,13 +2543,13 @@ Before enabling source-map upload, answer:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Capture Every Exception
+### Capture Every Exception
 
 Avoid.
 
@@ -2551,133 +2557,133 @@ Expected exceptions are not automatically tracker-worthy.
 
 ---
 
-## Capture and Rethrow at Every Layer
+### Capture and Rethrow at Every Layer
 
 Avoid.
 
 ---
 
-## Validation Errors in Error Tracker
+### Validation Errors in Error Tracker
 
 Avoid by default.
 
 ---
 
-## Permission Denials in Error Tracker
+### Permission Denials in Error Tracker
 
 Avoid by default.
 
 ---
 
-## 404 Errors in Error Tracker
+### 404 Errors in Error Tracker
 
 Avoid by default.
 
 ---
 
-## One Error Event Per Retry Attempt
+### One Error Event Per Retry Attempt
 
 Avoid.
 
 ---
 
-## Full Request Attached to Error
+### Full Request Attached to Error
 
 Prohibited by default.
 
 ---
 
-## Full Response Attached to Error
+### Full Response Attached to Error
 
 Prohibited by default.
 
 ---
 
-## Full User Object Attached to Error
+### Full User Object Attached to Error
 
 Prohibited.
 
 ---
 
-## Full Configuration Attached to Error
+### Full Configuration Attached to Error
 
 Prohibited.
 
 ---
 
-## Environment Variables Attached to Error
+### Environment Variables Attached to Error
 
 Prohibited.
 
 ---
 
-## Credentials in Error Messages
+### Credentials in Error Messages
 
 Prohibited.
 
 ---
 
-## Raw Provider Payload Attached Automatically
+### Raw Provider Payload Attached Automatically
 
 Prohibited by default.
 
 ---
 
-## High-Cardinality Values Used as Fingerprints
+### High-Cardinality Values Used as Fingerprints
 
 Prohibited.
 
 ---
 
-## Request IDs Used as Fingerprints
+### Request IDs Used as Fingerprints
 
 Prohibited.
 
 ---
 
-## Arbitrary User Content as Tracker Context
+### Arbitrary User Content as Tracker Context
 
 Prohibited by default.
 
 ---
 
-## Public Source Maps by Accident
+### Public Source Maps by Accident
 
 Avoid.
 
 ---
 
-## Session Replay Enabled Without Security Review
+### Session Replay Enabled Without Security Review
 
 Prohibited as a default.
 
 ---
 
-## Local Variable Capture Enabled Blindly
+### Local Variable Capture Enabled Blindly
 
 Avoid.
 
 ---
 
-## Error Tracker Used as Audit Log
+### Error Tracker Used as Audit Log
 
 Prohibited.
 
 ---
 
-## Error Tracker Used as Ordinary Logger
+### Error Tracker Used as Ordinary Logger
 
 Avoid.
 
 ---
 
-## Error Tracker Failure Breaks Business Operation
+### Error Tracker Failure Breaks Business Operation
 
 Avoid.
 
 ---
 
-# Initial Error Reporting Policy
+## Initial Error Reporting Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2704,7 +2710,7 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Future Implementation Decisions
 
 The following decisions are intentionally deferred:
 
@@ -2729,7 +2735,7 @@ Significant choices should be captured through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should be complemented by:
 
@@ -2748,7 +2754,7 @@ Provider-specific error-reporting setup should be documented only after the obse
 
 ---
 
-# Summary
+## Summary
 
 Error reporting exists to turn unexpected runtime failures into actionable grouped evidence.
 

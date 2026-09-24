@@ -1,6 +1,6 @@
 # ADR-NNNN: Decision Title
 
-**Status:** accepted
+**Status:** proposed
 **Date:** YYYY-MM-DD
 
 ## Context
@@ -68,14 +68,6 @@ Remove this subsection when there is no meaningful operational or migration impa
 
 Include only useful references.
 
-Examples:
-
-```text
-Related policy: docs/architecture/...
-Related ADR: ADR-NNNN
-Supersedes: ADR-NNNN
-Issue: ...
-Design document: ...
-```
+Link relevant [current policies](../README.md), [related ADRs](README.md), design documents, and evidence. Use actual relative Markdown links to existing records; remove unused references.
 
 If this ADR supersedes another accepted ADR, update that ADR to reference this one as its replacement.

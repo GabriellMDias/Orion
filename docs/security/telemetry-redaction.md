@@ -1,5 +1,17 @@
 # Telemetry Redaction
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0010](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Default Deny for Payload Capture](#default-deny-for-payload-capture)
+- [Redaction Strategies](#redaction-strategies)
+- [HTTP Request Telemetry](#http-request-telemetry)
+- [Representative Secret Tests](#representative-secret-tests)
+- [New Telemetry Checklist](#new-telemetry-checklist)
+
 ## Purpose
 
 This document defines the telemetry-redaction policy for Orion.
@@ -12,9 +24,9 @@ It must be treated with the same security and privacy discipline as other applic
 
 This document complements:
 
-- `docs/security/data-classification.md`;
-- `docs/reliability/observability.md`;
-- `docs/architecture/error-handling.md`.
+- [docs/security/data-classification.md](data-classification.md);
+- [docs/reliability/observability.md](../reliability/observability.md);
+- [docs/architecture/error-handling.md](../architecture/error-handling.md).
 
 When telemetry usefulness conflicts with data-protection requirements, data protection takes priority.
 
@@ -54,7 +66,7 @@ It is not a substitute for minimizing collection at the source.
 
 ---
 
-# Scope
+## Scope
 
 This policy applies to all telemetry-producing mechanisms, including:
 
@@ -90,7 +102,7 @@ framework instrumentation
 
 ---
 
-# Classification-Based Handling
+## Classification-Based Handling
 
 Telemetry handling follows Orion's data-classification model.
 
@@ -114,7 +126,7 @@ A telemetry destination does not reduce the classification of the information st
 
 ---
 
-# Restricted Data
+## Restricted Data
 
 `RESTRICTED` data must never be intentionally included in telemetry.
 
@@ -150,7 +162,7 @@ Restricted values should not reach telemetry systems in the first place.
 
 ---
 
-# Confidential Data
+## Confidential Data
 
 `CONFIDENTIAL` data may appear in telemetry only when there is a concrete diagnostic need.
 
@@ -186,7 +198,7 @@ when the identifier is sufficient for investigation.
 
 ---
 
-# Default Deny for Payload Capture
+## Default Deny for Payload Capture
 
 Request bodies, response bodies, event payloads, job payloads, and arbitrary serialized objects must not be captured by default.
 
@@ -215,7 +227,7 @@ Payload capture should require deliberate justification.
 
 ---
 
-# Allowlist Before Redaction
+## Allowlist Before Redaction
 
 When the expected telemetry schema is known, prefer allowlisting safe fields over accepting arbitrary data and applying a blocklist.
 
@@ -246,13 +258,13 @@ Allowlisting limits exposure by default.
 
 ---
 
-# Redaction Strategies
+## Redaction Strategies
 
 Orion may use several redaction strategies depending on the data.
 
 ---
 
-## Removal
+### Removal
 
 Remove the value entirely.
 
@@ -266,7 +278,7 @@ This is the preferred strategy for credentials and secrets.
 
 ---
 
-## Constant Replacement
+### Constant Replacement
 
 Replace a sensitive value with a fixed marker.
 
@@ -280,7 +292,7 @@ This makes the presence of the field visible without preserving its value.
 
 ---
 
-## Partial Masking
+### Partial Masking
 
 Preserve only a limited safe portion.
 
@@ -300,7 +312,7 @@ Partial masking should be used only when the visible portion has genuine operati
 
 ---
 
-## Pseudonymization
+### Pseudonymization
 
 Replace a value with a stable non-secret identifier when correlation is useful.
 
@@ -318,7 +330,7 @@ The resulting identifier may still be `CONFIDENTIAL`.
 
 ---
 
-## Hashing
+### Hashing
 
 Hashing may provide correlation without storing the original value.
 
@@ -336,7 +348,7 @@ Hashing must not be treated automatically as anonymization.
 
 ---
 
-# Credential Redaction
+## Credential Redaction
 
 The telemetry pipeline should recognize common credential locations.
 
@@ -379,7 +391,7 @@ It must not replace explicit schema-based handling.
 
 ---
 
-# HTTP Request Telemetry
+## HTTP Request Telemetry
 
 HTTP request telemetry may normally include:
 
@@ -401,7 +413,7 @@ It must not capture sensitive HTTP content indiscriminately.
 
 ---
 
-# URLs
+## URLs
 
 Full URLs may contain sensitive information.
 
@@ -425,7 +437,7 @@ Query parameters should not be captured by default.
 
 ---
 
-# Query Parameters
+## Query Parameters
 
 Query parameters must be treated as untrusted data.
 
@@ -445,7 +457,7 @@ If specific parameters are operationally useful, allowlist them explicitly.
 
 ---
 
-# HTTP Headers
+## HTTP Headers
 
 Headers must not be captured indiscriminately.
 
@@ -464,7 +476,7 @@ Allowlist safe headers rather than attempting to capture all headers.
 
 ---
 
-# Request Bodies
+## Request Bodies
 
 Request bodies must not be logged or attached to traces by default.
 
@@ -485,7 +497,7 @@ Do not serialize the entire request object.
 
 ---
 
-# Response Bodies
+## Response Bodies
 
 Response bodies must not be captured by default.
 
@@ -503,7 +515,7 @@ Operational telemetry should normally capture response metadata rather than resp
 
 ---
 
-# File Uploads
+## File Uploads
 
 Uploaded file content must never be automatically captured in telemetry.
 
@@ -530,7 +542,7 @@ Original file names may contain personal or sensitive information and should be 
 
 ---
 
-# WebSocket and RPC Payloads
+## WebSocket and RPC Payloads
 
 The same rules that apply to HTTP payloads apply to WebSocket, RPC, and other transport payloads.
 
@@ -540,7 +552,7 @@ Capture schema-level metadata rather than arbitrary message content.
 
 ---
 
-# Event and Message Payloads
+## Event and Message Payloads
 
 Message queues and event systems often retain payloads across multiple systems.
 
@@ -562,7 +574,7 @@ instead of the full event payload.
 
 ---
 
-# Job Payloads
+## Job Payloads
 
 Background job payloads must not be serialized into logs by default.
 
@@ -579,7 +591,7 @@ If business identifiers are required for debugging, include only the necessary i
 
 ---
 
-# Database Telemetry
+## Database Telemetry
 
 Database telemetry requires special care.
 
@@ -597,7 +609,7 @@ Raw SQL and bound values require additional scrutiny.
 
 ---
 
-# SQL Statements
+## SQL Statements
 
 SQL statements may contain literal values.
 
@@ -623,7 +635,7 @@ when SQL telemetry is required.
 
 ---
 
-# SQL Parameters
+## SQL Parameters
 
 Database query parameters must not be captured automatically.
 
@@ -641,7 +653,7 @@ If parameter capture is ever enabled for a specific diagnostic workflow, it must
 
 ---
 
-# ORM Telemetry
+## ORM Telemetry
 
 ORM instrumentation may automatically capture:
 
@@ -658,7 +670,7 @@ Orion must not assume ORM instrumentation is safe without configuration.
 
 ---
 
-# Database Errors
+## Database Errors
 
 Database exception messages may contain:
 
@@ -677,7 +689,7 @@ Before sending them to telemetry providers, inspect what metadata the database d
 
 ---
 
-# External Provider Telemetry
+## External Provider Telemetry
 
 Third-party SDKs may attach request and response data to exceptions or breadcrumbs.
 
@@ -698,7 +710,7 @@ Disable or sanitize unsafe automatic capture.
 
 ---
 
-# Payment Providers
+## Payment Providers
 
 Payment-provider telemetry deserves especially strict handling.
 
@@ -725,7 +737,7 @@ declineCategory: issuer_declined
 
 ---
 
-# Authentication Providers
+## Authentication Providers
 
 Authentication-provider telemetry must not capture credentials or raw tokens.
 
@@ -743,7 +755,7 @@ when appropriate.
 
 ---
 
-# Error Reporting
+## Error Reporting
 
 Error-tracking tools may capture more information than application logs.
 
@@ -767,7 +779,7 @@ Unsafe capture should be disabled before production use.
 
 ---
 
-# Stack Traces
+## Stack Traces
 
 Stack traces are generally useful and may be captured internally.
 
@@ -786,7 +798,7 @@ They must never contain secrets intentionally.
 
 ---
 
-# Local Variables
+## Local Variables
 
 Automatic local-variable capture is high risk.
 
@@ -796,7 +808,7 @@ Local-variable capture should be disabled by default unless the environment and 
 
 ---
 
-# Exception Objects
+## Exception Objects
 
 Exception objects may contain provider payloads, SQL, HTTP responses, or internal request state.
 
@@ -812,7 +824,7 @@ Error-reporting integrations should sanitize exception metadata before export wh
 
 ---
 
-# Breadcrumbs
+## Breadcrumbs
 
 Breadcrumbs provide valuable execution context but can easily capture sensitive information.
 
@@ -831,7 +843,7 @@ Breadcrumb configuration must follow the same classification policy as ordinary 
 
 ---
 
-# Console Capture
+## Console Capture
 
 Client error-reporting SDKs may automatically capture console output.
 
@@ -849,7 +861,7 @@ Production console capture must be reviewed or disabled appropriately.
 
 ---
 
-# User Context in Error Tracking
+## User Context in Error Tracking
 
 Error-reporting systems may support user context.
 
@@ -873,7 +885,7 @@ User context must be cleared when authentication state ends.
 
 ---
 
-# Trace Attributes
+## Trace Attributes
 
 Trace attributes should contain low-risk operational context.
 
@@ -895,7 +907,7 @@ Do not attach entire application objects to spans.
 
 ---
 
-# Span Events
+## Span Events
 
 Span events follow the same redaction policy as logs.
 
@@ -909,7 +921,7 @@ should include safe operational attributes rather than provider payload dumps.
 
 ---
 
-# Metrics
+## Metrics
 
 Metrics must never contain secrets.
 
@@ -934,7 +946,7 @@ For most cases, these values do not belong in metrics.
 
 ---
 
-# Error Messages as Metric Labels
+## Error Messages as Metric Labels
 
 Do not use arbitrary exception messages as metric labels.
 
@@ -959,7 +971,7 @@ error_code="EMAIL_ALREADY_IN_USE"
 
 ---
 
-# Audit Logs
+## Audit Logs
 
 Audit logs have a different purpose from diagnostic logs but still require redaction.
 
@@ -981,7 +993,7 @@ Such use must be explicit.
 
 ---
 
-# Security Logs
+## Security Logs
 
 Security telemetry may require additional context for incident investigation.
 
@@ -1000,7 +1012,7 @@ over raw credentials or full request bodies.
 
 ---
 
-# Client-Side Telemetry
+## Client-Side Telemetry
 
 Client applications operate in less-trusted environments and may observe sensitive user input.
 
@@ -1020,7 +1032,7 @@ Client error reporting must not automatically capture these values.
 
 ---
 
-# Session Replay
+## Session Replay
 
 If session replay is ever introduced, it must receive separate security and privacy review.
 
@@ -1040,7 +1052,7 @@ Session replay must never be enabled merely because an observability vendor prov
 
 ---
 
-# Screenshots
+## Screenshots
 
 Automatic screenshots in error reporting or support flows may expose confidential information.
 
@@ -1050,7 +1062,7 @@ It must not be enabled by default without review.
 
 ---
 
-# Mobile Crash Reports
+## Mobile Crash Reports
 
 Mobile crash reports may include:
 
@@ -1068,7 +1080,7 @@ Crash-report attachments and memory dumps require additional review because they
 
 ---
 
-# Desktop Crash Dumps
+## Desktop Crash Dumps
 
 Desktop crash dumps and memory dumps can contain arbitrary process memory.
 
@@ -1087,7 +1099,7 @@ Their collection should require explicit justification and restricted access.
 
 ---
 
-# Environment Variables
+## Environment Variables
 
 Telemetry must never include complete environment-variable dumps.
 
@@ -1111,7 +1123,7 @@ process.env
 
 ---
 
-# Application Configuration
+## Application Configuration
 
 Configuration objects may contain both public settings and secrets.
 
@@ -1121,7 +1133,7 @@ Prefer safe configuration summaries generated through explicit schemas.
 
 ---
 
-# Startup Logs
+## Startup Logs
 
 Startup logs must not print secret configuration.
 
@@ -1143,7 +1155,7 @@ or safe non-secret metadata.
 
 ---
 
-# Secret Detection
+## Secret Detection
 
 Orion should eventually use multiple layers of secret detection.
 
@@ -1162,7 +1174,7 @@ No single layer should be considered sufficient.
 
 ---
 
-# Redaction at Source
+## Redaction at Source
 
 The strongest redaction point is before sensitive data enters telemetry.
 
@@ -1184,7 +1196,7 @@ Early redaction reduces exposure across intermediate systems.
 
 ---
 
-# Centralized Redaction
+## Centralized Redaction
 
 Cross-cutting infrastructure should also provide centralized protection.
 
@@ -1204,7 +1216,7 @@ It complements, rather than replaces, safe instrumentation at the source.
 
 ---
 
-# Collector-Side Redaction
+## Collector-Side Redaction
 
 Telemetry collectors or processors may provide additional filtering before data reaches external systems.
 
@@ -1214,7 +1226,7 @@ However, collector-side redaction should not be the only layer protecting secret
 
 ---
 
-# Provider-Side Redaction
+## Provider-Side Redaction
 
 External telemetry providers may offer data-scrubbing features.
 
@@ -1226,7 +1238,7 @@ Sensitive data has already crossed a boundary by the time provider-side filterin
 
 ---
 
-# Defense in Depth
+## Defense in Depth
 
 A strong telemetry pipeline may use:
 
@@ -1244,7 +1256,7 @@ Each layer reduces the probability and impact of accidental exposure.
 
 ---
 
-# Redaction Failure Behavior
+## Redaction Failure Behavior
 
 If redaction fails, telemetry handling should fail safely.
 
@@ -1264,7 +1276,7 @@ The redaction-failure signal itself must not contain the original sensitive payl
 
 ---
 
-# Redaction Error Recursion
+## Redaction Error Recursion
 
 Redaction failures must not create recursive telemetry failures.
 
@@ -1282,7 +1294,7 @@ Fallback behavior should produce only bounded safe metadata.
 
 ---
 
-# Unknown Fields
+## Unknown Fields
 
 Unknown dynamic fields must be treated conservatively.
 
@@ -1298,7 +1310,7 @@ When arbitrary structures exist, explicit allowlisting becomes even more importa
 
 ---
 
-# Serialization Safety
+## Serialization Safety
 
 Telemetry serialization may invoke:
 
@@ -1315,7 +1327,7 @@ Telemetry serializers should be deterministic and designed specifically for safe
 
 ---
 
-# Logging Objects
+## Logging Objects
 
 Avoid:
 
@@ -1338,7 +1350,7 @@ This makes the telemetry contract explicit.
 
 ---
 
-# ORM Entities and Domain Objects
+## ORM Entities and Domain Objects
 
 Persistence and domain objects may contain fields that are not safe for telemetry.
 
@@ -1359,7 +1371,7 @@ Create explicit telemetry projections instead.
 
 ---
 
-# Telemetry Projection
+## Telemetry Projection
 
 A telemetry projection is a deliberately safe representation of an object.
 
@@ -1388,7 +1400,7 @@ Telemetry projections may become reusable when a domain requires consistent inst
 
 ---
 
-# Redaction and Data Classification Metadata
+## Redaction and Data Classification Metadata
 
 If Orion later introduces machine-readable data classification, telemetry redaction should consume that metadata where practical.
 
@@ -1412,7 +1424,7 @@ This would allow security rules to move from convention toward mechanical enforc
 
 ---
 
-# Sensitive Field Metadata
+## Sensitive Field Metadata
 
 Future schema metadata may define properties such as:
 
@@ -1432,7 +1444,7 @@ Generated validation should therefore be preferred where practical.
 
 ---
 
-# Redaction Rules Must Be Testable
+## Redaction Rules Must Be Testable
 
 Important redaction behavior should have automated tests.
 
@@ -1452,7 +1464,7 @@ A redaction regression is a security defect.
 
 ---
 
-# Representative Secret Tests
+## Representative Secret Tests
 
 Tests should use obvious synthetic values.
 
@@ -1475,7 +1487,7 @@ error events
 
 ---
 
-# Negative Assertions
+## Negative Assertions
 
 Telemetry tests should verify absence, not only presence.
 
@@ -1490,7 +1502,7 @@ This is especially important for security-sensitive instrumentation.
 
 ---
 
-# End-to-End Telemetry Tests
+## End-to-End Telemetry Tests
 
 Important flows may require tests through the full telemetry pipeline.
 
@@ -1508,7 +1520,7 @@ The final exported representation should be inspected for prohibited fields.
 
 ---
 
-# Static Analysis
+## Static Analysis
 
 Future tooling may detect unsafe patterns such as:
 
@@ -1523,7 +1535,7 @@ Static analysis cannot detect every leak, but it can prevent common mistakes.
 
 ---
 
-# Schema-Based Validation
+## Schema-Based Validation
 
 If application schemas contain classification metadata, CI may eventually validate telemetry usage automatically.
 
@@ -1541,7 +1553,7 @@ client-safe telemetry cannot access server secrets
 
 ---
 
-# Runtime Guards
+## Runtime Guards
 
 Shared observability libraries may provide runtime guards.
 
@@ -1560,7 +1572,7 @@ They should not encourage unsafe instrumentation patterns.
 
 ---
 
-# Logging APIs
+## Logging APIs
 
 Orion should prefer structured logging APIs that make context explicit.
 
@@ -1587,7 +1599,7 @@ Structured APIs make security inspection easier.
 
 ---
 
-# Unsafe String Interpolation
+## Unsafe String Interpolation
 
 Even structured logging systems cannot redact values reliably when sensitive information is embedded into arbitrary strings.
 
@@ -1611,7 +1623,7 @@ Avoid embedding runtime data into opaque messages unnecessarily.
 
 ---
 
-# Stable Event Schemas
+## Stable Event Schemas
 
 Important telemetry events may eventually have defined schemas.
 
@@ -1642,7 +1654,7 @@ It should be introduced where the value justifies the maintenance cost.
 
 ---
 
-# Telemetry Size Limits
+## Telemetry Size Limits
 
 Large telemetry payloads increase cost and exposure risk.
 
@@ -1660,7 +1672,7 @@ Truncation must not create misleading semantics.
 
 ---
 
-# User-Generated Strings
+## User-Generated Strings
 
 User-generated strings should not automatically become log messages or telemetry attributes.
 
@@ -1679,7 +1691,7 @@ If a value is required, classify and sanitize it explicitly.
 
 ---
 
-# File Paths
+## File Paths
 
 File paths may reveal:
 
@@ -1696,7 +1708,7 @@ User-controlled or local-client paths require greater caution.
 
 ---
 
-# IP Addresses
+## IP Addresses
 
 IP addresses may constitute personal data depending on context and jurisdiction.
 
@@ -1706,7 +1718,7 @@ If IP collection is operationally or security-relevant, its purpose and retentio
 
 ---
 
-# User-Agent Information
+## User-Agent Information
 
 User-agent information may help diagnose compatibility problems.
 
@@ -1718,7 +1730,7 @@ Normalized browser/platform information may be preferable to raw strings.
 
 ---
 
-# Device Information
+## Device Information
 
 Mobile and desktop telemetry should avoid collecting excessive device information.
 
@@ -1735,7 +1747,7 @@ Unique device identifiers require additional justification.
 
 ---
 
-# Geolocation
+## Geolocation
 
 Precise location data is highly sensitive.
 
@@ -1745,7 +1757,7 @@ If a product requires location functionality, observability should capture only 
 
 ---
 
-# Feature Flags
+## Feature Flags
 
 Telemetry may include feature-flag state when required for debugging.
 
@@ -1755,7 +1767,7 @@ Do not attach entire feature-flag contexts containing user attributes.
 
 ---
 
-# Error Codes
+## Error Codes
 
 Stable error codes are preferred telemetry dimensions.
 
@@ -1769,7 +1781,7 @@ This is safer and more useful than arbitrary exception text.
 
 ---
 
-# Provider Error Codes
+## Provider Error Codes
 
 Provider-specific error codes may be stored internally when they help investigation.
 
@@ -1779,7 +1791,7 @@ Public application consumers should still rely on Orion-owned error semantics wh
 
 ---
 
-# Redaction and Correlation
+## Redaction and Correlation
 
 Redaction must preserve operational correlation when possible.
 
@@ -1797,7 +1809,7 @@ These identifiers provide diagnostic value without requiring descriptive sensiti
 
 ---
 
-# Support References
+## Support References
 
 User-facing support references such as `errorId` or `requestId` should be safe to disclose.
 
@@ -1815,7 +1827,7 @@ Prefer random or opaque identifiers.
 
 ---
 
-# Telemetry Export
+## Telemetry Export
 
 Telemetry exporters should transmit data only to approved destinations.
 
@@ -1835,7 +1847,7 @@ depending on its significance.
 
 ---
 
-# Multi-Vendor Telemetry
+## Multi-Vendor Telemetry
 
 Sending the same telemetry to multiple providers increases exposure and retention surfaces.
 
@@ -1845,7 +1857,7 @@ Each destination must independently satisfy Orion's data-handling requirements.
 
 ---
 
-# Development Telemetry
+## Development Telemetry
 
 Development environments may expose richer diagnostics, but restricted-data rules still apply.
 
@@ -1862,7 +1874,7 @@ Developers should not become accustomed to unsafe logging patterns that later re
 
 ---
 
-# Test Telemetry
+## Test Telemetry
 
 Tests should use synthetic sensitive values and verify sanitization.
 
@@ -1872,7 +1884,7 @@ Automated-test environments should normally use isolated or disabled external te
 
 ---
 
-# CI Telemetry
+## CI Telemetry
 
 CI logs are telemetry and may be retained externally.
 
@@ -1889,7 +1901,7 @@ Build and deployment scripts must use secret-masking capabilities where availabl
 
 ---
 
-# Infrastructure Logs
+## Infrastructure Logs
 
 Infrastructure systems may log:
 
@@ -1907,7 +1919,7 @@ Infrastructure logging configuration must follow the same policy.
 
 ---
 
-# Reverse Proxies and Load Balancers
+## Reverse Proxies and Load Balancers
 
 Access logs may capture:
 
@@ -1924,7 +1936,7 @@ A secure application logger does not prevent an upstream proxy from leaking sens
 
 ---
 
-# Database Server Logs
+## Database Server Logs
 
 Database systems may log:
 
@@ -1939,7 +1951,7 @@ Database logging configuration must be reviewed independently of application log
 
 ---
 
-# Container and Platform Logs
+## Container and Platform Logs
 
 Anything written to standard output or standard error may be collected automatically by the platform.
 
@@ -1954,7 +1966,7 @@ is effectively a telemetry leak even when no logging library is involved.
 
 ---
 
-# Third-Party SDK Logging
+## Third-Party SDK Logging
 
 Some SDKs support debug logging that may expose:
 
@@ -1971,7 +1983,7 @@ Production debug logging should never be enabled casually.
 
 ---
 
-# Emergency Diagnostics
+## Emergency Diagnostics
 
 Exceptional incidents may justify temporarily increased telemetry.
 
@@ -1991,7 +2003,7 @@ Emergency debugging is not an exemption from core secret-handling rules.
 
 ---
 
-# Temporary Diagnostic Instrumentation
+## Temporary Diagnostic Instrumentation
 
 Temporary logs added during incident investigation should be clearly identifiable and removed when no longer needed.
 
@@ -2001,7 +2013,7 @@ A temporary diagnostic line can leak data just as easily as permanent instrument
 
 ---
 
-# Redaction Incidents
+## Redaction Incidents
 
 If confidential or restricted data is found in telemetry, treat the situation as a security issue.
 
@@ -2023,7 +2035,7 @@ The severity depends on the data involved.
 
 ---
 
-# Credential Leakage
+## Credential Leakage
 
 If a credential appears in telemetry, assume that the credential may have been exposed.
 
@@ -2033,7 +2045,7 @@ The credential should be revoked or rotated according to incident procedures.
 
 ---
 
-# Historical Telemetry
+## Historical Telemetry
 
 Fixing instrumentation prevents future leakage.
 
@@ -2054,7 +2066,7 @@ where the sensitive value may already exist.
 
 ---
 
-# Access to Telemetry
+## Access to Telemetry
 
 Telemetry access must follow least privilege.
 
@@ -2064,7 +2076,7 @@ Sensitive telemetry access should be auditable where appropriate.
 
 ---
 
-# AI Agent Access
+## AI Agent Access
 
 AI agents may access telemetry only according to approved authorization and data-classification rules.
 
@@ -2092,7 +2104,7 @@ merely because they may help debugging.
 
 ---
 
-# AI-Friendly Telemetry
+## AI-Friendly Telemetry
 
 Telemetry should be designed so AI agents can reason from machine-readable evidence.
 
@@ -2115,7 +2127,7 @@ Security and machine readability reinforce each other when telemetry uses explic
 
 ---
 
-# Sanitized Investigation Bundles
+## Sanitized Investigation Bundles
 
 Orion may eventually support generating sanitized diagnostic bundles for support or AI-assisted investigation.
 
@@ -2136,7 +2148,7 @@ The exact implementation should be introduced only when there is a concrete oper
 
 ---
 
-# Documentation Examples
+## Documentation Examples
 
 Telemetry documentation must use synthetic values.
 
@@ -2146,7 +2158,7 @@ Example values should be obviously fictional.
 
 ---
 
-# Machine-Readable Policy
+## Machine-Readable Policy
 
 As Orion evolves, some redaction rules should become machine-readable.
 
@@ -2172,7 +2184,7 @@ tooling
 
 ---
 
-# Canonical Redaction Policy
+## Canonical Redaction Policy
 
 Orion should eventually have one canonical redaction-policy definition where practical.
 
@@ -2195,7 +2207,7 @@ The implementation format depends on the selected stack.
 
 ---
 
-# Generated Documentation
+## Generated Documentation
 
 Machine-readable redaction rules may eventually generate documentation showing:
 
@@ -2210,7 +2222,7 @@ Generated documentation should not include actual secret values.
 
 ---
 
-# Mechanical Enforcement
+## Mechanical Enforcement
 
 Future enforcement may include:
 
@@ -2228,7 +2240,7 @@ The goal is to reduce reliance on memory and manual code review.
 
 ---
 
-# Pull Request Review
+## Pull Request Review
 
 Changes that introduce new telemetry should be reviewed for:
 
@@ -2249,7 +2261,7 @@ It should be reviewed accordingly.
 
 ---
 
-# New Telemetry Checklist
+## New Telemetry Checklist
 
 Before introducing new telemetry, determine:
 
@@ -2268,7 +2280,7 @@ If these questions cannot be answered, the telemetry design is not ready.
 
 ---
 
-# Initial Redaction Rules
+## Initial Redaction Rules
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2295,13 +2307,11 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Remaining Implementation Decisions
 
-The following decisions are intentionally deferred:
+The accepted choices are linked above. These remaining details are intentionally deferred:
 
 ```text
-logging framework
-telemetry SDK
 OpenTelemetry configuration
 error-reporting provider
 redaction library
@@ -2316,26 +2326,23 @@ These decisions should follow the selected technology stack and deployment archi
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document may later be complemented by:
 
-```text
-docs/security/secrets-management.md
-docs/security/production-access.md
-docs/security/data-retention.md
-docs/security/incident-response.md
-
-docs/reliability/logging.md
-docs/reliability/tracing.md
-docs/reliability/error-reporting.md
-```
+- [docs/security/secrets-management.md](secrets-management.md)
+- [docs/security/production-access.md](production-access.md)
+- [docs/security/data-retention.md](data-retention.md)
+- [docs/security/incident-response.md](incident-response.md)
+- [docs/reliability/logging.md](../reliability/logging.md)
+- [docs/reliability/tracing.md](../reliability/tracing.md)
+- [docs/reliability/error-reporting.md](../reliability/error-reporting.md)
 
 Implementation-specific documents must follow the policy defined here.
 
 ---
 
-# Summary
+## Summary
 
 Telemetry is an additional copy of application information.
 

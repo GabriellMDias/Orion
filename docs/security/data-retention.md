@@ -1,5 +1,16 @@
 # Data Retention
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+## Read for this change
+
+- [Retention Policy Metadata](#retention-policy-metadata)
+- [Soft Delete](#soft-delete)
+- [Restore and Deletion Replay](#restore-and-deletion-replay)
+- [Deletion Is a Distributed Workflow](#deletion-is-a-distributed-workflow)
+- [New Persistent Data Checklist](#new-persistent-data-checklist)
+- [Data Lifecycle](#data-lifecycle)
+
 ## Purpose
 
 This document defines the data-retention principles used by Orion.
@@ -32,13 +43,13 @@ Specific retention durations, storage-provider lifecycle rules, backup schedules
 
 This document complements:
 
-- `docs/security/data-classification.md`;
-- `docs/security/telemetry-redaction.md`;
-- `docs/security/production-access.md`;
-- `docs/database/principles.md`;
-- `docs/reliability/logging.md`;
-- `docs/reliability/tracing.md`;
-- `docs/reliability/error-reporting.md`.
+- [docs/security/data-classification.md](data-classification.md);
+- [docs/security/telemetry-redaction.md](telemetry-redaction.md);
+- [docs/security/production-access.md](production-access.md);
+- [docs/database/principles.md](../database/principles.md);
+- [docs/reliability/logging.md](../reliability/logging.md);
+- [docs/reliability/tracing.md](../reliability/tracing.md);
+- [docs/reliability/error-reporting.md](../reliability/error-reporting.md).
 
 ---
 
@@ -48,7 +59,7 @@ Data should exist only while there is a justified reason for it to exist.
 
 The intended model is:
 
-```text id="94agqm"
+```text
 data created
     ↓
 purpose identified
@@ -72,13 +83,13 @@ It must never be the invisible default.
 
 ---
 
-# Retention Is a Data Contract
+## Retention Is a Data Contract
 
 Retention defines part of the lifecycle of data.
 
 For each important data category, Orion should eventually be able to answer:
 
-```text id="l9s0s0"
+```text
 Why do we keep it?
 
 How long do we keep it?
@@ -96,13 +107,13 @@ If these questions cannot be answered, the lifecycle is incomplete.
 
 ---
 
-# Retention Is Not One Global Number
+## Retention Is Not One Global Number
 
 Different data has different purposes.
 
 Therefore Orion should not define one universal retention duration for:
 
-```text id="8kik2y"
+```text
 business data
 authentication data
 audit records
@@ -117,17 +128,17 @@ Retention must follow the purpose and risk of each data category.
 
 ---
 
-# Retention vs Deletion
+## Retention vs Deletion
 
 Retention answers:
 
-```text id="0piw5f"
+```text
 How long should data remain available?
 ```
 
 Deletion answers:
 
-```text id="bt3t0p"
+```text
 How is data removed after it should no longer remain?
 ```
 
@@ -137,7 +148,7 @@ A retention policy without a deletion mechanism is incomplete.
 
 ---
 
-# Retention vs Archival
+## Retention vs Archival
 
 Archival moves data to a different storage or access model.
 
@@ -145,7 +156,7 @@ Archival does not mean deletion.
 
 Archived data remains subject to:
 
-```text id="hmx6uy"
+```text
 classification
 access control
 retention
@@ -155,7 +166,7 @@ deletion obligations
 
 ---
 
-# Retention vs Backup
+## Retention vs Backup
 
 Backups preserve recoverability.
 
@@ -167,13 +178,13 @@ The system must define how deleted data eventually ages out of backups.
 
 ---
 
-# Retention vs Legal Hold
+## Retention vs Legal Hold
 
 A legal or regulatory hold may require preserving data beyond normal retention.
 
 Such holds must be:
 
-```text id="rh15ic"
+```text
 explicit
 scoped
 authorized
@@ -184,11 +195,11 @@ They must not become a generic reason to retain everything indefinitely.
 
 ---
 
-# Data Classification Comes First
+## Data Classification Comes First
 
 Retention decisions should consider:
 
-```text id="bgk28s"
+```text
 PUBLIC
 INTERNAL
 CONFIDENTIAL
@@ -197,13 +208,11 @@ RESTRICTED
 
 as defined in:
 
-```text id="0a18gz"
-docs/security/data-classification.md
-```
+- [docs/security/data-classification.md](data-classification.md)
 
 More sensitive data generally requires:
 
-```text id="obn3or"
+```text
 stronger justification
 shorter retention where possible
 tighter access
@@ -212,13 +221,13 @@ more careful deletion
 
 ---
 
-# Data Minimization
+## Data Minimization
 
 Before defining how long to retain data, ask whether the system needs to collect it at all.
 
 The preferred sequence is:
 
-```text id="u2xq4o"
+```text
 do not collect
     ↓ if needed
 collect minimum
@@ -232,13 +241,13 @@ Retention policy must not compensate for unnecessary collection.
 
 ---
 
-# Purpose Limitation
+## Purpose Limitation
 
 Data should be retained for identified purposes.
 
 Examples may include:
 
-```text id="5kq8cj"
+```text
 fulfilling product function
 financial reconciliation
 security investigation
@@ -251,13 +260,13 @@ A new purpose should not automatically reuse previously collected data without r
 
 ---
 
-# Retention Owner
+## Retention Owner
 
 Important retained data should have an identifiable owner.
 
 Ownership should answer:
 
-```text id="0zq592"
+```text
 Which domain defines the data lifecycle?
 
 Who can change the retention rule?
@@ -267,13 +276,13 @@ Who is responsible for deletion behavior?
 
 ---
 
-# Retention Policy Metadata
+## Retention Policy Metadata
 
 Orion may eventually represent retention policy in machine-readable metadata.
 
 Conceptually:
 
-```text id="6u6um7"
+```text
 owner: identity
 classification: CONFIDENTIAL
 retention: 90d_after_account_deletion
@@ -282,7 +291,7 @@ disposition: delete
 
 or:
 
-```text id="2r5nz5"
+```text
 retention: while_account_active
 disposition: anonymize
 ```
@@ -291,13 +300,13 @@ The exact representation is deferred.
 
 ---
 
-# Retention Trigger
+## Retention Trigger
 
 A retention period often begins or ends based on an event.
 
 Examples include:
 
-```text id="4oat44"
+```text
 record creation
 last activity
 account deletion
@@ -312,13 +321,13 @@ The trigger must be explicit.
 
 ---
 
-# Fixed Duration
+## Fixed Duration
 
 Some data may use a fixed duration.
 
 Example concept:
 
-```text id="i7jgvv"
+```text
 retain for 30 days after creation
 ```
 
@@ -328,13 +337,13 @@ Do not invent arbitrary durations.
 
 ---
 
-# Lifecycle-Based Retention
+## Lifecycle-Based Retention
 
 Some data should exist while a business object remains active.
 
 Example:
 
-```text id="7o5ebt"
+```text
 retain while subscription exists
 ```
 
@@ -342,11 +351,11 @@ with separate policy after termination.
 
 ---
 
-# Event-Based Retention
+## Event-Based Retention
 
 Some data may require:
 
-```text id="4cspmg"
+```text
 retain N days after account deletion
 ```
 
@@ -356,13 +365,13 @@ The ending event should be unambiguous.
 
 ---
 
-# Indefinite Retention
+## Indefinite Retention
 
 Indefinite retention requires explicit justification.
 
 Potential reasons may include:
 
-```text id="gn4n0m"
+```text
 durable ledger requirement
 long-term legal record
 permanent product artifact
@@ -370,23 +379,23 @@ permanent product artifact
 
 Indefinite does not mean:
 
-```text id="otbs2w"
+```text
 we never designed deletion
 ```
 
 ---
 
-# No Default Forever
+## No Default Forever
 
 If no retention rule has been defined, the correct state is:
 
-```text id="ihj1cy"
+```text
 retention undefined
 ```
 
 not:
 
-```text id="g0p9d6"
+```text
 retain forever
 ```
 
@@ -394,11 +403,11 @@ Undefined retention should become visible as a governance defect.
 
 ---
 
-# Data Lifecycle States
+## Data Lifecycle States
 
 A record may move through states such as:
 
-```text id="nx1g34"
+```text
 active
 inactive
 deleted
@@ -410,13 +419,13 @@ These states should have explicit semantics.
 
 ---
 
-# Hard Delete
+## Hard Delete
 
 Hard deletion removes data from the active storage model.
 
 It may still remain temporarily in:
 
-```text id="4nf7i3"
+```text
 backups
 replicas
 logs
@@ -428,13 +437,13 @@ until those systems converge according to their policies.
 
 ---
 
-# Soft Delete
+## Soft Delete
 
 Soft delete marks data as deleted while retaining the row.
 
 Typical conceptual field:
 
-```text id="zmv3j0"
+```text
 deletedAt
 ```
 
@@ -442,13 +451,13 @@ Soft delete is not equivalent to actual deletion.
 
 ---
 
-# Soft Delete Is Not the Default
+## Soft Delete Is Not the Default
 
 Do not add soft delete to every table automatically.
 
 Soft delete increases:
 
-```text id="e6m8yo"
+```text
 query complexity
 authorization complexity
 uniqueness complexity
@@ -461,13 +470,13 @@ Use it only when there is a concrete recovery, audit, or lifecycle need.
 
 ---
 
-# Soft Delete Requires Retention
+## Soft Delete Requires Retention
 
 A soft-deleted record still contains data.
 
 Therefore it must have a policy for:
 
-```text id="m6rlrg"
+```text
 eventual hard deletion
 anonymization
 archive
@@ -479,13 +488,13 @@ A row with `deletedAt` retained forever is still retained data.
 
 ---
 
-# Restore Window
+## Restore Window
 
 Soft delete may support a bounded restore window.
 
 Conceptually:
 
-```text id="z7wb66"
+```text
 delete requested
     ↓
 soft deleted
@@ -499,13 +508,13 @@ The actual window should be defined by product requirements.
 
 ---
 
-# Tombstones
+## Tombstones
 
 Some systems may require tombstone records after deletion.
 
 A tombstone should contain only the minimal data required to represent:
 
-```text id="a3p47w"
+```text
 resource no longer exists
 ```
 
@@ -515,13 +524,13 @@ Do not retain the full deleted record if only a minimal marker is required.
 
 ---
 
-# Anonymization
+## Anonymization
 
 Anonymization removes the ability to identify a person from retained data to the level required by the applicable policy.
 
 It may allow preserving:
 
-```text id="9g0wdb"
+```text
 aggregate statistics
 non-identifying historical facts
 ```
@@ -530,17 +539,17 @@ without retaining unnecessary personal information.
 
 ---
 
-# Anonymization Is Not Deletion by Renaming
+## Anonymization Is Not Deletion by Renaming
 
 Replacing:
 
-```text id="ce6adn"
+```text
 name = "Deleted User"
 ```
 
 while retaining:
 
-```text id="hxm5su"
+```text
 email
 phone
 IP history
@@ -551,7 +560,7 @@ is not meaningful anonymization.
 
 ---
 
-# Pseudonymization
+## Pseudonymization
 
 Pseudonymization replaces identifying data with another identifier.
 
@@ -561,11 +570,11 @@ It should generally remain classified as sensitive.
 
 ---
 
-# Hashing Is Not Automatically Anonymization
+## Hashing Is Not Automatically Anonymization
 
 Hashing:
 
-```text id="5cg3hl"
+```text
 email
 phone
 customer number
@@ -573,7 +582,7 @@ customer number
 
 may still allow:
 
-```text id="69yjlp"
+```text
 dictionary attacks
 linkability
 re-identification
@@ -583,13 +592,13 @@ Hashing must not automatically be treated as deletion or anonymization.
 
 ---
 
-# Aggregation
+## Aggregation
 
 Aggregated data may have lower privacy risk than raw records.
 
 However:
 
-```text id="y5nzw3"
+```text
 small cohorts
 rare categories
 precise timestamps
@@ -601,13 +610,13 @@ Aggregation does not automatically declassify data.
 
 ---
 
-# Personal Data
+## Personal Data
 
 Personal data should have an explicit lifecycle.
 
 The system should be able to identify where personal data exists across:
 
-```text id="9jonfj"
+```text
 primary database
 object storage
 search
@@ -622,7 +631,7 @@ where practical.
 
 ---
 
-# Sensitive Personal Data
+## Sensitive Personal Data
 
 Highly sensitive personal data should be retained only when necessary.
 
@@ -630,13 +639,13 @@ Long-term retention should require stronger justification.
 
 ---
 
-# Authentication Data
+## Authentication Data
 
 Authentication-related data requires special treatment.
 
 Potential categories include:
 
-```text id="r0nszt"
+```text
 password hashes
 sessions
 refresh tokens
@@ -649,7 +658,7 @@ Each has different lifecycle needs.
 
 ---
 
-# Password Hashes
+## Password Hashes
 
 Password hashes should exist only while required for authentication.
 
@@ -657,7 +666,7 @@ When the credential is no longer valid, the obsolete hash should not remain inde
 
 ---
 
-# Sessions
+## Sessions
 
 Expired or revoked session state should be removed according to session-management requirements.
 
@@ -665,11 +674,11 @@ Active-session storage should not become a permanent history of all sessions unl
 
 ---
 
-# Refresh Tokens
+## Refresh Tokens
 
 Refresh-token records should follow:
 
-```text id="x3v7ga"
+```text
 expiration
 revocation
 rotation
@@ -679,7 +688,7 @@ and eventually be removed when no longer useful for security or detection.
 
 ---
 
-# Recovery Codes
+## Recovery Codes
 
 Used or revoked recovery credentials should be invalidated immediately.
 
@@ -687,11 +696,11 @@ Historical retention of the secret value is unnecessary and unsafe.
 
 ---
 
-# Authentication History
+## Authentication History
 
 Security events such as:
 
-```text id="821i10"
+```text
 login success
 login failure
 credential change
@@ -704,7 +713,7 @@ The exact period is a future operational/legal decision.
 
 ---
 
-# Authorization Data
+## Authorization Data
 
 Role and permission assignments may need current-state and historical audit retention.
 
@@ -714,13 +723,13 @@ Do not keep every historical permission state in the primary authorization table
 
 ---
 
-# Audit Records
+## Audit Records
 
 Audit records may require longer retention than ordinary diagnostic logs.
 
 Their retention should reflect:
 
-```text id="moa3ce"
+```text
 security
 compliance
 investigation
@@ -731,7 +740,7 @@ Audit retention should be explicitly defined.
 
 ---
 
-# Audit Integrity vs Retention
+## Audit Integrity vs Retention
 
 Audit logs may require stronger protection against modification.
 
@@ -739,11 +748,11 @@ Retention duration and integrity protection are distinct concerns.
 
 ---
 
-# Financial Records
+## Financial Records
 
 Financial or billing data may have retention obligations determined by:
 
-```text id="hz9031"
+```text
 accounting
 tax
 contract
@@ -757,7 +766,7 @@ Such requirements should be documented once known.
 
 ---
 
-# Payment Credentials
+## Payment Credentials
 
 Raw payment credentials should generally not be retained by Orion when a provider can tokenize or own them.
 
@@ -765,7 +774,7 @@ Retention minimization is especially important for payment data.
 
 ---
 
-# Provider Tokens
+## Provider Tokens
 
 Provider-generated tokens may themselves be sensitive.
 
@@ -773,13 +782,13 @@ Their retention should follow the period for which the integration needs them.
 
 ---
 
-# User Content
+## User Content
 
 User-generated content should generally exist according to the product lifecycle.
 
 Examples:
 
-```text id="3tn7fk"
+```text
 documents
 messages
 uploads
@@ -788,7 +797,7 @@ comments
 
 Deletion semantics should consider:
 
-```text id="oldh5z"
+```text
 ownership
 sharing
 legal retention
@@ -798,13 +807,13 @@ derived indexes
 
 ---
 
-# User Content Deletion
+## User Content Deletion
 
 Deleting an account does not automatically imply deleting every piece of content.
 
 Some content may:
 
-```text id="a4fnm1"
+```text
 belong to an organization
 be shared with other users
 be legally required
@@ -814,13 +823,13 @@ Ownership and retention semantics must be explicit.
 
 ---
 
-# Object Storage
+## Object Storage
 
 Files in object storage require lifecycle rules.
 
 Retention should consider:
 
-```text id="l4wfqt"
+```text
 primary object
 previous versions
 multipart uploads
@@ -831,7 +840,7 @@ derived files
 
 ---
 
-# Object Versions
+## Object Versions
 
 Storage systems may preserve old versions after overwrite or delete.
 
@@ -841,13 +850,13 @@ A deleted object may otherwise remain indefinitely in version history.
 
 ---
 
-# Temporary Uploads
+## Temporary Uploads
 
 Incomplete or temporary uploads should expire automatically.
 
 Examples include:
 
-```text id="dn5fln"
+```text
 upload staging
 conversion input
 temporary signed-upload objects
@@ -857,11 +866,11 @@ Temporary storage should not become permanent by omission.
 
 ---
 
-# Derived Files
+## Derived Files
 
 Derived artifacts such as:
 
-```text id="2tz36e"
+```text
 thumbnail
 preview
 transcoded media
@@ -872,7 +881,7 @@ should generally inherit lifecycle from their canonical source unless a separate
 
 ---
 
-# Search Indexes
+## Search Indexes
 
 Search indexes are derived copies.
 
@@ -882,7 +891,7 @@ A search index must not become a forgotten permanent copy.
 
 ---
 
-# Search Rebuildability
+## Search Rebuildability
 
 Derived search data should ideally be rebuildable from canonical sources.
 
@@ -890,7 +899,7 @@ This reduces the need for long-term independent retention.
 
 ---
 
-# Caches
+## Caches
 
 Caches should have bounded lifetime by design.
 
@@ -898,11 +907,11 @@ A cache is not a retention mechanism.
 
 ---
 
-# Cache Expiration
+## Cache Expiration
 
 Sensitive cached values should expire according to:
 
-```text id="jctyb0"
+```text
 operational need
 security risk
 canonical data changes
@@ -912,17 +921,17 @@ Cache TTL should not exceed justified lifecycle merely for convenience.
 
 ---
 
-# Cache Invalidation
+## Cache Invalidation
 
 Deletion from canonical storage may require explicit cache invalidation if natural TTL is too long.
 
 ---
 
-# Client-Side Caches
+## Client-Side Caches
 
 Web, mobile, and desktop applications may retain:
 
-```text id="fzsgax"
+```text
 local storage
 database cache
 filesystem data
@@ -933,7 +942,7 @@ Client-side retention must be considered where sensitive data exists.
 
 ---
 
-# Logout and Local Data
+## Logout and Local Data
 
 Logging out may require deleting local credentials or sensitive cached state.
 
@@ -943,7 +952,7 @@ Semantics should be explicit.
 
 ---
 
-# Mobile Backups
+## Mobile Backups
 
 Operating-system device backups may preserve application data beyond local deletion.
 
@@ -951,13 +960,13 @@ Sensitive client storage should use platform mechanisms appropriate to its class
 
 ---
 
-# Logs
+## Logs
 
 Logs require retention limits.
 
 Longer retention increases:
 
-```text id="4ztzcm"
+```text
 storage cost
 privacy exposure
 breach impact
@@ -967,13 +976,13 @@ Logging policy should minimize captured data before retention is considered.
 
 ---
 
-# Log Retention
+## Log Retention
 
 Different logs may justify different retention.
 
 Examples:
 
-```text id="cv9qor"
+```text
 application diagnostic logs
 security logs
 audit records
@@ -984,7 +993,7 @@ Do not treat them as one homogeneous dataset.
 
 ---
 
-# Debug Logs
+## Debug Logs
 
 High-verbosity diagnostic data should generally have shorter retention than ordinary operational telemetry.
 
@@ -992,11 +1001,11 @@ Temporary incident logging should have an explicit removal or expiration plan.
 
 ---
 
-# Traces
+## Traces
 
 Trace retention should be limited according to:
 
-```text id="d5pwfe"
+```text
 diagnostic need
 sampling
 cost
@@ -1008,11 +1017,11 @@ Traces are not intended as permanent execution history.
 
 ---
 
-# Error Reports
+## Error Reports
 
 Error reports may be retained long enough to support:
 
-```text id="yur5ci"
+```text
 investigation
 regression analysis
 release comparison
@@ -1022,13 +1031,13 @@ but should not retain unnecessary personal data indefinitely.
 
 ---
 
-# Metrics
+## Metrics
 
 Metrics generally contain aggregated data.
 
 They still require retention decisions based on:
 
-```text id="h8onod"
+```text
 SLO windows
 capacity planning
 trend analysis
@@ -1039,11 +1048,11 @@ High-resolution raw metrics may not require the same retention as long-term aggr
 
 ---
 
-# Telemetry Retention
+## Telemetry Retention
 
 Telemetry retention should distinguish:
 
-```text id="j1vylu"
+```text
 raw high-resolution telemetry
 aggregated long-term telemetry
 security/audit evidence
@@ -1053,7 +1062,7 @@ where providers support different retention tiers.
 
 ---
 
-# Sensitive Telemetry
+## Sensitive Telemetry
 
 If sensitive data accidentally enters telemetry, ordinary retention policy must not be used as an excuse to wait for natural expiration.
 
@@ -1061,13 +1070,13 @@ Incident response may require active removal and credential rotation.
 
 ---
 
-# Third-Party Telemetry Providers
+## Third-Party Telemetry Providers
 
 Retention must account for external providers.
 
 For every provider storing production telemetry, understand:
 
-```text id="jq649f"
+```text
 default retention
 configurable retention
 deletion capability
@@ -1079,13 +1088,13 @@ when relevant.
 
 ---
 
-# Backups
+## Backups
 
 Backups provide recovery capability.
 
 They should have:
 
-```text id="y6667y"
+```text
 defined retention
 encryption
 access control
@@ -1095,7 +1104,7 @@ deletion lifecycle
 
 ---
 
-# Backup Retention
+## Backup Retention
 
 Backup retention should follow recovery objectives.
 
@@ -1103,13 +1112,13 @@ Do not retain backups indefinitely merely because storage is cheap.
 
 ---
 
-# Backup Generations
+## Backup Generations
 
 A backup strategy may use multiple horizons.
 
 Conceptually:
 
-```text id="i774uh"
+```text
 recent frequent backups
 
 older less-frequent backups
@@ -1119,7 +1128,7 @@ The actual schedule depends on RPO, RTO, cost, and regulatory requirements.
 
 ---
 
-# Deleted Data in Backups
+## Deleted Data in Backups
 
 When data is deleted from production, it may remain in backups until those backups expire.
 
@@ -1129,11 +1138,11 @@ A restored old backup may temporarily reintroduce deleted data.
 
 ---
 
-# Restore and Deletion Replay
+## Restore and Deletion Replay
 
 After restoring from a backup, the system may need to reapply:
 
-```text id="q0vn0v"
+```text
 deletion requests
 retention changes
 revocations
@@ -1145,17 +1154,17 @@ Recovery design must account for this.
 
 ---
 
-# Backup Isolation
+## Backup Isolation
 
 Backups should not become a convenient way to bypass ordinary access controls or retention policy.
 
 ---
 
-# Backup Copies
+## Backup Copies
 
 Copies of backups created for:
 
-```text id="dvb8s5"
+```text
 testing
 migration
 forensics
@@ -1167,7 +1176,7 @@ Temporary backup copies should be deleted after their purpose ends.
 
 ---
 
-# Disaster Recovery Copies
+## Disaster Recovery Copies
 
 Cross-region or offline backups remain subject to retention and classification.
 
@@ -1175,7 +1184,7 @@ Geographic replication does not change data sensitivity.
 
 ---
 
-# Replicas
+## Replicas
 
 Database replicas contain production data.
 
@@ -1187,13 +1196,13 @@ Operational procedures should account for this.
 
 ---
 
-# Snapshots
+## Snapshots
 
 Manual database or disk snapshots are backups.
 
 They require:
 
-```text id="hyvpct"
+```text
 purpose
 owner
 expiration
@@ -1203,13 +1212,13 @@ A manually created snapshot should not live forever because it lacks lifecycle a
 
 ---
 
-# Development Copies
+## Development Copies
 
 Production snapshots should not be cloned into development environments by default.
 
 If a controlled copy is required, it should use:
 
-```text id="57emye"
+```text
 anonymization
 minimization
 restricted access
@@ -1218,13 +1227,13 @@ explicit expiration
 
 ---
 
-# Exports
+## Exports
 
 Exports create new copies of production data.
 
 Examples include:
 
-```text id="2piv85"
+```text
 CSV export
 report archive
 support bundle
@@ -1235,7 +1244,7 @@ Every export should have a lifecycle.
 
 ---
 
-# Generated Exports
+## Generated Exports
 
 Server-generated exports should expire when long-term retention is unnecessary.
 
@@ -1245,13 +1254,13 @@ Both access and storage lifetime must be defined.
 
 ---
 
-# User-Requested Exports
+## User-Requested Exports
 
 A user data export may contain broad personal data.
 
 It should be:
 
-```text id="khx1iv"
+```text
 encrypted in transit
 access-controlled
 time-limited
@@ -1262,13 +1271,13 @@ according to product requirements.
 
 ---
 
-# Internal Exports
+## Internal Exports
 
 Operational or analytical exports should not be retained in personal workstations or shared folders indefinitely.
 
 ---
 
-# Email Attachments
+## Email Attachments
 
 Sending production data by email can create uncontrolled long-term copies.
 
@@ -1278,7 +1287,7 @@ Email should not be the default export transport for sensitive production data.
 
 ---
 
-# Reports
+## Reports
 
 Generated reports may contain confidential information.
 
@@ -1286,13 +1295,13 @@ Retention should follow their purpose rather than assuming all reports are harml
 
 ---
 
-# Temporary Files
+## Temporary Files
 
 Temporary files should have automatic cleanup.
 
 Examples:
 
-```text id="npr1mz"
+```text
 upload buffers
 conversion files
 temporary exports
@@ -1303,11 +1312,11 @@ Temporary directories should not accumulate persistent sensitive data.
 
 ---
 
-# Local Scratch Space
+## Local Scratch Space
 
 Production jobs using local disk should clean temporary artifacts after:
 
-```text id="cpvugt"
+```text
 completion
 failure
 cancellation
@@ -1317,7 +1326,7 @@ where practical.
 
 ---
 
-# Failed Job Artifacts
+## Failed Job Artifacts
 
 Failure paths are a common source of retention leaks.
 
@@ -1325,13 +1334,13 @@ Temporary data must not remain forever because cleanup only executes on success.
 
 ---
 
-# Message Queues
+## Message Queues
 
 Queued messages are retained data.
 
 Queue retention should consider:
 
-```text id="pgejqq"
+```text
 maximum expected processing delay
 retry window
 dead-letter handling
@@ -1340,7 +1349,7 @@ privacy
 
 ---
 
-# Event Logs
+## Event Logs
 
 Durable event streams may intentionally retain history.
 
@@ -1348,7 +1357,7 @@ If event retention is long-term, event payload design must minimize unnecessary 
 
 ---
 
-# Event Sourcing
+## Event Sourcing
 
 If event sourcing is ever introduced, retention becomes a core domain architecture decision.
 
@@ -1358,7 +1367,7 @@ This complexity is one reason event sourcing is not an Orion default.
 
 ---
 
-# Job Payloads
+## Job Payloads
 
 Persisted job payloads should contain only data required to execute the job.
 
@@ -1368,7 +1377,7 @@ Prefer identifiers or minimal command data where appropriate.
 
 ---
 
-# Dead-Letter Queues
+## Dead-Letter Queues
 
 Dead-letter messages may survive longer than normal queue messages.
 
@@ -1378,19 +1387,19 @@ A DLQ must not become permanent storage of failed sensitive payloads.
 
 ---
 
-# Message Replay Archives
+## Message Replay Archives
 
 If message archives exist for replay, their retention and deletion semantics must be explicit.
 
 ---
 
-# Analytics
+## Analytics
 
 Analytics systems often create long-lived derived copies.
 
 Retention should distinguish:
 
-```text id="c1inkg"
+```text
 raw event data
 user-level analytical data
 aggregated statistics
@@ -1398,7 +1407,7 @@ aggregated statistics
 
 ---
 
-# Analytics Minimization
+## Analytics Minimization
 
 Raw event-level analytics should collect only fields required for actual analytical use.
 
@@ -1406,13 +1415,13 @@ Do not retain complete product payloads for hypothetical future questions.
 
 ---
 
-# Anonymous Analytics
+## Anonymous Analytics
 
 Where aggregated or genuinely anonymized data satisfies the need, prefer it over long-lived identifiable event data.
 
 ---
 
-# Data Warehouses
+## Data Warehouses
 
 A data warehouse is a production data store.
 
@@ -1422,13 +1431,13 @@ Deletion propagation must include warehouse copies where applicable.
 
 ---
 
-# Data Lakes
+## Data Lakes
 
 Large object stores used for analytics can accumulate forgotten data.
 
 Every dataset should have:
 
-```text id="it67cz"
+```text
 owner
 purpose
 classification
@@ -1437,17 +1446,17 @@ retention
 
 ---
 
-# Derived Datasets
+## Derived Datasets
 
 Derived data should inherit relevant retention constraints from its sources unless a separate justified lifecycle exists.
 
 ---
 
-# AI and Machine Learning Data
+## AI and Machine Learning Data
 
 If production data is ever used for:
 
-```text id="kpy2ys"
+```text
 training
 evaluation
 fine-tuning
@@ -1461,7 +1470,7 @@ Such use is not implied by ordinary product data collection.
 
 ---
 
-# Embeddings
+## Embeddings
 
 Embeddings derived from user content may still encode sensitive information.
 
@@ -1469,7 +1478,7 @@ Deleting source content may require deleting associated embeddings and vector-in
 
 ---
 
-# Model Training Copies
+## Model Training Copies
 
 Training datasets can be difficult to delete after model training.
 
@@ -1479,7 +1488,7 @@ This document does not authorize such use.
 
 ---
 
-# AI Prompt Logs
+## AI Prompt Logs
 
 Prompts and responses used in application AI features may contain user content.
 
@@ -1489,7 +1498,7 @@ Provider-side retention and training policies must be understood before integrat
 
 ---
 
-# AI Diagnostic Context
+## AI Diagnostic Context
 
 AI operational tools should receive only the minimum retained telemetry required for the task.
 
@@ -1497,13 +1506,13 @@ Retention of AI investigation transcripts should follow their data sensitivity.
 
 ---
 
-# Third-Party Providers
+## Third-Party Providers
 
 Sending data to a provider creates another retention surface.
 
 Provider evaluation should consider:
 
-```text id="j7ow9g"
+```text
 what data is stored
 how long
 whether retention can be configured
@@ -1515,7 +1524,7 @@ where relevant.
 
 ---
 
-# Processor Deletion
+## Processor Deletion
 
 Deleting data from Orion's primary systems may not remove copies held by providers automatically.
 
@@ -1523,11 +1532,11 @@ Deletion workflows should propagate where required.
 
 ---
 
-# Provider Account Termination
+## Provider Account Termination
 
 When a provider is removed, Orion should consider:
 
-```text id="pxn58q"
+```text
 data export
 data deletion
 retention confirmation
@@ -1538,13 +1547,13 @@ as part of offboarding.
 
 ---
 
-# Derived Copies
+## Derived Copies
 
 Deletion should consider all meaningful copies.
 
 Conceptual dependency graph:
 
-```text id="zjb1hy"
+```text
 primary record
     ├── cache
     ├── search index
@@ -1558,13 +1567,13 @@ The primary database is not necessarily the only place where data exists.
 
 ---
 
-# Canonical Source
+## Canonical Source
 
 For every derived system, identify the canonical source.
 
 This enables:
 
-```text id="hpyqlf"
+```text
 rebuild
 invalidation
 deletion propagation
@@ -1573,13 +1582,13 @@ consistency recovery
 
 ---
 
-# Deletion Propagation
+## Deletion Propagation
 
 Deletion may occur synchronously or asynchronously.
 
 If asynchronous, define:
 
-```text id="vqkcf0"
+```text
 expected convergence window
 retry behavior
 failure monitoring
@@ -1588,13 +1597,13 @@ reconciliation
 
 ---
 
-# Deletion Is a Distributed Workflow
+## Deletion Is a Distributed Workflow
 
 In a complex system, deleting one user's data may require several components.
 
 Conceptually:
 
-```text id="rb0p6a"
+```text
 deletion requested
     ↓
 primary state updated
@@ -1610,7 +1619,7 @@ Such workflows require idempotency and reconciliation.
 
 ---
 
-# Deletion Idempotency
+## Deletion Idempotency
 
 Deletion operations should be safe to repeat where practical.
 
@@ -1618,13 +1627,13 @@ A timeout must not leave the operator unsure whether repeating deletion is dange
 
 ---
 
-# Partial Deletion
+## Partial Deletion
 
 Partial failure must be detectable.
 
 For example:
 
-```text id="lm61ia"
+```text
 database deleted
 search deletion failed
 ```
@@ -1633,13 +1642,13 @@ should not be silently considered complete.
 
 ---
 
-# Deletion Reconciliation
+## Deletion Reconciliation
 
 Important deletion workflows should have a way to identify incomplete copies and retry them.
 
 ---
 
-# Deletion Verification
+## Deletion Verification
 
 For high-risk or regulated deletion workflows, the system may need verifiable completion state.
 
@@ -1647,11 +1656,11 @@ The exact evidence model is deferred.
 
 ---
 
-# Data Subject Requests
+## Data Subject Requests
 
 If Orion products become subject to privacy requirements involving:
 
-```text id="rbw677"
+```text
 access
 deletion
 correction
@@ -1664,13 +1673,13 @@ This document does not define jurisdiction-specific legal requirements.
 
 ---
 
-# Account Deletion
+## Account Deletion
 
 Account deletion semantics should be explicit.
 
 Potential outcomes may include:
 
-```text id="jhqer2"
+```text
 delete personal profile
 revoke credentials
 anonymize retained business records
@@ -1682,7 +1691,7 @@ depending on product ownership rules.
 
 ---
 
-# Organization Deletion
+## Organization Deletion
 
 Multi-user organization deletion may require different semantics from individual-user deletion.
 
@@ -1690,13 +1699,13 @@ Do not apply user deletion rules blindly to shared organizational data.
 
 ---
 
-# Referential Integrity During Deletion
+## Referential Integrity During Deletion
 
 Deletion must preserve database integrity.
 
 Potential strategies include:
 
-```text id="q1h6rt"
+```text
 cascade
 restrict
 set null
@@ -1708,17 +1717,17 @@ The correct choice depends on semantics.
 
 ---
 
-# Historical Attribution
+## Historical Attribution
 
 Some records may need to preserve:
 
-```text id="8g1td2"
+```text
 an action happened
 ```
 
 without preserving:
 
-```text id="1dt7y3"
+```text
 full identity of the deleted actor
 ```
 
@@ -1726,7 +1735,7 @@ Anonymized historical attribution may be appropriate.
 
 ---
 
-# Audit vs Deletion
+## Audit vs Deletion
 
 Audit requirements may conflict with deleting ordinary user data.
 
@@ -1736,7 +1745,7 @@ Do not use audit as justification to preserve unrelated data.
 
 ---
 
-# Database Constraints
+## Database Constraints
 
 Foreign keys and uniqueness constraints must account for deletion strategy.
 
@@ -1746,7 +1755,7 @@ This is one reason deletion semantics must be designed early.
 
 ---
 
-# Orphaned Data
+## Orphaned Data
 
 Deletion workflows must not leave unexplained orphan records.
 
@@ -1754,19 +1763,19 @@ If an orphan is intentional, its lifecycle and meaning should be documented.
 
 ---
 
-# Retention and State Machines
+## Retention and State Machines
 
 Retention should not be hidden inside unrelated state transitions.
 
 For example:
 
-```text id="rd58ro"
+```text
 order = cancelled
 ```
 
 does not automatically imply:
 
-```text id="tbgocd"
+```text
 delete after 30 days
 ```
 
@@ -1774,13 +1783,13 @@ unless that lifecycle is explicitly documented.
 
 ---
 
-# Retention Jobs
+## Retention Jobs
 
 Automated cleanup may run through scheduled jobs.
 
 Such jobs should be:
 
-```text id="qf7nl7"
+```text
 idempotent
 bounded
 observable
@@ -1789,13 +1798,13 @@ retryable where safe
 
 ---
 
-# Cleanup Batching
+## Cleanup Batching
 
 Large deletion workloads should use bounded batches.
 
 Avoid one transaction deleting millions of records if it creates:
 
-```text id="p7e9hz"
+```text
 locks
 replication pressure
 long rollback
@@ -1804,13 +1813,13 @@ operational risk
 
 ---
 
-# Retention Query Efficiency
+## Retention Query Efficiency
 
 Tables subject to automated retention should support efficient identification of expired data.
 
 Indexes may be needed on fields such as:
 
-```text id="ad2nmi"
+```text
 expiresAt
 deletedAt
 createdAt
@@ -1820,11 +1829,11 @@ when actual query patterns justify them.
 
 ---
 
-# Expiration Fields
+## Expiration Fields
 
 Some records may have explicit:
 
-```text id="mv55rl"
+```text
 expiresAt
 ```
 
@@ -1834,7 +1843,7 @@ This should represent semantic lifecycle, not merely scheduling implementation.
 
 ---
 
-# TTL Features
+## TTL Features
 
 Database or storage TTL features may automate deletion.
 
@@ -1842,7 +1851,7 @@ Use them when semantics align.
 
 Automatic TTL must not bypass:
 
-```text id="0egz0y"
+```text
 required audit
 derived deletion propagation
 domain side effects
@@ -1852,7 +1861,7 @@ without deliberate design.
 
 ---
 
-# Cleanup Failure
+## Cleanup Failure
 
 Retention automation failure must become observable.
 
@@ -1860,11 +1869,11 @@ Otherwise expired data may accumulate silently.
 
 ---
 
-# Retention Metrics
+## Retention Metrics
 
 Useful operational metrics may include:
 
-```text id="m6yefj"
+```text
 expired records pending cleanup
 cleanup failures
 oldest overdue deletion
@@ -1874,11 +1883,11 @@ when retention workflows become operationally important.
 
 ---
 
-# Retention Alerts
+## Retention Alerts
 
 Alerting may be appropriate when:
 
-```text id="n5yy5y"
+```text
 deletion SLA is violated
 retention backlog grows
 cleanup repeatedly fails
@@ -1889,11 +1898,11 @@ The threshold must correspond to real risk or obligation.
 
 ---
 
-# Logs for Retention Jobs
+## Logs for Retention Jobs
 
 Cleanup jobs should log:
 
-```text id="dxj8d2"
+```text
 job
 result
 count
@@ -1905,13 +1914,13 @@ without logging deleted record contents.
 
 ---
 
-# Audit of Deletion
+## Audit of Deletion
 
 Some deletions may require an audit record.
 
 The audit should record:
 
-```text id="06bt3r"
+```text
 actor/system
 operation
 scope
@@ -1923,13 +1932,13 @@ without retaining the deleted sensitive content.
 
 ---
 
-# Deletion Reason
+## Deletion Reason
 
 A bounded reason category may be useful.
 
 Examples:
 
-```text id="h4usxy"
+```text
 retention_expired
 user_request
 account_deleted
@@ -1941,25 +1950,23 @@ Do not embed long free-form sensitive text into audit events unnecessarily.
 
 ---
 
-# Manual Deletion
+## Manual Deletion
 
 Manual production deletion should follow:
 
-```text id="09ipap"
-docs/security/production-access.md
-```
+- [docs/security/production-access.md](production-access.md)
 
 Prefer purpose-built deletion workflows.
 
 ---
 
-# Bulk Deletion
+## Bulk Deletion
 
 Bulk deletion is high risk.
 
 It should include:
 
-```text id="jfjc9p"
+```text
 scope preview
 authorization
 batching
@@ -1971,20 +1978,20 @@ where practical.
 
 ---
 
-# Retention and Recovery
+## Retention and Recovery
 
 Deletion may conflict with rollback and recovery.
 
 A recovery plan must understand:
 
-```text id="mc8dp8"
+```text
 which deleted data may reappear from backup
 which deletion records must be replayed
 ```
 
 ---
 
-# Deletion Ledger
+## Deletion Ledger
 
 Some systems may need a durable record that a resource or identity must remain deleted.
 
@@ -1994,13 +2001,13 @@ Such a mechanism should contain minimal necessary information.
 
 ---
 
-# Backup Restoration
+## Backup Restoration
 
 After restoring an older backup, deletion and retention workflows should reconcile the restored data against current lifecycle state.
 
 ---
 
-# Restore Testing
+## Restore Testing
 
 Restore tests should consider whether deleted or expired data can reappear.
 
@@ -2008,13 +2015,13 @@ Recovery correctness includes retention correctness.
 
 ---
 
-# Environment Retention
+## Environment Retention
 
 Non-production environments also need retention.
 
 Examples:
 
-```text id="pzckcu"
+```text
 preview environments
 test databases
 CI artifacts
@@ -2025,7 +2032,7 @@ These often accumulate unnoticed.
 
 ---
 
-# Preview Environments
+## Preview Environments
 
 Ephemeral preview environments should have automatic expiration.
 
@@ -2033,11 +2040,11 @@ Their storage should not persist forever after the branch or review closes.
 
 ---
 
-# CI Artifacts
+## CI Artifacts
 
 CI may retain:
 
-```text id="3225hy"
+```text
 logs
 screenshots
 test reports
@@ -2049,7 +2056,7 @@ Retention should be limited according to engineering need.
 
 ---
 
-# CI Secrets and Artifacts
+## CI Secrets and Artifacts
 
 CI artifacts must not contain secrets.
 
@@ -2057,11 +2064,11 @@ Retention policy cannot make secret-bearing artifacts safe.
 
 ---
 
-# Test Databases
+## Test Databases
 
 Test databases should use:
 
-```text id="7m5ojp"
+```text
 synthetic data
 automatic cleanup
 environment isolation
@@ -2071,7 +2078,7 @@ Long-lived shared test data should not accidentally accumulate production-derive
 
 ---
 
-# Development Logs
+## Development Logs
 
 Local logs containing sensitive test data should also have reasonable lifecycle.
 
@@ -2079,11 +2086,11 @@ Development does not exempt data from classification.
 
 ---
 
-# Local Tool Caches
+## Local Tool Caches
 
 Developer tooling may retain:
 
-```text id="76o4e3"
+```text
 API responses
 downloaded files
 database exports
@@ -2094,7 +2101,7 @@ Tooling should avoid persistent sensitive caches unless required.
 
 ---
 
-# Generated Documentation
+## Generated Documentation
 
 Generated documentation must not embed real production data.
 
@@ -2102,7 +2109,7 @@ Therefore ordinary repository history should not become a retention surface for 
 
 ---
 
-# Source Control
+## Source Control
 
 Source control is intentionally durable.
 
@@ -2114,11 +2121,11 @@ This becomes a security incident.
 
 ---
 
-# Git Is Not a Retention System
+## Git Is Not a Retention System
 
 Do not store:
 
-```text id="4isvlm"
+```text
 data exports
 production samples
 customer records
@@ -2128,7 +2135,7 @@ in Git for long-term convenience.
 
 ---
 
-# Issue Trackers
+## Issue Trackers
 
 Issues and pull requests may be retained for long periods.
 
@@ -2136,7 +2143,7 @@ Do not paste production personal data or secrets into them.
 
 ---
 
-# Chat Systems
+## Chat Systems
 
 Operational chat may also retain messages for long periods.
 
@@ -2144,7 +2151,7 @@ Use safe references rather than pasting production payloads.
 
 ---
 
-# Incident Records
+## Incident Records
 
 Incident records may require long-term retention for learning.
 
@@ -2152,7 +2159,7 @@ They should summarize relevant facts without unnecessarily copying sensitive sou
 
 ---
 
-# Screenshots in Incidents
+## Screenshots in Incidents
 
 Screenshots should be minimized and redacted.
 
@@ -2160,13 +2167,13 @@ Prefer structured safe telemetry references where possible.
 
 ---
 
-# Retention Changes
+## Retention Changes
 
 Changing retention policy can have large consequences.
 
 Examples:
 
-```text id="iix7nw"
+```text
 90 days → 30 days
 
 30 days → indefinite
@@ -2176,7 +2183,7 @@ Both require review.
 
 Reducing retention may affect:
 
-```text id="rihwtb"
+```text
 support
 analytics
 compliance
@@ -2185,7 +2192,7 @@ recovery
 
 Increasing retention increases:
 
-```text id="t6frfr"
+```text
 privacy
 security
 cost
@@ -2195,11 +2202,11 @@ risk.
 
 ---
 
-# Retention Policy Changes
+## Retention Policy Changes
 
 A retention-policy change should answer:
 
-```text id="42da6c"
+```text
 Why is the change needed?
 
 Which data is affected?
@@ -2213,7 +2220,7 @@ Which providers/copies must change?
 
 ---
 
-# Retroactive Retention
+## Retroactive Retention
 
 Changing policy may require deleting already-stored data that now exceeds the new retention limit.
 
@@ -2221,11 +2228,11 @@ Do not apply new policy only to future records unless intentionally designed.
 
 ---
 
-# Retention Migration
+## Retention Migration
 
 A change to lifecycle policy may require:
 
-```text id="cbyhzn"
+```text
 backfill expiration metadata
 cleanup old records
 change storage lifecycle rules
@@ -2236,7 +2243,7 @@ This should be treated as a migration.
 
 ---
 
-# Legal Requirements
+## Legal Requirements
 
 Legal and regulatory retention requirements are jurisdiction- and product-specific.
 
@@ -2246,7 +2253,7 @@ This architecture document does not invent legal durations.
 
 ---
 
-# Legal Minimum vs Product Maximum
+## Legal Minimum vs Product Maximum
 
 A legal minimum retention may require keeping data for a certain period.
 
@@ -2258,13 +2265,13 @@ Product policy must distinguish these concepts.
 
 ---
 
-# Legal Hold
+## Legal Hold
 
 Legal hold should suspend ordinary deletion only for the scoped records or categories required.
 
 The hold should have:
 
-```text id="0ffv61"
+```text
 authority
 scope
 start
@@ -2274,7 +2281,7 @@ release
 
 ---
 
-# Hold Release
+## Hold Release
 
 When a hold ends, ordinary retention should resume.
 
@@ -2282,7 +2289,7 @@ Data that already exceeded normal retention may then need prompt deletion.
 
 ---
 
-# Security Retention
+## Security Retention
 
 Security evidence may need retention long enough to investigate delayed incidents.
 
@@ -2290,13 +2297,13 @@ This should be balanced against privacy and breach exposure.
 
 ---
 
-# Incident Retention
+## Incident Retention
 
 Incident-related diagnostic data may require temporary extended retention.
 
 Such exceptions should be:
 
-```text id="hqbgy1"
+```text
 scoped
 time-bounded
 authorized
@@ -2306,7 +2313,7 @@ not permanent.
 
 ---
 
-# Fraud and Abuse Data
+## Fraud and Abuse Data
 
 Fraud or abuse prevention may require retaining security signals.
 
@@ -2314,11 +2321,11 @@ The exact lifecycle should be justified separately from ordinary product analyti
 
 ---
 
-# Retention Exceptions
+## Retention Exceptions
 
 Exceptions to ordinary retention should identify:
 
-```text id="f8qc92"
+```text
 data
 reason
 authority
@@ -2330,7 +2337,7 @@ where practical.
 
 ---
 
-# Exception Expiration
+## Exception Expiration
 
 A retention exception should not itself default to permanent.
 
@@ -2338,13 +2345,13 @@ It should have a review or expiration condition.
 
 ---
 
-# Retention Documentation
+## Retention Documentation
 
 Important data categories should eventually have documented retention policy.
 
 Possible structure:
 
-```text id="wrzg2f"
+```text
 category
 owner
 classification
@@ -2357,13 +2364,13 @@ derived systems
 
 ---
 
-# Machine-Readable Retention Registry
+## Machine-Readable Retention Registry
 
 Orion may eventually maintain a machine-readable retention registry.
 
 This could answer questions such as:
 
-```text id="nq0d4o"
+```text
 Which tables contain data retained after account deletion?
 
 Which telemetry expires after 30 days?
@@ -2377,7 +2384,7 @@ The exact model is deferred.
 
 ---
 
-# Retention Metadata Near Schema
+## Retention Metadata Near Schema
 
 Where useful, database schema metadata may include references to retention policy.
 
@@ -2385,13 +2392,13 @@ Avoid duplicating full policy text on every table.
 
 ---
 
-# Data Inventory
+## Data Inventory
 
 Retention becomes easier when Orion knows where data exists.
 
 A future data inventory may combine:
 
-```text id="bujcn8"
+```text
 schema metadata
 classification
 owner
@@ -2404,11 +2411,11 @@ This should be generated where possible.
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 Before introducing new persistent data, an AI agent should ask:
 
-```text id="f43eou"
+```text
 Why is this data stored?
 
 What is its classification?
@@ -2422,17 +2429,17 @@ What happens when its source is deleted?
 
 ---
 
-# AI and Indefinite Retention
+## AI and Indefinite Retention
 
 An AI agent must not assume:
 
-```text id="97wyk8"
+```text
 no retention requirement specified
 ```
 
 means:
 
-```text id="szth3l"
+```text
 retain forever
 ```
 
@@ -2440,13 +2447,13 @@ It should identify the lifecycle as undefined.
 
 ---
 
-# AI and Soft Delete
+## AI and Soft Delete
 
 An AI agent should not add `deletedAt` reflexively.
 
 It should first determine:
 
-```text id="z73jg6"
+```text
 restore requirement
 audit requirement
 eventual hard-delete policy
@@ -2455,11 +2462,11 @@ uniqueness implications
 
 ---
 
-# AI and Derived Data
+## AI and Derived Data
 
 When adding:
 
-```text id="p6479j"
+```text
 cache
 search index
 analytics pipeline
@@ -2471,35 +2478,35 @@ an AI agent should determine how deletion propagates from the canonical source.
 
 ---
 
-# AI and Backups
+## AI and Backups
 
 An AI agent must not claim immediate total deletion when backups retain previous copies.
 
 It should distinguish:
 
-```text id="65qxbr"
+```text
 live deletion
 ```
 
 from:
 
-```text id="nqbucv"
+```text
 backup expiration
 ```
 
 ---
 
-# AI and Telemetry
+## AI and Telemetry
 
 An AI agent should prefer reducing telemetry collection before relying on short retention as the only privacy control.
 
 ---
 
-# AI and Providers
+## AI and Providers
 
 When integrating a new external provider that stores data, an AI agent should inspect:
 
-```text id="8dp5ps"
+```text
 provider retention
 deletion capability
 data categories sent
@@ -2509,11 +2516,11 @@ where that information is available.
 
 ---
 
-# AI and Cleanup Jobs
+## AI and Cleanup Jobs
 
 AI-generated retention jobs should be:
 
-```text id="1z6njj"
+```text
 bounded
 idempotent
 observable
@@ -2524,11 +2531,11 @@ and should not delete arbitrary large datasets in one unreviewed transaction.
 
 ---
 
-# AI and Tests
+## AI and Tests
 
 Retention-sensitive changes should include tests where practical for:
 
-```text id="3lz5in"
+```text
 expiration selection
 deletion propagation
 soft-delete filtering
@@ -2538,7 +2545,7 @@ cleanup idempotency
 
 ---
 
-# New Persistent Data Checklist
+## New Persistent Data Checklist
 
 Before storing a new field, record, file, event, or payload, answer:
 
@@ -2559,7 +2566,7 @@ Before storing a new field, record, file, event, or payload, answer:
 
 ---
 
-# Soft Delete Checklist
+## Soft Delete Checklist
 
 Before implementing soft delete, answer:
 
@@ -2576,7 +2583,7 @@ Before implementing soft delete, answer:
 
 ---
 
-# Retention Rule Checklist
+## Retention Rule Checklist
 
 Before defining a retention rule, answer:
 
@@ -2595,7 +2602,7 @@ Before defining a retention rule, answer:
 
 ---
 
-# Deletion Workflow Checklist
+## Deletion Workflow Checklist
 
 Before implementing a deletion workflow, answer:
 
@@ -2614,7 +2621,7 @@ Before implementing a deletion workflow, answer:
 
 ---
 
-# Backup Retention Checklist
+## Backup Retention Checklist
 
 Before defining backup retention, answer:
 
@@ -2631,7 +2638,7 @@ Before defining backup retention, answer:
 
 ---
 
-# Provider Retention Checklist
+## Provider Retention Checklist
 
 Before sending production data to a third party, answer:
 
@@ -2648,7 +2655,7 @@ Before sending production data to a third party, answer:
 
 ---
 
-# Retention Exception Checklist
+## Retention Exception Checklist
 
 Before extending retention beyond the normal policy, answer:
 
@@ -2663,139 +2670,139 @@ Before extending retention beyond the normal policy, answer:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Keep Everything Forever
+### Keep Everything Forever
 
 Prohibited as an implicit default.
 
 ---
 
-## No Retention Rule Means Forever
+### No Retention Rule Means Forever
 
 Prohibited.
 
 ---
 
-## Soft Delete Everywhere
+### Soft Delete Everywhere
 
 Avoid.
 
 ---
 
-## Soft Delete With No Hard-Delete Plan
+### Soft Delete With No Hard-Delete Plan
 
 Avoid.
 
 ---
 
-## Backup Retained Forever Because Storage Is Cheap
+### Backup Retained Forever Because Storage Is Cheap
 
 Avoid.
 
 ---
 
-## Deleted User Data Remains Forever in Search Index
+### Deleted User Data Remains Forever in Search Index
 
 Prohibited.
 
 ---
 
-## Cache Used as Permanent Storage
+### Cache Used as Permanent Storage
 
 Avoid.
 
 ---
 
-## Temporary Files With No Cleanup
+### Temporary Files With No Cleanup
 
 Avoid.
 
 ---
 
-## DLQ as Permanent Archive
+### DLQ as Permanent Archive
 
 Avoid.
 
 ---
 
-## Analytics Copy Exempt From Deletion
+### Analytics Copy Exempt From Deletion
 
 Avoid.
 
 ---
 
-## Production Dump Retained on Developer Laptop
+### Production Dump Retained on Developer Laptop
 
 Prohibited.
 
 ---
 
-## Sensitive Export Shared Through Email Indefinitely
+### Sensitive Export Shared Through Email Indefinitely
 
 Avoid.
 
 ---
 
-## Hashing Treated Automatically as Anonymization
+### Hashing Treated Automatically as Anonymization
 
 Avoid.
 
 ---
 
-## Replace Name but Retain All Other Identifiers and Call It Anonymous
+### Replace Name but Retain All Other Identifiers and Call It Anonymous
 
 Prohibited.
 
 ---
 
-## Retention Duration Invented Without Requirement
+### Retention Duration Invented Without Requirement
 
 Avoid.
 
 ---
 
-## Backup Restore Reintroduces Deleted Data With No Reconciliation
+### Backup Restore Reintroduces Deleted Data With No Reconciliation
 
 Avoid.
 
 ---
 
-## Provider Data Lifecycle Ignored
+### Provider Data Lifecycle Ignored
 
 Avoid.
 
 ---
 
-## Generated AI Embeddings Retained After Source Deletion Without Policy
+### Generated AI Embeddings Retained After Source Deletion Without Policy
 
 Avoid.
 
 ---
 
-## Legal Hold Applied to Entire System Without Scope
+### Legal Hold Applied to Entire System Without Scope
 
 Avoid.
 
 ---
 
-## Cleanup Job Deletes Unbounded Data in One Transaction
+### Cleanup Job Deletes Unbounded Data in One Transaction
 
 Avoid.
 
 ---
 
-## Retention Failure Invisible
+### Retention Failure Invisible
 
 Avoid.
 
 ---
 
-# Initial Data Retention Policy
+## Initial Data Retention Policy
 
 Until stack-specific implementation and concrete legal/product requirements exist, Orion adopts the following requirements:
 
@@ -2822,11 +2829,11 @@ Until stack-specific implementation and concrete legal/product requirements exis
 
 ---
 
-# Future Implementation Decisions
+## Future Implementation Decisions
 
 The following decisions are intentionally deferred:
 
-```text id="yf4y1g"
+```text
 specific retention durations
 legal retention requirements
 database cleanup tooling
@@ -2848,11 +2855,11 @@ Significant decisions should be captured through ADRs where architectural.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should be complemented by:
 
-```text id="b0n6ib"
+```text
 docs/security/incident-response.md
 
 docs/runbooks/
@@ -2862,13 +2869,13 @@ Domain-specific retention rules should remain close to the owning domain or cano
 
 ---
 
-# Summary
+## Summary
 
 Retention is part of data lifecycle, not an afterthought.
 
 The intended model is:
 
-```text id="k0nz7y"
+```text
 collect only what is needed
         ↓
 classify
@@ -2886,7 +2893,7 @@ verify convergence
 
 Orion prefers:
 
-```text id="3ujhjf"
+```text
 minimum collection over hypothetical future value
 
 explicit retention over invisible forever
@@ -2919,3 +2926,145 @@ A provider's database is still part of the lifecycle.
 The system should be able to explain why data still exists.
 
 If it cannot, that data probably should not be retained indefinitely.
+
+
+## Data Lifecycle
+
+Database design must consider:
+
+```text
+creation
+updates
+retention
+deletion
+archival
+backups
+```
+
+Data lifecycle is part of schema semantics.
+
+---
+
+## Deletion
+
+Deletion semantics should be explicit.
+
+Potential forms include:
+
+```text
+hard delete
+soft delete
+anonymization
+archival
+```
+
+These represent different behavior.
+
+---
+
+## Soft Delete
+
+Soft delete is not equivalent to actual deletion.
+
+A row with:
+
+```text
+deleted_at != null
+```
+
+still exists.
+
+Soft deletion should be used when the application requires recoverability or historical state.
+
+It should not be the default for every table.
+
+---
+
+## Cascading Delete
+
+Cascading deletion should represent intentional ownership.
+
+For example:
+
+```text
+order
+    owns
+order_items
+```
+
+may justify cascade behavior.
+
+Deletion of an account should not automatically cascade through unrelated business history unless domain and retention policy require it.
+
+---
+
+## Retention
+
+Database retention should follow:
+
+- [docs/security/data-retention.md](data-retention.md)
+
+when that document exists.
+
+Do not retain data indefinitely merely because storage is inexpensive.
+
+---
+
+## Archival
+
+Archival may be appropriate for data that must remain available but is no longer part of active workloads.
+
+Archival design should consider:
+
+```text
+access
+queryability
+deletion
+security
+recovery
+```
+
+---
+
+## Backups
+
+Backups contain copies of database data.
+
+They inherit the classification of their source.
+
+Backup architecture must consider:
+
+```text
+encryption
+retention
+access
+restore testing
+deletion obligations
+```
+
+---
+
+## Restore Testing
+
+A backup that cannot be restored is not a reliable backup.
+
+Restore procedures should eventually be tested.
+
+The exact schedule depends on operational maturity.
+
+---
+
+## Recovery Point and Recovery Time
+
+As product requirements mature, database reliability may define:
+
+```text
+Recovery Point Objective
+Recovery Time Objective
+```
+
+These should come from actual business requirements.
+
+Do not invent strict objectives prematurely.
+
+---

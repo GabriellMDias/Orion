@@ -1,5 +1,20 @@
 # Application Boundaries
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0004](../adr/0004-select-fastify-as-the-backend-http-framework.md), [ADR-0008](../adr/0008-select-react-vite-and-tanstack-for-web-applications.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Types of Boundaries](#types-of-boundaries)
+- [Backend API Application](#backend-api-application)
+- [Web Application](#web-application)
+- [Shared Contracts](#shared-contracts)
+- [Creating a New Application Boundary](#creating-a-new-application-boundary)
+- [Boundary Enforcement](#boundary-enforcement)
+
+Related policy: [dependency rules](dependency-rules.md), [principles](../api/principles.md).
+
 ## Purpose
 
 This document defines how application boundaries are represented in Orion.
@@ -99,13 +114,13 @@ Applications must not use shared packages as a mechanism to bypass another appli
 
 ---
 
-# Types of Boundaries
+## Types of Boundaries
 
 Orion distinguishes several kinds of boundaries.
 
 ---
 
-## Runtime Boundary
+### Runtime Boundary
 
 A runtime boundary separates independently executing processes or applications.
 
@@ -135,7 +150,7 @@ Runtime communication must not rely on implementation-level coupling.
 
 ---
 
-## Process Boundary
+### Process Boundary
 
 Two components running in different operating system processes must be treated as distributed participants even if they are deployed together.
 
@@ -154,7 +169,7 @@ Network and process failures must be considered.
 
 ---
 
-## Deployment Boundary
+### Deployment Boundary
 
 Components that can be deployed independently have compatibility concerns.
 
@@ -182,7 +197,7 @@ Independent deployment should not be introduced without a concrete reason.
 
 ---
 
-## Trust Boundary
+### Trust Boundary
 
 A trust boundary exists where data crosses between security contexts.
 
@@ -218,7 +233,7 @@ Client-controlled applications must never be considered trusted simply because t
 
 ---
 
-## Persistence Boundary
+### Persistence Boundary
 
 Persistence infrastructure is a boundary between application behavior and stored state.
 
@@ -248,7 +263,9 @@ unless direct database access by the web runtime is explicitly part of the archi
 
 ---
 
-# Backend API Application
+## Backend API Application
+
+The accepted HTTP adapter is [Fastify](../adr/0004-select-fastify-as-the-backend-http-framework.md#decision), with Pino runtime logging. Domain and application ownership remain governed by the boundaries below; plugins do not define business domains.
 
 An API application is responsible for exposing backend capabilities through network contracts.
 
@@ -272,7 +289,7 @@ Transport and domain responsibilities should remain distinguishable.
 
 ---
 
-## API Transport Must Remain a Boundary
+### API Transport Must Remain a Boundary
 
 Transport-specific concepts should not unnecessarily leak into business behavior.
 
@@ -313,7 +330,7 @@ HTTP response
 
 ---
 
-## API Application Must Not Become the Shared Backend Library
+### API Application Must Not Become the Shared Backend Library
 
 Other applications must not import API internals because the API happens to contain useful logic.
 
@@ -325,7 +342,9 @@ It is not a general-purpose shared package.
 
 ---
 
-# Web Application
+## Web Application
+
+The [accepted web direction](../adr/0008-select-react-vite-and-tanstack-for-web-applications.md#decision) is a React 19.x client-first SPA with Vite 8.x and React Compiler when compatible. TanStack Router owns URL/navigation state, TanStack Query owns server state through the generated OpenAPI client, and React state/context handles local UI state. No general global-state library or full-stack web framework is selected by default. Server rendering remains justified by product requirements; Fastify retains authoritative backend responsibilities. These choices are not yet implemented.
 
 The web application owns browser-specific delivery and user experience concerns.
 
@@ -351,7 +370,7 @@ It must not depend on backend implementation details.
 
 ---
 
-## Web Application Is Untrusted
+### Web Application Is Untrusted
 
 The browser is an untrusted execution environment.
 
@@ -391,7 +410,7 @@ Business-critical validation and authorization must be enforced at trusted bound
 
 ---
 
-## Web-Specific Logic Belongs in the Web Application
+### Web-Specific Logic Belongs in the Web Application
 
 Browser-specific behavior should normally remain local to the web application.
 
@@ -410,7 +429,7 @@ Such behavior should not be moved into generic shared packages merely for appare
 
 ---
 
-# Mobile Application
+## Mobile Application
 
 A mobile application is an independently distributed client application.
 
@@ -431,7 +450,7 @@ The mobile application is also an untrusted client from the backend perspective.
 
 ---
 
-## Mobile Releases May Lag Behind Backend Releases
+### Mobile Releases May Lag Behind Backend Releases
 
 Unlike server applications, mobile applications may remain installed for long periods.
 
@@ -455,7 +474,7 @@ Version support policies should be documented when mobile development is introdu
 
 ---
 
-# Desktop Application
+## Desktop Application
 
 A desktop application is an independently installed or distributed client runtime.
 
@@ -477,7 +496,7 @@ Possession of desktop binaries must not grant access to server-side secrets or p
 
 ---
 
-# Worker Applications
+## Worker Applications
 
 A worker is a runtime dedicated to asynchronous or background processing.
 
@@ -516,7 +535,7 @@ should ideally preserve the same core business rules when performing equivalent 
 
 ---
 
-## Worker-Specific Concerns
+### Worker-Specific Concerns
 
 Workers must explicitly consider:
 
@@ -535,7 +554,7 @@ Asynchronous processing must not assume exactly-once execution unless such guara
 
 ---
 
-# CLI Applications
+## CLI Applications
 
 Command-line tools may exist for operational, administrative, development, or product use.
 
@@ -553,7 +572,7 @@ Administrative convenience is not permission to bypass important invariants.
 
 ---
 
-# Application Communication
+## Application Communication
 
 Applications communicate either through shared compile-time contracts or explicit runtime interfaces.
 
@@ -561,7 +580,7 @@ These are different forms of interaction and must not be confused.
 
 ---
 
-## Compile-Time Sharing
+### Compile-Time Sharing
 
 Applications may share:
 
@@ -593,7 +612,7 @@ This does not mean the applications execute each other's implementation.
 
 ---
 
-## Runtime Communication
+### Runtime Communication
 
 Applications may communicate using:
 
@@ -613,7 +632,7 @@ Do not introduce asynchronous messaging merely to avoid a direct application dep
 
 ---
 
-# Shared Contracts
+## Shared Contracts
 
 Contracts used across application boundaries must have explicit ownership.
 
@@ -645,7 +664,7 @@ Prefer deliberate mapping between boundaries where the concepts differ.
 
 ---
 
-# Internal Models and External Contracts
+## Internal Models and External Contracts
 
 Internal models and external contracts may look similar.
 
@@ -669,7 +688,7 @@ The decision should depend on semantic ownership, not on reducing lines of code.
 
 ---
 
-# Authentication Boundary
+## Authentication Boundary
 
 Authentication mechanisms may span multiple applications, but authentication authority must be explicit.
 
@@ -688,7 +707,7 @@ Client-provided identity must never be trusted without verification.
 
 ---
 
-# Authorization Boundary
+## Authorization Boundary
 
 Authorization belongs at trusted execution boundaries.
 
@@ -714,7 +733,7 @@ Authorization rules should preferably be represented close to the protected oper
 
 ---
 
-# Database Access Boundaries
+## Database Access Boundaries
 
 Database access must be deliberate.
 
@@ -738,7 +757,7 @@ As domain ownership becomes concrete, access restrictions should become more spe
 
 ---
 
-# External Services
+## External Services
 
 External providers are boundaries.
 
@@ -782,7 +801,7 @@ Isolation should correspond to meaningful architectural risk or ownership.
 
 ---
 
-# Backend-for-Frontend Boundaries
+## Backend-for-Frontend Boundaries
 
 A dedicated Backend for Frontend should not be introduced by default.
 
@@ -804,7 +823,7 @@ It should not be introduced merely because multiple frontend applications exist.
 
 ---
 
-# Shared UI Boundaries
+## Shared UI Boundaries
 
 Web, mobile, and desktop applications may share visual concepts without sharing implementation.
 
@@ -825,7 +844,7 @@ Avoid creating cross-platform abstractions that become more complex than maintai
 
 ---
 
-# Business Capability Ownership
+## Business Capability Ownership
 
 A business capability should have identifiable ownership regardless of how many applications expose it.
 
@@ -858,7 +877,7 @@ They should not redefine core business truth.
 
 ---
 
-# Application Composition
+## Application Composition
 
 Executable applications are responsible for composition.
 
@@ -882,7 +901,7 @@ Core domain behavior should not need to know which runtime performed this compos
 
 ---
 
-# Dependency Injection
+## Dependency Injection
 
 Orion may use explicit dependency injection where it improves boundary clarity and testability.
 
@@ -911,7 +930,7 @@ The exact dependency injection strategy will be defined after the technology sta
 
 ---
 
-# Global State
+## Global State
 
 Application-global mutable state should be minimized.
 
@@ -927,7 +946,7 @@ Process-level infrastructure such as connection pools or telemetry providers may
 
 ---
 
-# Cross-Application Data Ownership
+## Cross-Application Data Ownership
 
 Applications must not assume ownership of another application's internal data representation.
 
@@ -951,7 +970,7 @@ The latter requires explicit architecture and should not emerge accidentally fro
 
 ---
 
-# Direct Database Sharing Between Backend Applications
+## Direct Database Sharing Between Backend Applications
 
 If multiple trusted backend applications eventually use the same database, direct access should not automatically imply shared ownership.
 
@@ -983,7 +1002,7 @@ Database sharing must never be used to bypass an explicit service boundary accid
 
 ---
 
-# Events
+## Events
 
 Events should represent meaningful facts or integration signals.
 
@@ -1003,7 +1022,7 @@ Consumers must not depend on undocumented event behavior.
 
 ---
 
-# Synchronous vs Asynchronous Communication
+## Synchronous vs Asynchronous Communication
 
 Synchronous communication is appropriate when the caller requires an immediate result.
 
@@ -1021,7 +1040,7 @@ Every asynchronous boundary introduces additional failure modes.
 
 ---
 
-# Failure Boundaries
+## Failure Boundaries
 
 Each application boundary creates potential independent failure.
 
@@ -1043,7 +1062,7 @@ Failure behavior should become part of the contract.
 
 ---
 
-# Timeouts
+## Timeouts
 
 Remote calls should have explicit timeout behavior.
 
@@ -1055,7 +1074,7 @@ Timeout handling should be observable.
 
 ---
 
-# Retries
+## Retries
 
 Retries should be deliberate.
 
@@ -1075,7 +1094,7 @@ Retry policies should not be scattered independently across applications when co
 
 ---
 
-# Compatibility Across Application Boundaries
+## Compatibility Across Application Boundaries
 
 Applications that can run different versions simultaneously must consider compatibility.
 
@@ -1095,7 +1114,7 @@ Breaking a shared contract should require deliberate migration rather than accid
 
 ---
 
-# Versioning
+## Versioning
 
 Versioning should be introduced when there is an actual compatibility requirement.
 
@@ -1115,7 +1134,7 @@ Versioning strategy should be defined in dedicated API or contract documentation
 
 ---
 
-# Feature Ownership Across Applications
+## Feature Ownership Across Applications
 
 A feature may have implementation in multiple applications.
 
@@ -1143,7 +1162,7 @@ Platform-specific behavior remains local.
 
 ---
 
-# Example: Order Cancellation
+## Example: Order Cancellation
 
 A valid conceptual flow may look like:
 
@@ -1184,7 +1203,7 @@ which payment SDK is called internally.
 
 ---
 
-# Example: Background Processing
+## Example: Background Processing
 
 Suppose an order requires asynchronous fulfillment.
 
@@ -1208,7 +1227,7 @@ Shared domain behavior may be consumed from an appropriate package if the archit
 
 ---
 
-# Example: Mobile Client
+## Example: Mobile Client
 
 A mobile client may use:
 
@@ -1226,7 +1245,7 @@ The mobile application should not need to reproduce backend request and response
 
 ---
 
-# Local Application Documentation
+## Local Application Documentation
 
 Each sufficiently complex application should eventually document:
 
@@ -1260,7 +1279,7 @@ These files should not duplicate repository-wide rules unnecessarily.
 
 ---
 
-# Application-Specific `AGENTS.md`
+## Application-Specific `AGENTS.md`
 
 An application-specific `AGENTS.md` may define local rules such as:
 
@@ -1274,13 +1293,13 @@ important files
 forbidden patterns
 ```
 
-It should assume the root `AGENTS.md` already applies.
+It should assume the root [AGENTS.md](../../AGENTS.md) already applies.
 
 Local files should contain only the additional context required for that application.
 
 ---
 
-# Creating a New Application Boundary
+## Creating a New Application Boundary
 
 Before creating a new application, answer:
 
@@ -1299,7 +1318,7 @@ A significant new application boundary should normally require an ADR.
 
 ---
 
-# Splitting an Existing Application
+## Splitting an Existing Application
 
 Do not split an application merely because it has become large.
 
@@ -1339,7 +1358,7 @@ immediate distributed system
 
 ---
 
-# Merging Applications
+## Merging Applications
 
 Application boundaries are not permanent merely because they once existed.
 
@@ -1349,7 +1368,7 @@ Architecture should optimize for clear responsibility rather than maximizing the
 
 ---
 
-# Monolith and Modular Boundaries
+## Monolith and Modular Boundaries
 
 Orion defaults toward logical modularity before physical distribution.
 
@@ -1371,7 +1390,7 @@ A modular monolith can preserve boundaries without paying the operational cost o
 
 ---
 
-# Microservices
+## Microservices
 
 Microservices are not a default goal.
 
@@ -1395,7 +1414,7 @@ Service extraction should normally follow an already clear logical boundary.
 
 ---
 
-# Serverless Functions
+## Serverless Functions
 
 Deployment technology does not define application architecture automatically.
 
@@ -1417,7 +1436,7 @@ Do not let deployment primitives determine domain architecture accidentally.
 
 ---
 
-# Repository Placement Does Not Define Runtime Trust
+## Repository Placement Does Not Define Runtime Trust
 
 Code living under the same monorepo does not imply equal trust.
 
@@ -1442,7 +1461,7 @@ Trust is determined by runtime security context, not repository proximity.
 
 ---
 
-# Boundary Enforcement
+## Boundary Enforcement
 
 Application boundaries should eventually be mechanically enforced.
 
@@ -1463,7 +1482,7 @@ The architectural rule must exist independently of the enforcement tool.
 
 ---
 
-# Boundary Violations
+## Boundary Violations
 
 When a contributor encounters a boundary that makes a legitimate requirement difficult, the default response should not be to bypass it.
 
@@ -1480,7 +1499,7 @@ Repeated pressure against a boundary may indicate that the boundary itself needs
 
 ---
 
-# Boundary Decision Model
+## Boundary Decision Model
 
 When deciding where behavior belongs, use the following sequence:
 
@@ -1536,7 +1555,7 @@ If none of these produce a clear answer, reconsider the responsibility before cr
 
 ---
 
-# Summary
+## Summary
 
 Applications are executable boundaries.
 

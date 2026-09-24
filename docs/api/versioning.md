@@ -1,5 +1,19 @@
 # API Versioning
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Released Contract](#released-contract)
+- [Breaking Change](#breaking-change)
+- [Deprecation](#deprecation)
+- [Mechanical Enforcement](#mechanical-enforcement)
+- [Initial API Versioning Policy](#initial-api-versioning-policy)
+
+Related policy: [versioning and compatibility](../architecture/versioning-and-compatibility.md), [error contract](error-contract.md).
+
 ## Purpose
 
 This document defines the API versioning and compatibility policy used by Orion.
@@ -22,15 +36,15 @@ It should not be used as the default response to every API change.
 
 This document is technology-agnostic.
 
-The specific API version representation, routing convention, media type strategy, schema format, deprecation tooling, and SDK versioning model will be selected later through explicit architectural decisions.
+ADR-0007 selects the schema and generated-client strategy. API version representation, routing convention, media type strategy, deprecation tooling, and SDK versioning remain decisions for actual consumer requirements.
 
 This document complements:
 
-- `docs/api/principles.md`;
-- `docs/api/error-contract.md`;
-- `docs/architecture/versioning-and-compatibility.md`;
-- `docs/architecture/application-boundaries.md`;
-- `docs/architecture/testing-strategy.md`.
+- [docs/api/principles.md](principles.md);
+- [docs/api/error-contract.md](error-contract.md);
+- [docs/architecture/versioning-and-compatibility.md](../architecture/versioning-and-compatibility.md);
+- [docs/architecture/application-boundaries.md](../architecture/application-boundaries.md);
+- [docs/architecture/testing-strategy.md](../architecture/testing-strategy.md).
 
 ---
 
@@ -42,7 +56,7 @@ Introduce a new API version only when a meaningful compatibility boundary cannot
 
 The desired decision model is:
 
-```text id="m7s0ph"
+```text
 proposed API change
         ↓
 can existing consumers continue working correctly?
@@ -66,17 +80,17 @@ It is not an architecture goal.
 
 ---
 
-# Compatibility Before Versioning
+## Compatibility Before Versioning
 
 The first question for an API change should be:
 
-```text id="2w36i8"
+```text
 Can this change be made compatibly?
 ```
 
 not:
 
-```text id="t5sdzr"
+```text
 Should we create v2?
 ```
 
@@ -86,13 +100,13 @@ Compatible evolution should be preferred when semantics remain clear.
 
 ---
 
-# What Versioning Protects
+## What Versioning Protects
 
 API versioning protects consumers from incompatible changes.
 
 Potential consumers include:
 
-```text id="zh3o39"
+```text
 web application
 mobile application
 desktop application
@@ -108,13 +122,13 @@ Different consumers may have different upgrade speeds.
 
 ---
 
-# Consumer Deployment Model Matters
+## Consumer Deployment Model Matters
 
 Compatibility requirements depend heavily on how consumers are deployed.
 
 For example:
 
-```text id="cq6i6x"
+```text
 backend + web deployed atomically
 ```
 
@@ -122,7 +136,7 @@ may tolerate tighter coordination.
 
 While:
 
-```text id="5zfwh2"
+```text
 backend + mobile application
 ```
 
@@ -132,13 +146,13 @@ Versioning policy must reflect actual deployment topology.
 
 ---
 
-# Public and Internal APIs
+## Public and Internal APIs
 
 Not every API has the same compatibility commitment.
 
 Potential categories include:
 
-```text id="44q91y"
+```text
 public external API
 partner API
 mobile backend API
@@ -151,13 +165,13 @@ The expected compatibility window should be explicit for important contracts.
 
 ---
 
-# Internal Does Not Mean Disposable
+## Internal Does Not Mean Disposable
 
 An internal API may still have independent consumers.
 
 For example:
 
-```text id="z2w3xr"
+```text
 worker
 mobile application
 separate deployment
@@ -168,25 +182,25 @@ may depend on it.
 
 The relevant question is:
 
-```text id="obz4ye"
+```text
 Can all consumers migrate together?
 ```
 
 not:
 
-```text id="a4ah7r"
+```text
 Is this API public?
 ```
 
 ---
 
-# Breaking Change
+## Breaking Change
 
 A breaking change is a change that can cause a previously valid consumer to fail, behave incorrectly, or interpret data incorrectly.
 
 Breaking changes may be:
 
-```text id="1zjskg"
+```text
 structural
 semantic
 behavioral
@@ -196,11 +210,11 @@ operational
 
 ---
 
-# Structural Breaking Changes
+## Structural Breaking Changes
 
 Common structural breaking changes include:
 
-```text id="3se7l8"
+```text
 remove field
 rename field
 change field type
@@ -215,25 +229,25 @@ These are usually straightforward to detect.
 
 ---
 
-# Semantic Breaking Changes
+## Semantic Breaking Changes
 
 A contract may remain structurally identical while changing meaning.
 
 Example:
 
-```text id="8fmtwt"
+```text
 status = "completed"
 ```
 
 previously means:
 
-```text id="4mn7dd"
+```text
 payment completed
 ```
 
 and later means:
 
-```text id="ngc87h"
+```text
 shipment completed
 ```
 
@@ -243,11 +257,11 @@ Semantic compatibility is as important as structural compatibility.
 
 ---
 
-# Behavioral Breaking Changes
+## Behavioral Breaking Changes
 
 Examples include:
 
-```text id="yfh4zn"
+```text
 operation previously idempotent, now not idempotent
 
 resource previously immediately visible, now eventually consistent
@@ -263,13 +277,13 @@ These may break consumers without changing schema.
 
 ---
 
-# Security-Driven Breaking Changes
+## Security-Driven Breaking Changes
 
 Security may require immediate incompatible changes.
 
 Examples:
 
-```text id="kz0lfi"
+```text
 remove unsafe field
 tighten authorization
 disable vulnerable authentication method
@@ -282,11 +296,11 @@ However, the compatibility impact must still be understood and communicated.
 
 ---
 
-# Potentially Compatible Changes
+## Potentially Compatible Changes
 
 Changes that are often compatible include:
 
-```text id="xl8j14"
+```text
 add new operation
 add optional request field
 add optional response field
@@ -298,13 +312,13 @@ Compatibility still depends on consumer behavior.
 
 ---
 
-# Additive Does Not Always Mean Compatible
+## Additive Does Not Always Mean Compatible
 
 Adding a value may still break consumers.
 
 For example:
 
-```text id="iq48rx"
+```text
 enum:
     pending
     completed
@@ -312,7 +326,7 @@ enum:
 
 becomes:
 
-```text id="crff0b"
+```text
 enum:
     pending
     processing
@@ -321,7 +335,7 @@ enum:
 
 A client using exhaustive matching may fail on:
 
-```text id="5jf9z7"
+```text
 processing
 ```
 
@@ -329,7 +343,7 @@ Therefore additive evolution must consider actual consumer assumptions.
 
 ---
 
-# Enum Expansion
+## Enum Expansion
 
 Enum expansion is one of the most common hidden compatibility risks.
 
@@ -339,13 +353,13 @@ Generated SDKs should preserve this capability where possible.
 
 ---
 
-# Closed vs Open Enums
+## Closed vs Open Enums
 
 Some enums are intentionally closed.
 
 Example:
 
-```text id="rytyfo"
+```text
 sort direction:
     asc
     desc
@@ -355,7 +369,7 @@ Others may evolve over time.
 
 Example:
 
-```text id="et58uv"
+```text
 order status
 ```
 
@@ -363,13 +377,13 @@ The contract should distinguish these semantics where tooling allows.
 
 ---
 
-# Unknown Enum Handling
+## Unknown Enum Handling
 
 For extensible enums, clients should have safe fallback behavior.
 
 Conceptually:
 
-```text id="dn16kt"
+```text
 known values
     → handle normally
 
@@ -381,13 +395,13 @@ Do not make every enum extensible automatically.
 
 ---
 
-# Adding Response Fields
+## Adding Response Fields
 
 Adding an optional response field is generally compatible if consumers ignore unknown fields.
 
 This assumption must be valid for:
 
-```text id="tykd9u"
+```text
 serialization library
 generated SDK
 client implementation
@@ -397,7 +411,7 @@ Some strict clients may reject unknown properties.
 
 ---
 
-# Adding Request Fields
+## Adding Request Fields
 
 Adding optional request fields is usually compatible.
 
@@ -405,19 +419,19 @@ Adding required request fields is generally breaking for existing consumers.
 
 ---
 
-# Making Fields Optional
+## Making Fields Optional
 
 Changing a required response field to optional may be breaking.
 
 Existing consumers may assume:
 
-```text id="9gm9gh"
+```text
 field always exists
 ```
 
 Changing:
 
-```text id="yhe6jd"
+```text
 required → optional
 ```
 
@@ -425,11 +439,11 @@ must therefore be treated carefully.
 
 ---
 
-# Making Fields Required
+## Making Fields Required
 
 Changing:
 
-```text id="wp0w9l"
+```text
 optional → required
 ```
 
@@ -439,19 +453,19 @@ For responses, requiring a previously optional field may be structurally safe bu
 
 ---
 
-# Nullability Changes
+## Nullability Changes
 
 Changing nullability may be breaking.
 
 Examples:
 
-```text id="2o7z8l"
+```text
 non-null → nullable
 ```
 
 may break consumers that do not handle null.
 
-```text id="o5s5yc"
+```text
 nullable → non-null
 ```
 
@@ -461,13 +475,13 @@ Nullability is part of the contract.
 
 ---
 
-# Type Widening
+## Type Widening
 
 Type widening may or may not be compatible.
 
 Example:
 
-```text id="cwttfr"
+```text
 integer
     →
 number
@@ -479,13 +493,13 @@ Compatibility must be evaluated at the consumer representation level.
 
 ---
 
-# Numeric Range Expansion
+## Numeric Range Expansion
 
 Increasing the possible numeric range may break clients using narrower types.
 
 For example:
 
-```text id="edfjxx"
+```text
 32-bit integer
 ```
 
@@ -493,13 +507,13 @@ consumer assumptions may fail if the server begins returning larger values.
 
 ---
 
-# String Format Changes
+## String Format Changes
 
 Changing the meaning or format of a string may be breaking even when the schema remains `string`.
 
 Examples:
 
-```text id="q2mf2z"
+```text
 date format
 identifier format
 currency representation
@@ -510,11 +524,11 @@ Formatting guarantees should remain explicit.
 
 ---
 
-# Identifier Changes
+## Identifier Changes
 
 Changing resource identifier format may break:
 
-```text id="5ckgc3"
+```text
 client storage
 routing
 regex validation
@@ -526,19 +540,19 @@ Identifiers should be treated as stable opaque values unless the contract explic
 
 ---
 
-# Opaque Means Opaque
+## Opaque Means Opaque
 
 Consumers should not derive semantics from opaque identifiers.
 
 For example:
 
-```text id="tzhr5y"
+```text
 usr_123
 ```
 
 should not imply that consumers may parse:
 
-```text id="mn7ljd"
+```text
 usr
 ```
 
@@ -546,19 +560,19 @@ unless the prefix is part of the documented contract.
 
 ---
 
-# Ordering Compatibility
+## Ordering Compatibility
 
 Changing default result ordering can be breaking.
 
 Example:
 
-```text id="j6rh7i"
+```text
 createdAt ascending
 ```
 
 becomes:
 
-```text id="y5id41"
+```text
 createdAt descending
 ```
 
@@ -566,11 +580,11 @@ Consumers may rely on current ordering even if schema remains unchanged.
 
 ---
 
-# Pagination Compatibility
+## Pagination Compatibility
 
 Changing:
 
-```text id="iwjwn5"
+```text
 cursor semantics
 page size
 ordering
@@ -583,19 +597,19 @@ Pagination is part of API behavior.
 
 ---
 
-# Default Value Changes
+## Default Value Changes
 
 Changing default behavior can break consumers.
 
 Example:
 
-```text id="t0fmvl"
+```text
 includeArchived default = false
 ```
 
 becomes:
 
-```text id="klhnzu"
+```text
 includeArchived default = true
 ```
 
@@ -603,19 +617,19 @@ even though the request schema is unchanged.
 
 ---
 
-# Validation Tightening
+## Validation Tightening
 
 Tightening validation can be breaking.
 
 For example:
 
-```text id="hd79k5"
+```text
 name max length 500
 ```
 
 becomes:
 
-```text id="q4lz1l"
+```text
 name max length 100
 ```
 
@@ -623,7 +637,7 @@ Existing valid requests may begin failing.
 
 ---
 
-# Validation Relaxation
+## Validation Relaxation
 
 Relaxing validation is usually compatible for existing consumers.
 
@@ -631,13 +645,13 @@ It may still affect downstream assumptions or security.
 
 ---
 
-# Error Compatibility
+## Error Compatibility
 
 Public error codes are part of compatibility.
 
 Potential breaking changes include:
 
-```text id="axpm4m"
+```text
 rename error code
 remove error code
 reuse code with new meaning
@@ -647,13 +661,13 @@ change retry semantics
 
 ---
 
-# HTTP Status Compatibility
+## HTTP Status Compatibility
 
 Changing the HTTP status for a semantic error may break consumers.
 
 For example:
 
-```text id="rt45w9"
+```text
 409 → 400
 ```
 
@@ -663,13 +677,13 @@ Treat meaningful status mapping as part of the contract.
 
 ---
 
-# Authentication Compatibility
+## Authentication Compatibility
 
 Changing authentication requirements can be breaking.
 
 Examples:
 
-```text id="90n1uh"
+```text
 API key no longer accepted
 new mandatory MFA
 session cookie replaced with token
@@ -679,7 +693,7 @@ Security may justify the break, but migration planning is still required.
 
 ---
 
-# Authorization Compatibility
+## Authorization Compatibility
 
 Tightening permissions may cause previously successful requests to fail.
 
@@ -689,7 +703,7 @@ It may still be necessary for correctness or security.
 
 ---
 
-# Rate-Limit Compatibility
+## Rate-Limit Compatibility
 
 Changing rate limits may affect consumers operationally.
 
@@ -699,7 +713,7 @@ However, major reductions should be treated as compatibility-impacting for depen
 
 ---
 
-# Timeout Compatibility
+## Timeout Compatibility
 
 Reducing server timeout below normal historical operation duration may affect consumers.
 
@@ -707,19 +721,19 @@ Operational settings can become de facto contract behavior.
 
 ---
 
-# Side-Effect Compatibility
+## Side-Effect Compatibility
 
 An operation's side effects are part of semantics.
 
 For example, if:
 
-```text id="gbt5od"
+```text
 creating user
 ```
 
 previously sends:
 
-```text id="7xjzgl"
+```text
 welcome email
 ```
 
@@ -729,13 +743,13 @@ Public contract documentation should describe externally relevant side effects.
 
 ---
 
-# Compatible Evolution
+## Compatible Evolution
 
 Compatible evolution should generally prefer additive changes.
 
 Conceptual sequence:
 
-```text id="fcdlxf"
+```text
 existing contract
     ↓
 add new capability
@@ -749,13 +763,13 @@ remove only when compatibility policy permits
 
 ---
 
-# Expand and Contract
+## Expand and Contract
 
 API evolution may follow an expand-and-contract model similar to database evolution.
 
 Example:
 
-```text id="ab6hod"
+```text
 add new field
     ↓
 support old + new clients
@@ -769,13 +783,13 @@ remove old field later
 
 ---
 
-# Dual Contract Support
+## Dual Contract Support
 
 Temporary support for old and new representations may be necessary.
 
 Examples:
 
-```text id="2iuybf"
+```text
 accept old and new request field
 return both old and new response field
 ```
@@ -784,11 +798,11 @@ This should have explicit removal criteria.
 
 ---
 
-# Compatibility Code Is Temporary
+## Compatibility Code Is Temporary
 
 Compatibility branches such as:
 
-```text id="zx2m4g"
+```text
 if oldField exists:
     map to newField
 ```
@@ -799,13 +813,13 @@ Track removal conditions.
 
 ---
 
-# Deprecation
+## Deprecation
 
 Deprecation communicates that a contract element still works but should no longer be used.
 
 A deprecation should identify:
 
-```text id="fqh48j"
+```text
 deprecated element
 replacement
 reason where useful
@@ -815,7 +829,7 @@ removal condition or timeline
 
 ---
 
-# Deprecation Is Not Removal
+## Deprecation Is Not Removal
 
 A deprecated field or endpoint must remain functional according to the current compatibility commitment.
 
@@ -823,7 +837,7 @@ Do not mark something deprecated and simultaneously change its behavior incompat
 
 ---
 
-# Deprecation Without Consumers
+## Deprecation Without Consumers
 
 If an internal contract has no remaining consumers, a formal long deprecation period may be unnecessary.
 
@@ -831,13 +845,13 @@ Compatibility process should be proportional to actual dependency.
 
 ---
 
-# Deprecation Metadata
+## Deprecation Metadata
 
 Where supported, canonical contracts should mark deprecated elements in machine-readable form.
 
 This may generate:
 
-```text id="3jveq8"
+```text
 documentation warnings
 SDK annotations
 lint warnings
@@ -846,11 +860,11 @@ usage reports
 
 ---
 
-# Deprecation Documentation
+## Deprecation Documentation
 
 Generated documentation should clearly show:
 
-```text id="e631cb"
+```text
 Deprecated
 
 Use: <replacement>
@@ -860,13 +874,13 @@ without requiring consumers to search release notes.
 
 ---
 
-# Deprecation Telemetry
+## Deprecation Telemetry
 
 For important APIs, observing deprecated usage can help determine whether removal is safe.
 
 Potential telemetry may include:
 
-```text id="4llr0j"
+```text
 deprecated operation usage
 deprecated field usage
 client version
@@ -876,13 +890,13 @@ where privacy and cardinality permit.
 
 ---
 
-# Usage Evidence
+## Usage Evidence
 
 Removal decisions should prefer evidence.
 
 Ask:
 
-```text id="01np6p"
+```text
 Are any supported consumers still using this?
 ```
 
@@ -890,13 +904,13 @@ rather than assuming migration is complete.
 
 ---
 
-# Removal Conditions
+## Removal Conditions
 
 A deprecated contract element should have a removal condition.
 
 Examples:
 
-```text id="t7ajbl"
+```text
 all first-party consumers migrated
 
 usage remains zero for agreed observation period
@@ -908,7 +922,7 @@ partner migration completed
 
 ---
 
-# Removal Timeline
+## Removal Timeline
 
 Public APIs may require explicit dates.
 
@@ -918,7 +932,7 @@ The policy should match consumer expectations.
 
 ---
 
-# Version Boundary
+## Version Boundary
 
 A new API version should correspond to a meaningful incompatible contract boundary.
 
@@ -926,17 +940,17 @@ Do not version individual implementation changes.
 
 A version represents:
 
-```text id="2vdw00"
+```text
 a contract generation consumers may depend on
 ```
 
 ---
 
-# Version Granularity
+## Version Granularity
 
 Potential version scopes include:
 
-```text id="7ajxi7"
+```text
 entire API
 domain area
 operation family
@@ -949,11 +963,11 @@ The exact approach is deferred until actual API topology exists.
 
 ---
 
-# Avoid Per-Endpoint Version Chaos
+## Avoid Per-Endpoint Version Chaos
 
 Versioning each endpoint independently can create combinations such as:
 
-```text id="6p8h8u"
+```text
 users v1
 orders v3
 payments v2
@@ -966,13 +980,13 @@ Do not adopt it casually.
 
 ---
 
-# Whole-API Versioning
+## Whole-API Versioning
 
 A whole-API version is easy to explain but may force consumers to migrate unrelated operations together.
 
 Example:
 
-```text id="x4xehx"
+```text
 /v1/...
 /v2/...
 ```
@@ -983,7 +997,7 @@ It should not be selected before concrete requirements exist.
 
 ---
 
-# Date-Based Versions
+## Date-Based Versions
 
 Some public APIs use date-based contract versions.
 
@@ -995,7 +1009,7 @@ Orion does not choose this strategy by default.
 
 ---
 
-# Header-Based Versioning
+## Header-Based Versioning
 
 Versions may be selected through headers.
 
@@ -1007,11 +1021,11 @@ No transport representation is selected yet.
 
 ---
 
-# Path-Based Versioning
+## Path-Based Versioning
 
 Path-based versioning such as:
 
-```text id="6mveac"
+```text
 /v1/orders
 ```
 
@@ -1023,7 +1037,7 @@ No default is selected yet.
 
 ---
 
-# Media-Type Versioning
+## Media-Type Versioning
 
 Media-type or content-negotiation versioning can be precise.
 
@@ -1033,13 +1047,13 @@ Use only when consumers and tooling benefit from it.
 
 ---
 
-# Version Identifier Semantics
+## Version Identifier Semantics
 
 Version identifiers should represent compatibility boundaries.
 
 They should not necessarily mirror:
 
-```text id="7fwjwo"
+```text
 application version
 repository version
 SDK version
@@ -1050,17 +1064,17 @@ These are different concepts.
 
 ---
 
-# API Version vs Release Version
+## API Version vs Release Version
 
 A backend release may be:
 
-```text id="etm33s"
+```text
 2027.10.3
 ```
 
 while still serving:
 
-```text id="b3l8tx"
+```text
 API v1
 ```
 
@@ -1068,17 +1082,17 @@ A product release does not require a new API version.
 
 ---
 
-# API Version vs SDK Version
+## API Version vs SDK Version
 
 An SDK may release:
 
-```text id="0fs4nq"
+```text
 2.3.0
 ```
 
 while consuming:
 
-```text id="vvhwka"
+```text
 API v1
 ```
 
@@ -1088,7 +1102,7 @@ API version reflects server contract compatibility.
 
 ---
 
-# API Version vs Schema Version
+## API Version vs Schema Version
 
 Database schema version and API version are independent.
 
@@ -1098,13 +1112,13 @@ Do not couple them unnecessarily.
 
 ---
 
-# Supporting Multiple Versions
+## Supporting Multiple Versions
 
 Every simultaneously supported API version creates cost.
 
 The system may need:
 
-```text id="5z8ukv"
+```text
 multiple schemas
 multiple controllers/adapters
 compatibility logic
@@ -1117,13 +1131,13 @@ Version proliferation should therefore be avoided.
 
 ---
 
-# Shared Implementation Across Versions
+## Shared Implementation Across Versions
 
 Different API versions may share internal application operations.
 
 Conceptually:
 
-```text id="c40sfd"
+```text
 v1 transport mapping ─┐
                      ├→ application capability
 v2 transport mapping ─┘
@@ -1133,11 +1147,11 @@ This avoids duplicating business logic.
 
 ---
 
-# Version-Specific Domain Logic
+## Version-Specific Domain Logic
 
 Avoid:
 
-```text id="57kx37"
+```text
 OrderV1
 OrderV2
 ```
@@ -1148,11 +1162,11 @@ Version differences should usually remain at boundary mapping unless business se
 
 ---
 
-# Version Translation
+## Version Translation
 
 A version adapter may translate:
 
-```text id="zc282x"
+```text
 v1 request
     ↓
 current application command
@@ -1160,7 +1174,7 @@ current application command
 
 and:
 
-```text id="hal64b"
+```text
 current application result
     ↓
 v1 response
@@ -1170,7 +1184,7 @@ This isolates compatibility behavior.
 
 ---
 
-# Legacy Semantics
+## Legacy Semantics
 
 Some old API behavior may require preserving semantics no longer used internally.
 
@@ -1180,7 +1194,7 @@ Such compatibility logic should be clearly identified.
 
 ---
 
-# Version-Specific Bugs
+## Version-Specific Bugs
 
 Compatibility does not require preserving security vulnerabilities or data corruption bugs.
 
@@ -1190,11 +1204,11 @@ Security fixes override this consideration.
 
 ---
 
-# Version Lifecycle
+## Version Lifecycle
 
 A version may progress through conceptual stages:
 
-```text id="m6z7bg"
+```text
 development
     ↓
 supported
@@ -1208,13 +1222,13 @@ The exact lifecycle depends on API audience.
 
 ---
 
-# Development Version
+## Development Version
 
 A contract under active unreleased development may change freely when no compatibility promise exists.
 
 This mirrors Orion's broader principle:
 
-```text id="gqwdd5"
+```text
 unreleased history may be refined
 ```
 
@@ -1222,7 +1236,7 @@ Do not prematurely preserve experimental API shapes.
 
 ---
 
-# Released Contract
+## Released Contract
 
 Once a contract has supported consumers, changes must follow compatibility policy.
 
@@ -1232,7 +1246,7 @@ An unversioned API can still have a released compatibility commitment.
 
 ---
 
-# Deprecated Version
+## Deprecated Version
 
 A deprecated version remains supported temporarily.
 
@@ -1242,7 +1256,7 @@ New consumers should not be encouraged to adopt it.
 
 ---
 
-# Retired Version
+## Retired Version
 
 A retired version is no longer served.
 
@@ -1250,11 +1264,11 @@ Retirement should occur only when removal conditions are satisfied or a security
 
 ---
 
-# Version Support Policy
+## Version Support Policy
 
 Orion should eventually define, per API class:
 
-```text id="rg4mlo"
+```text
 how many versions are supported
 
 for how long
@@ -1268,13 +1282,13 @@ This should follow actual product needs.
 
 ---
 
-# Public API Support
+## Public API Support
 
 A public external API may require stronger support commitments.
 
 Examples may include:
 
-```text id="fhgkza"
+```text
 published deprecation window
 migration guide
 stable documentation archive
@@ -1284,19 +1298,19 @@ No such commitment should be invented before the product exposes a public API.
 
 ---
 
-# First-Party API Support
+## First-Party API Support
 
 First-party applications may allow tighter coordination.
 
 For example:
 
-```text id="q5b4qr"
+```text
 web frontend
 ```
 
 may migrate immediately.
 
-```text id="hjsykb"
+```text
 mobile client
 ```
 
@@ -1304,13 +1318,13 @@ may require extended compatibility.
 
 ---
 
-# Mobile Version Lag
+## Mobile Version Lag
 
 Mobile clients may remain active long after a new backend deployment.
 
 API changes consumed by mobile must account for:
 
-```text id="zhwtwn"
+```text
 app-store review delay
 slow user upgrades
 offline devices
@@ -1319,7 +1333,7 @@ unsupported old versions
 
 ---
 
-# Minimum Supported Client Version
+## Minimum Supported Client Version
 
 A product may eventually define a minimum supported mobile or desktop version.
 
@@ -1329,7 +1343,7 @@ The backend should not assume all users update immediately.
 
 ---
 
-# Forced Client Upgrade
+## Forced Client Upgrade
 
 A forced upgrade may sometimes allow removal of legacy contracts.
 
@@ -1339,7 +1353,7 @@ It should not be used simply to avoid compatible API design.
 
 ---
 
-# Desktop Client Lag
+## Desktop Client Lag
 
 Distributed desktop clients have compatibility concerns similar to mobile.
 
@@ -1347,7 +1361,7 @@ Auto-update may reduce lag but does not guarantee instantaneous migration.
 
 ---
 
-# Partner Integrations
+## Partner Integrations
 
 Partner APIs may require explicit migration coordination.
 
@@ -1355,7 +1369,7 @@ Version retirement should consider contractual commitments and partner adoption.
 
 ---
 
-# Service-to-Service APIs
+## Service-to-Service APIs
 
 Internal services may deploy independently.
 
@@ -1363,7 +1377,7 @@ Compatibility may therefore be necessary during rolling deployments.
 
 The architecture should consider:
 
-```text id="k64zmf"
+```text
 old consumer + new provider
 
 new consumer + old provider
@@ -1373,7 +1387,7 @@ where deployments can overlap.
 
 ---
 
-# Rolling Deployment
+## Rolling Deployment
 
 A new server release may coexist with the previous server release.
 
@@ -1381,13 +1395,13 @@ Shared consumers and routing infrastructure should tolerate this where the deplo
 
 ---
 
-# Forward Compatibility
+## Forward Compatibility
 
 Forward compatibility means older consumers tolerate certain newer provider behavior.
 
 Examples may include:
 
-```text id="j6cmnk"
+```text
 unknown response fields
 unknown extensible enum values
 ```
@@ -1396,7 +1410,7 @@ This can significantly reduce version pressure.
 
 ---
 
-# Backward Compatibility
+## Backward Compatibility
 
 Backward compatibility means newer provider versions continue supporting existing consumer expectations.
 
@@ -1404,7 +1418,7 @@ Most API compatibility work focuses on this direction.
 
 ---
 
-# Bidirectional Compatibility
+## Bidirectional Compatibility
 
 Rolling distributed systems may require both old and new components to coexist.
 
@@ -1414,7 +1428,7 @@ Do not assume only consumer-old/provider-new matters.
 
 ---
 
-# Tolerant Readers
+## Tolerant Readers
 
 Consumers should avoid rejecting harmless unknown response fields when the contract allows additive evolution.
 
@@ -1424,7 +1438,7 @@ It should not weaken validation of security-sensitive semantics.
 
 ---
 
-# Strict Writers
+## Strict Writers
 
 Consumers should send only documented request fields.
 
@@ -1434,7 +1448,7 @@ This helps prevent accidental dependence on undocumented behavior.
 
 ---
 
-# Extensible Responses
+## Extensible Responses
 
 Response models expected to grow should be designed with additive evolution in mind.
 
@@ -1442,7 +1456,7 @@ Avoid structures where every addition becomes breaking unnecessarily.
 
 ---
 
-# Extensible Requests
+## Extensible Requests
 
 Requests should not be made arbitrarily extensible merely for future-proofing.
 
@@ -1452,7 +1466,7 @@ Extensibility should be intentional.
 
 ---
 
-# Union Types
+## Union Types
 
 Adding a new variant to a union may be breaking for exhaustive consumers.
 
@@ -1460,7 +1474,7 @@ If a union is designed to grow, consumers need a safe unknown or fallback strate
 
 ---
 
-# Discriminated Unions
+## Discriminated Unions
 
 Discriminated unions should have stable discriminators.
 
@@ -1470,7 +1484,7 @@ Adding variants requires compatibility analysis.
 
 ---
 
-# Error Enum Expansion
+## Error Enum Expansion
 
 The same enum-expansion risk applies to error-code types.
 
@@ -1478,13 +1492,13 @@ Generated SDKs should not force consumers to crash on a newly introduced server 
 
 ---
 
-# Generated SDK Compatibility
+## Generated SDK Compatibility
 
 Generated SDKs should preserve API compatibility semantics.
 
 For example, a generated client should ideally tolerate:
 
-```text id="89nbhl"
+```text
 unknown additive response field
 ```
 
@@ -1494,7 +1508,7 @@ Generator selection must consider this behavior.
 
 ---
 
-# SDK Major Versions
+## SDK Major Versions
 
 An SDK may use semantic versioning or another package-versioning scheme.
 
@@ -1504,7 +1518,7 @@ Do not conflate package compatibility with server contract compatibility.
 
 ---
 
-# SDK Generation Updates
+## SDK Generation Updates
 
 Regenerating an SDK after an additive server contract change should not automatically create breaking client APIs.
 
@@ -1512,7 +1526,7 @@ Generator behavior should be tested.
 
 ---
 
-# Contract Snapshot
+## Contract Snapshot
 
 Released canonical API contracts may eventually be retained as comparison baselines.
 
@@ -1520,7 +1534,7 @@ This allows automated compatibility analysis.
 
 Example:
 
-```text id="jqidat"
+```text
 released API schema
     ↓ compare
 proposed API schema
@@ -1530,13 +1544,13 @@ breaking-change report
 
 ---
 
-# Breaking-Change Detection
+## Breaking-Change Detection
 
 CI should eventually detect structural breaking changes mechanically where possible.
 
 Potential examples include:
 
-```text id="r8x9oy"
+```text
 operation removed
 required request field added
 response field removed
@@ -1548,19 +1562,19 @@ Semantic changes still require human review.
 
 ---
 
-# Breaking-Change Tool Limitations
+## Breaking-Change Tool Limitations
 
 Automated tools cannot reliably determine all semantic compatibility.
 
 For example:
 
-```text id="a13k8n"
+```text
 maximum page size reduced
 ```
 
 or:
 
-```text id="b5vef3"
+```text
 field meaning changed
 ```
 
@@ -1572,13 +1586,13 @@ It does not replace it.
 
 ---
 
-# Compatibility Tests
+## Compatibility Tests
 
 Important compatibility promises should have automated tests where practical.
 
 Examples:
 
-```text id="2yt69t"
+```text
 old mobile request still accepted
 deprecated response field still returned
 old error code still preserved
@@ -1586,7 +1600,7 @@ old error code still preserved
 
 ---
 
-# Golden Contract Tests
+## Golden Contract Tests
 
 A released contract snapshot may act as a compatibility baseline.
 
@@ -1596,7 +1610,7 @@ The snapshot is not necessarily the canonical authoring source.
 
 ---
 
-# Consumer Contract Tests
+## Consumer Contract Tests
 
 When independently deployed consumers have critical expectations, consumer-driven contract tests may be useful.
 
@@ -1604,7 +1618,7 @@ This should be introduced only when deployment topology benefits from it.
 
 ---
 
-# Deprecation Tests
+## Deprecation Tests
 
 Deprecated behavior may require tests until retirement.
 
@@ -1612,7 +1626,7 @@ Otherwise refactoring can accidentally remove compatibility early.
 
 ---
 
-# Version Routing Tests
+## Version Routing Tests
 
 If multiple API versions coexist, routing must be tested explicitly.
 
@@ -1620,13 +1634,13 @@ Consumers requesting one version must not accidentally receive another contract.
 
 ---
 
-# Version Documentation
+## Version Documentation
 
 Every supported version should have accessible documentation.
 
 Consumers should be able to determine:
 
-```text id="yhyu29"
+```text
 current recommended version
 deprecated versions
 migration guidance
@@ -1634,7 +1648,7 @@ migration guidance
 
 ---
 
-# Documentation Archive
+## Documentation Archive
 
 Retired public API documentation may need to remain archived for historical investigation.
 
@@ -1642,13 +1656,13 @@ The need depends on API audience and support obligations.
 
 ---
 
-# Migration Guides
+## Migration Guides
 
 A new incompatible API version should normally include migration guidance.
 
 A migration guide should explain:
 
-```text id="oe8d5w"
+```text
 what changed
 why
 old form
@@ -1660,7 +1674,7 @@ It should focus on contract changes rather than internal implementation.
 
 ---
 
-# Changelog
+## Changelog
 
 API contract changes should appear in release/change documentation when consumers need to know about them.
 
@@ -1668,11 +1682,11 @@ The changelog is not a substitute for canonical API documentation.
 
 ---
 
-# Compatibility Metadata
+## Compatibility Metadata
 
 Future machine-readable contracts may identify:
 
-```text id="h19hvv"
+```text
 introducedIn
 deprecated
 replacement
@@ -1685,7 +1699,7 @@ Avoid metadata that cannot be maintained reliably.
 
 ---
 
-# Experimental APIs
+## Experimental APIs
 
 Some future capabilities may be intentionally experimental.
 
@@ -1697,7 +1711,7 @@ Do not label unstable production APIs as experimental merely to avoid responsibl
 
 ---
 
-# Beta APIs
+## Beta APIs
 
 A beta API may permit more change than a stable API.
 
@@ -1707,11 +1721,11 @@ The exact stability taxonomy should be introduced only when necessary.
 
 ---
 
-# Stability Levels
+## Stability Levels
 
 If Orion eventually needs stability levels, possible concepts may include:
 
-```text id="wh85o1"
+```text
 experimental
 preview
 stable
@@ -1722,7 +1736,7 @@ This should not be added before actual use cases exist.
 
 ---
 
-# Version Discovery
+## Version Discovery
 
 Consumers should have an explicit way to know which API contract they are using.
 
@@ -1730,7 +1744,7 @@ Version selection should not depend on hidden server configuration.
 
 ---
 
-# Default Version
+## Default Version
 
 If multiple versions exist, relying on an implicit default can be risky.
 
@@ -1740,11 +1754,11 @@ The selected versioning strategy should define whether explicit version selectio
 
 ---
 
-# Latest Version Alias
+## Latest Version Alias
 
 An alias such as:
 
-```text id="z79jyg"
+```text
 latest
 ```
 
@@ -1756,7 +1770,7 @@ Do not use mutable aliases as long-term compatibility guarantees.
 
 ---
 
-# Version Negotiation
+## Version Negotiation
 
 If clients and servers negotiate versions dynamically, the behavior must remain deterministic and observable.
 
@@ -1764,13 +1778,13 @@ This is additional protocol complexity and should require concrete value.
 
 ---
 
-# Unsupported Version
+## Unsupported Version
 
 Requests for unsupported versions should fail predictably.
 
 Potential semantic error:
 
-```text id="dzxqqn"
+```text
 API_VERSION_UNSUPPORTED
 ```
 
@@ -1778,7 +1792,7 @@ if the selected transport requires such behavior.
 
 ---
 
-# Version Retirement
+## Version Retirement
 
 After retirement, the server should not silently route an old version request to a newer incompatible version.
 
@@ -1788,13 +1802,13 @@ Silent upgrade can produce incorrect behavior.
 
 ---
 
-# Observability
+## Observability
 
 API version usage should be observable where multiple versions exist.
 
 Potential dimensions include:
 
-```text id="83tps2"
+```text
 version
 operation
 client class
@@ -1804,7 +1818,7 @@ Metrics must remain bounded.
 
 ---
 
-# Client Version Telemetry
+## Client Version Telemetry
 
 Client-version information may help migration planning.
 
@@ -1812,7 +1826,7 @@ It should be collected only when operationally useful and privacy-safe.
 
 ---
 
-# Deprecated Usage Metrics
+## Deprecated Usage Metrics
 
 Deprecated operation or field usage can provide evidence for retirement.
 
@@ -1820,7 +1834,7 @@ Do not log full payloads merely to detect deprecated usage.
 
 ---
 
-# Version-Specific Errors
+## Version-Specific Errors
 
 Versioning should not create entirely independent error semantics without need.
 
@@ -1828,7 +1842,7 @@ Shared semantic errors may map to version-specific representations at the bounda
 
 ---
 
-# Authentication Across Versions
+## Authentication Across Versions
 
 Multiple API versions should not casually use unrelated authentication architectures.
 
@@ -1836,7 +1850,7 @@ If authentication itself changes incompatibly, migration must be deliberate.
 
 ---
 
-# Authorization Across Versions
+## Authorization Across Versions
 
 Old API versions must not preserve weaker authorization merely for compatibility if doing so creates a security vulnerability.
 
@@ -1844,7 +1858,7 @@ Security policy applies across supported versions.
 
 ---
 
-# Data Classification Across Versions
+## Data Classification Across Versions
 
 Older API versions must continue respecting current data-protection requirements.
 
@@ -1852,11 +1866,11 @@ Compatibility is not justification for exposing data that is now known to be uns
 
 ---
 
-# Version Maintenance Cost
+## Version Maintenance Cost
 
 Before creating a new version, estimate:
 
-```text id="zfqqda"
+```text
 duplicate contract maintenance
 test matrix
 SDK generation
@@ -1870,7 +1884,7 @@ Versioning should solve a problem worth this cost.
 
 ---
 
-# Avoid Permanent Legacy Versions
+## Avoid Permanent Legacy Versions
 
 A version should not remain supported indefinitely by accident.
 
@@ -1878,7 +1892,7 @@ Long-term support must be intentional.
 
 ---
 
-# Legacy Version Security
+## Legacy Version Security
 
 Supported legacy versions must receive relevant security fixes.
 
@@ -1886,7 +1900,7 @@ A deprecated endpoint does not become exempt from security requirements.
 
 ---
 
-# Legacy Version Reliability
+## Legacy Version Reliability
 
 Operational monitoring should distinguish failures caused by legacy compatibility layers where useful.
 
@@ -1894,13 +1908,13 @@ Legacy behavior must remain diagnosable until retirement.
 
 ---
 
-# Versioned Business Logic
+## Versioned Business Logic
 
 Avoid duplicating application business logic per API version.
 
 Prefer:
 
-```text id="wla6cn"
+```text
 version-specific adapter
         ↓
 current application operation
@@ -1910,7 +1924,7 @@ where semantics allow it.
 
 ---
 
-# When Business Semantics Actually Differ
+## When Business Semantics Actually Differ
 
 If an old contract truly represents obsolete business semantics, a compatibility adapter may become complex.
 
@@ -1920,7 +1934,7 @@ That tradeoff should be explicit.
 
 ---
 
-# Version Forking
+## Version Forking
 
 A new API version should not become a permanent fork of the entire application architecture.
 
@@ -1928,7 +1942,7 @@ Shared domain and application capabilities should remain shared where possible.
 
 ---
 
-# API Version Removal Checklist
+## API Version Removal Checklist
 
 Before retiring a version, answer:
 
@@ -1947,7 +1961,7 @@ Before retiring a version, answer:
 
 ---
 
-# New API Version Checklist
+## New API Version Checklist
 
 Before creating a new API version, answer:
 
@@ -1970,7 +1984,7 @@ If these questions cannot be answered, a new version is probably premature.
 
 ---
 
-# Breaking Change Checklist
+## Breaking Change Checklist
 
 Before making a contract change, evaluate:
 
@@ -1991,7 +2005,7 @@ Before making a contract change, evaluate:
 
 ---
 
-# Deprecation Checklist
+## Deprecation Checklist
 
 Before deprecating a contract element, answer:
 
@@ -2008,11 +2022,11 @@ Before deprecating a contract element, answer:
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 Before changing a released API contract, an AI agent should inspect:
 
-```text id="t8efbt"
+```text
 canonical schema
 known consumers
 stability expectations
@@ -2023,7 +2037,7 @@ generated SDK implications
 
 ---
 
-# AI Must Prefer Compatible Evolution
+## AI Must Prefer Compatible Evolution
 
 An AI agent must not create a new API version merely because a breaking change is easier to implement.
 
@@ -2031,25 +2045,25 @@ It should first evaluate additive and transitional designs.
 
 ---
 
-# AI and Enum Changes
+## AI and Enum Changes
 
 An AI agent should treat adding enum values as compatibility-sensitive unless the contract explicitly defines the enum as extensible.
 
 ---
 
-# AI and Required Fields
+## AI and Required Fields
 
 An AI agent should assume that adding a required request field breaks existing consumers unless proven otherwise.
 
 ---
 
-# AI and Response Changes
+## AI and Response Changes
 
 An AI agent should not assume response-field additions are safe until client parsing behavior is understood.
 
 ---
 
-# AI and Semantic Changes
+## AI and Semantic Changes
 
 An AI agent must consider meaning, not only schema diff.
 
@@ -2057,13 +2071,13 @@ A structurally identical contract can still be breaking.
 
 ---
 
-# AI and Consumer Lag
+## AI and Consumer Lag
 
 When mobile, desktop, partners, or independently deployed services consume the API, an AI agent must not assume atomic migration.
 
 ---
 
-# AI and Deprecation
+## AI and Deprecation
 
 An AI agent should not remove deprecated behavior merely because it is marked deprecated.
 
@@ -2071,13 +2085,13 @@ It must verify removal conditions.
 
 ---
 
-# AI and Security
+## AI and Security
 
 If compatibility conflicts with a necessary security fix, the AI agent should preserve security and explicitly identify the breaking impact.
 
 ---
 
-# AI and Version-Specific Code
+## AI and Version-Specific Code
 
 An AI agent should keep compatibility logic near API boundaries where possible.
 
@@ -2085,11 +2099,11 @@ It should not duplicate core business logic into version-specific implementation
 
 ---
 
-# AI and Tests
+## AI and Tests
 
 A compatibility-sensitive change should update:
 
-```text id="5d1tcu"
+```text
 contract tests
 compatibility tests
 version tests
@@ -2100,11 +2114,11 @@ where applicable.
 
 ---
 
-# Mechanical Enforcement
+## Mechanical Enforcement
 
 Future tooling may enforce rules such as:
 
-```text id="o2y8hd"
+```text
 breaking schema changes detected against released baseline
 
 deprecated elements identified in generated docs
@@ -2122,13 +2136,13 @@ Semantic review will still be required.
 
 ---
 
-# Contract Baseline
+## Contract Baseline
 
 A future release workflow may retain canonical API baselines.
 
 Conceptually:
 
-```text id="8tkefa"
+```text
 current proposed contract
         ↓ compare against
 last released contract
@@ -2140,13 +2154,13 @@ This mirrors Orion's emphasis on meaningful released states.
 
 ---
 
-# Unreleased API Changes
+## Unreleased API Changes
 
 Before a contract is released to dependent consumers, it may be refined freely.
 
 For example:
 
-```text id="0dyl0m"
+```text
 add field
 rename field
 remove field
@@ -2159,13 +2173,13 @@ Do not preserve unnecessary compatibility with a contract no consumer ever depen
 
 ---
 
-# Released API History
+## Released API History
 
 Once consumers depend on a contract, evolution must respect compatibility commitments.
 
 This creates a parallel with database migration policy:
 
-```text id="zuck3j"
+```text
 unreleased contract
     → may be refined
 
@@ -2179,17 +2193,17 @@ The key concern is preserving consumer behavior.
 
 ---
 
-# Git History vs API History
+## Git History vs API History
 
 Git preserves:
 
-```text id="v7zbl4"
+```text
 development evolution
 ```
 
 API versions and compatibility policy preserve:
 
-```text id="qksc5v"
+```text
 consumer-facing compatibility boundaries
 ```
 
@@ -2197,7 +2211,7 @@ Do not version every development experiment.
 
 ---
 
-# Version History vs Changelog
+## Version History vs Changelog
 
 API version history and product changelog are different.
 
@@ -2207,13 +2221,13 @@ A new API version may contain only one major incompatible contract redesign.
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## New Version for Every Breaking Development Edit
+### New Version for Every Breaking Development Edit
 
 Avoid.
 
@@ -2221,43 +2235,43 @@ Unreleased contracts may be refined.
 
 ---
 
-## New Version for Every Backend Release
+### New Version for Every Backend Release
 
 Avoid.
 
 ---
 
-## Breaking Change Hidden Behind Same Contract Without Migration
+### Breaking Change Hidden Behind Same Contract Without Migration
 
 Prohibited when compatibility is promised.
 
 ---
 
-## Assuming Additive Enum Change Is Always Safe
+### Assuming Additive Enum Change Is Always Safe
 
 Avoid.
 
 ---
 
-## Removing Deprecated Field Without Checking Consumers
+### Removing Deprecated Field Without Checking Consumers
 
 Avoid.
 
 ---
 
-## Maintaining Legacy Version Forever by Accident
+### Maintaining Legacy Version Forever by Accident
 
 Avoid.
 
 ---
 
-## Duplicating Domain Logic for Each API Version
+### Duplicating Domain Logic for Each API Version
 
 Avoid.
 
 ---
 
-## Silent Version Upgrade
+### Silent Version Upgrade
 
 Avoid.
 
@@ -2265,37 +2279,37 @@ Unsupported old versions should fail explicitly rather than receive incompatible
 
 ---
 
-## Mutable `latest` as Stable Contract
+### Mutable `latest` as Stable Contract
 
 Avoid for long-lived consumers.
 
 ---
 
-## Coupling API Version to Database Migration Number
+### Coupling API Version to Database Migration Number
 
 Avoid.
 
 ---
 
-## Coupling API Version to Application Release Version
+### Coupling API Version to Application Release Version
 
 Avoid.
 
 ---
 
-## Treating Internal API as Automatically Breaking-Change-Free
+### Treating Internal API as Automatically Breaking-Change-Free
 
 Avoid.
 
 ---
 
-## Preserving Security Vulnerability for Compatibility
+### Preserving Security Vulnerability for Compatibility
 
 Prohibited.
 
 ---
 
-## Relying Only on Structural Diff
+### Relying Only on Structural Diff
 
 Avoid.
 
@@ -2303,7 +2317,7 @@ Semantic compatibility must be reviewed.
 
 ---
 
-# Initial API Versioning Policy
+## Initial API Versioning Policy
 
 Until implementation-specific mechanisms are selected, Orion adopts the following requirements:
 
@@ -2330,11 +2344,11 @@ Until implementation-specific mechanisms are selected, Orion adopts the followin
 
 ---
 
-# Future Implementation Decisions
+## Future Implementation Decisions
 
 The following decisions are intentionally deferred:
 
-```text id="2h0g48"
+```text
 API version scope
 version identifier format
 path vs header vs media-type selection
@@ -2354,11 +2368,11 @@ Significant choices should be captured through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should eventually be complemented by:
 
-```text id="u5mqla"
+```text
 docs/architecture/versioning-and-compatibility.md
 
 docs/api/principles.md
@@ -2371,13 +2385,13 @@ If Orion exposes a stable public API, consumer-facing migration and deprecation 
 
 ---
 
-# Summary
+## Summary
 
 API versioning exists to manage incompatible consumer-facing change.
 
 The preferred path is:
 
-```text id="sq4l0x"
+```text
 compatible additive change
         ↓
 consumer migration
@@ -2391,7 +2405,7 @@ A new version should be introduced only when that path cannot reasonably preserv
 
 Orion prefers:
 
-```text id="titac0"
+```text
 compatible evolution over version proliferation
 
 consumer evidence over assumptions

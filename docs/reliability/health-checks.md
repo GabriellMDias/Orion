@@ -1,5 +1,17 @@
 # Health Checks
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+## Read for this change
+
+- [Liveness](#liveness)
+- [Readiness](#readiness)
+- [Startup Check](#startup-check)
+- [Critical vs Non-Critical Dependencies](#critical-vs-non-critical-dependencies)
+- [Health Check Testing](#health-check-testing)
+
+Related policy: [alerting](alerting.md), [configuration](../architecture/configuration.md).
+
 ## Purpose
 
 This document defines the health-check principles used by Orion.
@@ -27,12 +39,12 @@ Specific endpoint paths, orchestration probes, platform integrations, database c
 
 This document complements:
 
-- `docs/reliability/observability.md`;
-- `docs/reliability/logging.md`;
-- `docs/reliability/metrics.md`;
-- `docs/reliability/alerting.md`;
-- `docs/architecture/configuration.md`;
-- `docs/security/production-access.md`.
+- [docs/reliability/observability.md](observability.md);
+- [docs/reliability/logging.md](logging.md);
+- [docs/reliability/metrics.md](metrics.md);
+- [docs/reliability/alerting.md](alerting.md);
+- [docs/architecture/configuration.md](../architecture/configuration.md);
+- [docs/security/production-access.md](../security/production-access.md).
 
 ---
 
@@ -63,7 +75,7 @@ with ambiguous semantics.
 
 ---
 
-# Health Is Contextual
+## Health Is Contextual
 
 A process can be:
 
@@ -96,7 +108,7 @@ Restarting the application repeatedly may not repair an external database outage
 
 ---
 
-# Liveness
+## Liveness
 
 Liveness answers:
 
@@ -114,7 +126,7 @@ and may justify restart.
 
 ---
 
-# Liveness Should Be Minimal
+## Liveness Should Be Minimal
 
 A liveness check should normally inspect only process-local conditions.
 
@@ -131,7 +143,7 @@ It should not normally depend on remote systems.
 
 ---
 
-# Remote Dependencies Do Not Usually Belong in Liveness
+## Remote Dependencies Do Not Usually Belong in Liveness
 
 Do not make liveness depend directly on:
 
@@ -153,7 +165,7 @@ This can amplify the outage.
 
 ---
 
-# Liveness Failure
+## Liveness Failure
 
 A liveness failure should indicate a problem that process restart has a reasonable chance of correcting.
 
@@ -169,7 +181,7 @@ A dependency outage usually does not satisfy this rule.
 
 ---
 
-# Readiness
+## Readiness
 
 Readiness answers:
 
@@ -189,7 +201,7 @@ without necessarily terminating it.
 
 ---
 
-# Readiness Is About Work Acceptance
+## Readiness Is About Work Acceptance
 
 A process should be ready only when it can perform its expected responsibilities within acceptable operating assumptions.
 
@@ -207,7 +219,7 @@ The exact dependencies depend on the runtime's responsibility.
 
 ---
 
-# Dependency Failure and Readiness
+## Dependency Failure and Readiness
 
 If a backend cannot serve meaningful requests without its database:
 
@@ -231,7 +243,7 @@ The process stays running and can recover when the database returns.
 
 ---
 
-# Startup Check
+## Startup Check
 
 Startup health answers:
 
@@ -252,7 +264,7 @@ running startup validation
 
 ---
 
-# Startup vs Readiness
+## Startup vs Readiness
 
 Startup and readiness are related but distinct.
 
@@ -272,7 +284,7 @@ A startup probe can prevent an orchestrator from prematurely treating slow initi
 
 ---
 
-# Startup Must Be Bounded
+## Startup Must Be Bounded
 
 Startup cannot remain incomplete forever.
 
@@ -282,7 +294,7 @@ Do not use startup checks to hide indefinite initialization problems.
 
 ---
 
-# Health Dimensions
+## Health Dimensions
 
 A runtime may expose several health concepts:
 
@@ -299,7 +311,7 @@ The semantic distinctions should still remain clear.
 
 ---
 
-# Degraded State
+## Degraded State
 
 A process may remain capable of useful work while some non-critical capability is unavailable.
 
@@ -323,7 +335,7 @@ Do not remove the entire application from service because one optional capabilit
 
 ---
 
-# Critical vs Non-Critical Dependencies
+## Critical vs Non-Critical Dependencies
 
 Dependencies should be classified according to the runtime responsibility.
 
@@ -341,7 +353,7 @@ This classification should drive readiness semantics.
 
 ---
 
-# Dependency Criticality Is Application-Specific
+## Dependency Criticality Is Application-Specific
 
 A dependency may be critical for one runtime and optional for another.
 
@@ -367,7 +379,7 @@ Health semantics should follow actual runtime responsibility.
 
 ---
 
-# Health Checks Should Not Encode Every Dependency
+## Health Checks Should Not Encode Every Dependency
 
 A health endpoint does not need to test every downstream system.
 
@@ -384,7 +396,7 @@ Only dependencies necessary for the health question should be included.
 
 ---
 
-# Dependency Health vs Service Health
+## Dependency Health vs Service Health
 
 A dependency can be unhealthy while the service remains partially healthy.
 
@@ -400,7 +412,7 @@ Dependency health and service readiness are related but not identical.
 
 ---
 
-# Health Endpoint Scope
+## Health Endpoint Scope
 
 Health endpoints should expose only the minimum information required by their consumer.
 
@@ -418,7 +430,7 @@ Each may need different detail.
 
 ---
 
-# Machine-Facing Health
+## Machine-Facing Health
 
 Machine health endpoints should return simple deterministic signals.
 
@@ -435,7 +447,7 @@ They should not require parsing verbose human prose.
 
 ---
 
-# Diagnostic Health
+## Diagnostic Health
 
 A separate authenticated diagnostic surface may expose more detail when operationally useful.
 
@@ -451,7 +463,7 @@ Such detail should not automatically be public.
 
 ---
 
-# Public Health Output
+## Public Health Output
 
 Externally reachable health endpoints must not expose:
 
@@ -471,7 +483,7 @@ Health checks are a common information-disclosure surface.
 
 ---
 
-# Minimal Health Response
+## Minimal Health Response
 
 A simple response may be conceptually:
 
@@ -493,7 +505,7 @@ The exact format depends on platform requirements.
 
 ---
 
-# Correlation IDs
+## Correlation IDs
 
 Routine health-check responses do not necessarily require request or trace identifiers.
 
@@ -503,7 +515,7 @@ Avoid unnecessary public detail.
 
 ---
 
-# Health Endpoint Authentication
+## Health Endpoint Authentication
 
 Infrastructure-local health endpoints may be accessible without application authentication if network isolation provides the intended protection.
 
@@ -513,7 +525,7 @@ The architecture must distinguish these surfaces explicitly.
 
 ---
 
-# Security Boundary
+## Security Boundary
 
 A health endpoint being unauthenticated does not mean it may expose unrestricted internal details.
 
@@ -521,7 +533,7 @@ Unauthenticated health surfaces should be especially minimal.
 
 ---
 
-# Health Checks Must Be Read-Only
+## Health Checks Must Be Read-Only
 
 Health checks must not perform destructive or state-changing operations.
 
@@ -542,7 +554,7 @@ It should not exercise real business side effects.
 
 ---
 
-# Synthetic Transactions
+## Synthetic Transactions
 
 Synthetic production monitoring is a separate concept.
 
@@ -554,7 +566,7 @@ Do not combine the two.
 
 ---
 
-# Database Health
+## Database Health
 
 A database health check may verify minimal connectivity and required ability to perform the runtime's normal class of operation.
 
@@ -570,7 +582,7 @@ The exact mechanism depends on the database stack.
 
 ---
 
-# Database Check Must Be Cheap
+## Database Check Must Be Cheap
 
 Avoid:
 
@@ -587,7 +599,7 @@ An expensive probe can become production load.
 
 ---
 
-# Database Readiness
+## Database Readiness
 
 If the application requires database access to perform core work, inability to reach the database may make the application unready.
 
@@ -595,7 +607,7 @@ This does not normally make it non-live.
 
 ---
 
-# Database Permissions
+## Database Permissions
 
 A health query should use the same runtime identity where practical.
 
@@ -612,7 +624,7 @@ would be misleading.
 
 ---
 
-# Database Schema Compatibility
+## Database Schema Compatibility
 
 An application that cannot safely operate against the current schema should not become ready.
 
@@ -622,7 +634,7 @@ This should be lightweight and deterministic.
 
 ---
 
-# Schema Check vs Full Migration Inspection
+## Schema Check vs Full Migration Inspection
 
 Do not replay migration history or perform expensive schema diffing in every readiness probe.
 
@@ -630,7 +642,7 @@ Compatibility should be represented through a lightweight mechanism if runtime v
 
 ---
 
-# Cache Health
+## Cache Health
 
 Cache availability should affect readiness only if the cache is required for correctness or acceptable operation.
 
@@ -656,7 +668,7 @@ depending on resulting load and reliability.
 
 ---
 
-# Cache Failure Can Become Critical
+## Cache Failure Can Become Critical
 
 A cache that is technically optional may still become operationally critical if fallback would overload the database.
 
@@ -664,7 +676,7 @@ Readiness policy should reflect tested production behavior, not theoretical arch
 
 ---
 
-# Message Broker Health
+## Message Broker Health
 
 A worker unable to reach its required broker may be unready to process work.
 
@@ -674,7 +686,7 @@ Dependency criticality remains contextual.
 
 ---
 
-# Queue Connectivity
+## Queue Connectivity
 
 A health check should not publish arbitrary test messages on every probe.
 
@@ -682,7 +694,7 @@ Prefer lightweight connectivity or platform-native health signals.
 
 ---
 
-# External Provider Health
+## External Provider Health
 
 Do not call every third-party provider during every health check.
 
@@ -709,7 +721,7 @@ Runtime readiness should depend on external providers only when necessary.
 
 ---
 
-# Provider Availability
+## Provider Availability
 
 A service may remain ready even when an external provider is temporarily unavailable if requests can:
 
@@ -724,7 +736,7 @@ Readiness means the service can perform its responsibility safely, not that ever
 
 ---
 
-# Dependency Health Should Come From Multiple Signals
+## Dependency Health Should Come From Multiple Signals
 
 For many remote systems, dependency health is better inferred from:
 
@@ -739,7 +751,7 @@ than from constant synthetic polling inside readiness checks.
 
 ---
 
-# Health Check Timeouts
+## Health Check Timeouts
 
 Every dependency health check must have a short bounded timeout.
 
@@ -747,7 +759,7 @@ A health endpoint that waits indefinitely for a dependency can itself become unh
 
 ---
 
-# Probe Timeout Budget
+## Probe Timeout Budget
 
 The total health response time must fit comfortably within the caller's timeout.
 
@@ -765,7 +777,7 @@ Do not make internal checks use the entire external timeout budget.
 
 ---
 
-# Parallel Dependency Checks
+## Parallel Dependency Checks
 
 If several independent dependencies must be checked, parallel execution may reduce latency.
 
@@ -773,7 +785,7 @@ The implementation should still use bounded resource consumption.
 
 ---
 
-# Sequential Checks
+## Sequential Checks
 
 Sequential dependency checks can create cumulative latency:
 
@@ -789,7 +801,7 @@ This may exceed probe budgets.
 
 ---
 
-# Dependency Check Count
+## Dependency Check Count
 
 Before adding another readiness dependency, ask:
 
@@ -801,7 +813,7 @@ If not, it likely does not belong in the critical readiness path.
 
 ---
 
-# Failure Thresholds
+## Failure Thresholds
 
 Orchestrators commonly support failure thresholds.
 
@@ -813,7 +825,7 @@ The exact threshold configuration is deployment-specific.
 
 ---
 
-# Success Thresholds
+## Success Thresholds
 
 Recovery may also require one or more successful probes.
 
@@ -831,7 +843,7 @@ flapping prevention
 
 ---
 
-# Flapping
+## Flapping
 
 A process that rapidly alternates:
 
@@ -848,7 +860,7 @@ Health design should avoid overly sensitive checks.
 
 ---
 
-# Hysteresis
+## Hysteresis
 
 Where useful, recovery/decline thresholds may differ to reduce flapping.
 
@@ -856,7 +868,7 @@ This belongs primarily to orchestration and alerting configuration.
 
 ---
 
-# Readiness During Shutdown
+## Readiness During Shutdown
 
 A process beginning graceful shutdown should become unready before termination.
 
@@ -878,7 +890,7 @@ This is critical for graceful deployments.
 
 ---
 
-# Liveness During Shutdown
+## Liveness During Shutdown
 
 A gracefully draining process may remain live while it finishes existing work.
 
@@ -886,7 +898,7 @@ Liveness should not force premature termination during the allowed shutdown wind
 
 ---
 
-# Worker Shutdown
+## Worker Shutdown
 
 A worker should stop claiming new jobs when it becomes unready or begins shutdown.
 
@@ -894,7 +906,7 @@ In-flight work should follow queue-specific safe completion or release semantics
 
 ---
 
-# Deployment Readiness
+## Deployment Readiness
 
 A newly started instance should not receive traffic until:
 
@@ -908,7 +920,7 @@ This reduces deployment-time failures.
 
 ---
 
-# Deployment Completion
+## Deployment Completion
 
 A deployment pipeline should not consider an instance healthy solely because the process started.
 
@@ -916,7 +928,7 @@ Readiness should confirm that the runtime can actually perform its expected work
 
 ---
 
-# Configuration Validation
+## Configuration Validation
 
 Critical configuration should be validated before readiness becomes healthy.
 
@@ -924,7 +936,7 @@ Invalid configuration should generally cause startup failure rather than indefin
 
 ---
 
-# Recoverable vs Non-Recoverable Startup Failure
+## Recoverable vs Non-Recoverable Startup Failure
 
 If failure can recover without restart:
 
@@ -944,7 +956,7 @@ the process should normally fail fast.
 
 ---
 
-# Credential Failure
+## Credential Failure
 
 A permanently invalid runtime credential may be a startup or readiness failure.
 
@@ -954,7 +966,7 @@ The operational system should make the configuration defect visible rather than 
 
 ---
 
-# Restart Is Not Recovery for Everything
+## Restart Is Not Recovery for Everything
 
 Health policy should distinguish:
 
@@ -972,7 +984,7 @@ This is the central reason liveness and readiness differ.
 
 ---
 
-# Readiness and Partial Capability
+## Readiness and Partial Capability
 
 An application with many independent capabilities may not have one obvious readiness answer.
 
@@ -999,7 +1011,7 @@ Do not prematurely create dozens of health endpoints.
 
 ---
 
-# Modular Monolith Health
+## Modular Monolith Health
 
 A modular monolith may contain many modules but one runtime.
 
@@ -1007,7 +1019,7 @@ Readiness should represent the runtime's service contract rather than expose one
 
 ---
 
-# Microservice Health
+## Microservice Health
 
 If Orion applications later split into separate services, each service should own its own health semantics.
 
@@ -1015,7 +1027,7 @@ A central health service should not become the only source of health truth.
 
 ---
 
-# Health Aggregation
+## Health Aggregation
 
 An operational dashboard may aggregate health across services.
 
@@ -1023,7 +1035,7 @@ An aggregated dashboard status is not the same as an orchestration liveness/read
 
 ---
 
-# Overall Health Status
+## Overall Health Status
 
 Diagnostic health may represent:
 
@@ -1039,7 +1051,7 @@ Machine orchestration often still needs a simpler binary ready/not-ready decisio
 
 ---
 
-# Status Semantics
+## Status Semantics
 
 If `degraded` exists, its meaning must be explicit.
 
@@ -1054,7 +1066,7 @@ Do not use `degraded` as a vague catch-all.
 
 ---
 
-# Dependency Detail
+## Dependency Detail
 
 Diagnostic output may include dependency status.
 
@@ -1072,7 +1084,7 @@ Only expose details to authorized operational consumers when necessary.
 
 ---
 
-# Dependency Names
+## Dependency Names
 
 Health output should use stable architectural names rather than raw infrastructure hostnames.
 
@@ -1090,7 +1102,7 @@ db-prod-17.internal.example
 
 ---
 
-# Dependency Error Detail
+## Dependency Error Detail
 
 Do not expose raw dependency exceptions in health responses.
 
@@ -1111,7 +1123,7 @@ with detailed diagnostics available internally through logs/error reporting.
 
 ---
 
-# HTTP Status
+## HTTP Status
 
 For HTTP health endpoints, transport status should represent probe semantics.
 
@@ -1129,7 +1141,7 @@ Exact codes and endpoint structure are implementation decisions.
 
 ---
 
-# Health Response Schema
+## Health Response Schema
 
 Once defined, health response schemas used by automation should remain stable.
 
@@ -1137,7 +1149,7 @@ Do not casually change field names consumed by orchestration or monitoring.
 
 ---
 
-# Health Endpoints Are Contracts
+## Health Endpoints Are Contracts
 
 Even internal infrastructure endpoints can become compatibility boundaries.
 
@@ -1154,7 +1166,7 @@ Changing behavior requires coordination.
 
 ---
 
-# Logging Health Checks
+## Logging Health Checks
 
 Successful high-frequency health checks should not normally produce one log per request.
 
@@ -1162,7 +1174,7 @@ This creates low-value volume.
 
 ---
 
-# Health Failure Logging
+## Health Failure Logging
 
 A health transition may be logged when useful.
 
@@ -1178,7 +1190,7 @@ This is generally more valuable than logging every failed poll.
 
 ---
 
-# Repeated Failure Logging
+## Repeated Failure Logging
 
 Avoid one warning per probe during a long outage.
 
@@ -1194,7 +1206,7 @@ to prevent log storms.
 
 ---
 
-# Health Metrics
+## Health Metrics
 
 Useful health-related metrics may include:
 
@@ -1209,7 +1221,7 @@ only when these answer operational questions.
 
 ---
 
-# Binary Health Metrics
+## Binary Health Metrics
 
 A binary readiness metric may be useful for dashboards.
 
@@ -1223,7 +1235,7 @@ dependency latency
 
 ---
 
-# Health Check Duration
+## Health Check Duration
 
 Health-check latency itself may be measured if probes become unexpectedly slow.
 
@@ -1237,7 +1249,7 @@ bad probe design
 
 ---
 
-# Tracing Health Checks
+## Tracing Health Checks
 
 Routine health checks should normally be excluded from distributed tracing or heavily sampled.
 
@@ -1245,7 +1257,7 @@ They often generate enormous low-value trace volume.
 
 ---
 
-# Failed Health Traces
+## Failed Health Traces
 
 Tracing failed health checks may be useful in rare cases.
 
@@ -1253,7 +1265,7 @@ Usually the underlying dependency signals provide better evidence.
 
 ---
 
-# Error Reporting
+## Error Reporting
 
 Expected readiness failure during a known dependency outage should not automatically create one error-tracker issue per probe.
 
@@ -1261,7 +1273,7 @@ Unexpected bugs in the health-check implementation itself may be tracker-worthy.
 
 ---
 
-# Alerting
+## Alerting
 
 Health endpoints may contribute to alerting, but raw probe failure is not always the best incident signal.
 
@@ -1277,13 +1289,11 @@ SLO impact
 
 Detailed policy belongs in:
 
-```text
-docs/reliability/alerting.md
-```
+- [docs/reliability/alerting.md](alerting.md)
 
 ---
 
-# One Instance Unready
+## One Instance Unready
 
 One unready instance in a pool of many healthy replicas may not require human intervention.
 
@@ -1291,7 +1301,7 @@ The orchestrator may recover automatically.
 
 ---
 
-# Many Instances Unready
+## Many Instances Unready
 
 If most or all instances become unready simultaneously, this may indicate:
 
@@ -1305,7 +1315,7 @@ and may warrant alerting.
 
 ---
 
-# Liveness Restart Storm
+## Liveness Restart Storm
 
 If an external dependency is included incorrectly in liveness, all instances may repeatedly restart together.
 
@@ -1322,7 +1332,7 @@ This pattern must be avoided.
 
 ---
 
-# Thundering Herd
+## Thundering Herd
 
 When a dependency recovers, many unready instances may retry health checks simultaneously.
 
@@ -1330,7 +1340,7 @@ Probe intervals and retry behavior should avoid unnecessary thundering-herd load
 
 ---
 
-# Health Check Frequency
+## Health Check Frequency
 
 Probe frequency should balance:
 
@@ -1345,7 +1355,7 @@ The exact interval depends on deployment architecture.
 
 ---
 
-# Dependency Polling Load
+## Dependency Polling Load
 
 If:
 
@@ -1367,7 +1377,7 @@ Health checks are production workload.
 
 ---
 
-# Cheap by Design
+## Cheap by Design
 
 The cost of a health check should remain small and predictable as the system grows.
 
@@ -1382,7 +1392,7 @@ number of transactions
 
 ---
 
-# No Full-System Validation Per Probe
+## No Full-System Validation Per Probe
 
 A health check should not run:
 
@@ -1406,7 +1416,7 @@ runbooks
 
 ---
 
-# Startup Validation vs Health Validation
+## Startup Validation vs Health Validation
 
 Expensive deterministic validations may belong at startup.
 
@@ -1420,7 +1430,7 @@ rather than running on every readiness probe.
 
 ---
 
-# Background Integrity Checks
+## Background Integrity Checks
 
 Long-running data-integrity checks should not block liveness/readiness unless the discovered defect truly makes serving traffic unsafe.
 
@@ -1428,7 +1438,7 @@ They should have separate monitoring.
 
 ---
 
-# Health and Circuit Breakers
+## Health and Circuit Breakers
 
 If a critical dependency circuit breaker is open, readiness may be affected depending on application semantics.
 
@@ -1450,7 +1460,7 @@ for every dependency.
 
 ---
 
-# Health and Retry Storms
+## Health and Retry Storms
 
 Readiness should not hide a dependency failure while application requests generate uncontrolled retries.
 
@@ -1467,7 +1477,7 @@ where relevant.
 
 ---
 
-# Health and Rate Limiting
+## Health and Rate Limiting
 
 A service under high load should not necessarily fail liveness.
 
@@ -1489,7 +1499,7 @@ If saturation prevents safe new work, readiness behavior may need reconsideratio
 
 ---
 
-# Resource Saturation
+## Resource Saturation
 
 Extreme local resource exhaustion may affect readiness.
 
@@ -1505,7 +1515,7 @@ Whether this is transient load or process failure determines the proper signal.
 
 ---
 
-# Memory Pressure
+## Memory Pressure
 
 High memory usage is not automatically a liveness failure.
 
@@ -1515,7 +1525,7 @@ Do not implement fragile custom memory thresholds without operational evidence.
 
 ---
 
-# Disk Space
+## Disk Space
 
 Applications requiring local durable storage may need disk health considerations.
 
@@ -1523,7 +1533,7 @@ Stateless applications often should rely on platform-level disk monitoring inste
 
 ---
 
-# Thread Pool / Event Loop
+## Thread Pool / Event Loop
 
 A severely blocked runtime may cause the health endpoint itself to stop responding.
 
@@ -1533,7 +1543,7 @@ Avoid redundant complexity unless the runtime requires it.
 
 ---
 
-# Health Handler Isolation
+## Health Handler Isolation
 
 A health handler should be simple enough to remain responsive during partial application degradation.
 
@@ -1549,7 +1559,7 @@ unless required.
 
 ---
 
-# Middleware
+## Middleware
 
 Some common middleware may still apply:
 
@@ -1563,7 +1573,7 @@ but health probes should avoid unnecessary business processing.
 
 ---
 
-# Dependency Check Caching
+## Dependency Check Caching
 
 If dependency checks are expensive, short-lived cached health state may be considered.
 
@@ -1579,7 +1589,7 @@ Use only when necessary.
 
 ---
 
-# Health State Memory
+## Health State Memory
 
 Some systems may retain recent health state to reduce flapping.
 
@@ -1587,7 +1597,7 @@ This should not become a complex hidden state machine without strong need.
 
 ---
 
-# Platform-Native Health
+## Platform-Native Health
 
 Hosting platforms may provide native health signals.
 
@@ -1595,7 +1605,7 @@ Orion should integrate with platform conventions rather than inventing incompati
 
 ---
 
-# Container Orchestration
+## Container Orchestration
 
 Container platforms commonly distinguish:
 
@@ -1611,7 +1621,7 @@ The exact configuration belongs to infrastructure implementation.
 
 ---
 
-# Load Balancers
+## Load Balancers
 
 Load balancer health checks commonly determine whether an instance receives traffic.
 
@@ -1619,7 +1629,7 @@ This maps most closely to readiness, not liveness.
 
 ---
 
-# Process Supervisors
+## Process Supervisors
 
 Process supervisors commonly restart processes that terminate or fail liveness.
 
@@ -1627,7 +1637,7 @@ They should not be used to compensate for every external dependency outage.
 
 ---
 
-# Serverless Runtimes
+## Serverless Runtimes
 
 Some serverless platforms do not expose traditional liveness/readiness probes.
 
@@ -1643,7 +1653,7 @@ Do not force container-specific mechanisms onto serverless deployments.
 
 ---
 
-# Health for Client Applications
+## Health for Client Applications
 
 Web, mobile, and desktop applications generally do not expose server-style liveness endpoints.
 
@@ -1659,7 +1669,7 @@ These are product concerns rather than orchestration health checks.
 
 ---
 
-# Uptime Monitoring
+## Uptime Monitoring
 
 External uptime checks answer:
 
@@ -1673,7 +1683,7 @@ External monitoring may test a shallow public endpoint or controlled synthetic f
 
 ---
 
-# Shallow Uptime Check
+## Shallow Uptime Check
 
 A shallow external check may verify:
 
@@ -1688,7 +1698,7 @@ without testing every downstream dependency.
 
 ---
 
-# Synthetic Monitoring
+## Synthetic Monitoring
 
 A synthetic monitor may test a meaningful workflow such as:
 
@@ -1705,7 +1715,7 @@ It is not a replacement for readiness.
 
 ---
 
-# Health and Maintenance Mode
+## Health and Maintenance Mode
 
 A runtime may intentionally become unready during maintenance.
 
@@ -1715,7 +1725,7 @@ Do not misuse liveness failure to remove a service deliberately.
 
 ---
 
-# Health and Draining
+## Health and Draining
 
 Draining is a transitional state:
 
@@ -1734,7 +1744,7 @@ ready = false
 
 ---
 
-# Health and Deployment Rollback
+## Health and Deployment Rollback
 
 If a new release never becomes ready, deployment automation should be able to fail or roll back according to release policy.
 
@@ -1742,7 +1752,7 @@ Readiness is an important deployment correctness signal.
 
 ---
 
-# Readiness Is Not Proof of Full Correctness
+## Readiness Is Not Proof of Full Correctness
 
 A ready process may still contain bugs.
 
@@ -1756,7 +1766,7 @@ Do not interpret it as a complete production validation result.
 
 ---
 
-# Liveness Is Not Proof of Readiness
+## Liveness Is Not Proof of Readiness
 
 A live process may be unable to serve work.
 
@@ -1764,7 +1774,7 @@ These states intentionally differ.
 
 ---
 
-# Health Is Not SLO
+## Health Is Not SLO
 
 A service can pass all health probes while:
 
@@ -1778,7 +1788,7 @@ SLOs and request metrics provide broader user-experience reliability signals.
 
 ---
 
-# Health Is Not Alerting
+## Health Is Not Alerting
 
 Health checks expose state.
 
@@ -1795,7 +1805,7 @@ These concerns must remain separate.
 
 ---
 
-# Health Is Not Diagnostics
+## Health Is Not Diagnostics
 
 A health endpoint should not become:
 
@@ -1815,7 +1825,7 @@ runbooks
 
 ---
 
-# Health Is Not Authentication
+## Health Is Not Authentication
 
 An unauthenticated health endpoint must not become a way to query:
 
@@ -1828,7 +1838,7 @@ session state
 
 ---
 
-# Health Is Not Business Validation
+## Health Is Not Business Validation
 
 Do not test:
 
@@ -1842,7 +1852,7 @@ That depends on domain state, not runtime health.
 
 ---
 
-# Deterministic Semantics
+## Deterministic Semantics
 
 The same health condition should produce the same result independently of arbitrary timing or random behavior.
 
@@ -1856,7 +1866,7 @@ unstable user data
 
 ---
 
-# Test Data
+## Test Data
 
 If a health check requires data access, it should not depend on production business records.
 
@@ -1864,7 +1874,7 @@ Prefer constant lightweight database operations.
 
 ---
 
-# Health Check Testing
+## Health Check Testing
 
 Health semantics should have automated tests.
 
@@ -1880,25 +1890,25 @@ invalid configuration
 
 ---
 
-# Liveness Tests
+## Liveness Tests
 
 Tests should verify that external dependency failure does not incorrectly fail liveness where policy says it should not.
 
 ---
 
-# Readiness Tests
+## Readiness Tests
 
 Tests should verify that required dependency failure makes readiness unhealthy.
 
 ---
 
-# Degraded Tests
+## Degraded Tests
 
 If degraded state exists, tests should verify that non-critical failures do not remove the service from traffic unexpectedly.
 
 ---
 
-# Shutdown Tests
+## Shutdown Tests
 
 Graceful-shutdown tests should verify:
 
@@ -1912,7 +1922,7 @@ where practical.
 
 ---
 
-# Health Output Tests
+## Health Output Tests
 
 Public health responses should be tested to ensure they do not expose:
 
@@ -1925,7 +1935,7 @@ configuration values
 
 ---
 
-# Timeout Tests
+## Timeout Tests
 
 Dependency checks should be tested for bounded timeout behavior.
 
@@ -1933,7 +1943,7 @@ A hanging dependency must not cause the health endpoint to hang indefinitely.
 
 ---
 
-# Flapping Tests
+## Flapping Tests
 
 Complex health state logic may require tests for transitions.
 
@@ -1941,7 +1951,7 @@ Do not introduce complex hysteresis logic without test coverage.
 
 ---
 
-# Dependency Check Abstraction
+## Dependency Check Abstraction
 
 If multiple applications share health-check infrastructure, common mechanisms may live in a shared package.
 
@@ -1949,7 +1959,7 @@ Application-specific readiness semantics must remain owned by the application.
 
 ---
 
-# Generic Health Framework
+## Generic Health Framework
 
 A generic health framework may provide:
 
@@ -1965,7 +1975,7 @@ It should not decide automatically which dependency is critical.
 
 ---
 
-# Dependency Check Result
+## Dependency Check Result
 
 A dependency check may conceptually return:
 
@@ -1981,7 +1991,7 @@ The public aggregation policy should decide how that affects readiness.
 
 ---
 
-# Failure Reason Codes
+## Failure Reason Codes
 
 Internal health checks may use bounded reason codes such as:
 
@@ -1996,7 +2006,7 @@ These can improve observability without exposing raw exceptions.
 
 ---
 
-# Health Ownership
+## Health Ownership
 
 Every application's health semantics should have an identifiable owner.
 
@@ -2012,7 +2022,7 @@ Who changes these rules?
 
 ---
 
-# Dependency Ownership
+## Dependency Ownership
 
 A shared infrastructure team may provide probe mechanisms.
 
@@ -2020,7 +2030,7 @@ The application/domain owner still decides whether dependency loss makes the run
 
 ---
 
-# Documentation
+## Documentation
 
 Runtime-specific health behavior should eventually document:
 
@@ -2036,7 +2046,7 @@ near deployment/runtime implementation.
 
 ---
 
-# Runbooks
+## Runbooks
 
 Recurring health failures should be linked to runbooks where appropriate.
 
@@ -2050,7 +2060,7 @@ database incident runbook
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 Before changing health behavior, an AI agent should ask:
 
@@ -2066,7 +2076,7 @@ Is this dependency truly critical?
 
 ---
 
-# AI and Liveness
+## AI and Liveness
 
 An AI agent must not add a remote dependency to liveness merely because the application uses that dependency.
 
@@ -2074,7 +2084,7 @@ It should first establish that process restart is an appropriate recovery action
 
 ---
 
-# AI and Readiness
+## AI and Readiness
 
 An AI agent should consider whether loss of a dependency prevents:
 
@@ -2092,7 +2102,7 @@ before making readiness fail.
 
 ---
 
-# AI and Probe Cost
+## AI and Probe Cost
 
 An AI agent should assume health checks run frequently.
 
@@ -2108,13 +2118,13 @@ without explicit justification.
 
 ---
 
-# AI and Security
+## AI and Security
 
 An AI agent must not expose raw exceptions or configuration through health responses.
 
 ---
 
-# AI and Logging
+## AI and Logging
 
 An AI agent should avoid logging every successful health probe or every repeated failure poll.
 
@@ -2122,13 +2132,13 @@ State transitions are usually more useful.
 
 ---
 
-# AI and Tests
+## AI and Tests
 
 Changes to liveness, readiness, startup, critical dependency classification, or graceful shutdown should include tests where practical.
 
 ---
 
-# New Liveness Check Checklist
+## New Liveness Check Checklist
 
 Before adding a liveness condition, answer:
 
@@ -2145,7 +2155,7 @@ If restart is not a plausible recovery action, the condition probably does not b
 
 ---
 
-# New Readiness Check Checklist
+## New Readiness Check Checklist
 
 Before adding a readiness condition, answer:
 
@@ -2162,7 +2172,7 @@ Before adding a readiness condition, answer:
 
 ---
 
-# Startup Check Checklist
+## Startup Check Checklist
 
 Before adding startup-specific behavior, answer:
 
@@ -2176,7 +2186,7 @@ Before adding startup-specific behavior, answer:
 
 ---
 
-# Health Endpoint Checklist
+## Health Endpoint Checklist
 
 Before exposing a health endpoint, answer:
 
@@ -2193,7 +2203,7 @@ Before exposing a health endpoint, answer:
 
 ---
 
-# Dependency Classification Checklist
+## Dependency Classification Checklist
 
 For each dependency considered in health behavior, answer:
 
@@ -2210,127 +2220,127 @@ For each dependency considered in health behavior, answer:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Database Included in Liveness by Default
+### Database Included in Liveness by Default
 
 Avoid.
 
 ---
 
-## External Provider Included in Liveness
+### External Provider Included in Liveness
 
 Avoid.
 
 ---
 
-## Every Dependency Included in Readiness
+### Every Dependency Included in Readiness
 
 Avoid.
 
 ---
 
-## Expensive Database Query in Health Check
+### Expensive Database Query in Health Check
 
 Avoid.
 
 ---
 
-## Publishing Test Messages on Every Probe
+### Publishing Test Messages on Every Probe
 
 Avoid.
 
 ---
 
-## Performing Business Transactions in Health Check
+### Performing Business Transactions in Health Check
 
 Prohibited.
 
 ---
 
-## Raw Exception in Health Response
+### Raw Exception in Health Response
 
 Prohibited.
 
 ---
 
-## Configuration Dump in Health Response
+### Configuration Dump in Health Response
 
 Prohibited.
 
 ---
 
-## Internal Hostnames Exposed Publicly
+### Internal Hostnames Exposed Publicly
 
 Avoid.
 
 ---
 
-## One Ambiguous `/health` Endpoint for Every Purpose
+### One Ambiguous `/health` Endpoint for Every Purpose
 
 Avoid when multiple semantics are required.
 
 ---
 
-## Logging Every Successful Probe
+### Logging Every Successful Probe
 
 Avoid.
 
 ---
 
-## Warning Log on Every Failed Probe
+### Warning Log on Every Failed Probe
 
 Avoid.
 
 ---
 
-## Tracing Every Health Request
+### Tracing Every Health Request
 
 Avoid.
 
 ---
 
-## Restarting Healthy Processes During Shared Dependency Outage
+### Restarting Healthy Processes During Shared Dependency Outage
 
 Avoid.
 
 ---
 
-## Health Check With No Timeout
+### Health Check With No Timeout
 
 Prohibited.
 
 ---
 
-## Health Check Cost Scales With Data Size
+### Health Check Cost Scales With Data Size
 
 Avoid.
 
 ---
 
-## Readiness Remains Healthy During Graceful Shutdown
+### Readiness Remains Healthy During Graceful Shutdown
 
 Avoid.
 
 ---
 
-## Startup Failure Hidden Forever Behind Unready State
+### Startup Failure Hidden Forever Behind Unready State
 
 Avoid.
 
 ---
 
-## Health Used as Full System Diagnostic Dump
+### Health Used as Full System Diagnostic Dump
 
 Avoid.
 
 ---
 
-# Initial Health-Check Policy
+## Initial Health-Check Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2357,7 +2367,7 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Future Implementation Decisions
 
 The following decisions are intentionally deferred:
 
@@ -2383,7 +2393,7 @@ Significant choices should be captured through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should be complemented by:
 
@@ -2400,7 +2410,7 @@ Runtime-specific health configuration should be documented only after actual dep
 
 ---
 
-# Summary
+## Summary
 
 Health checks answer narrow operational questions.
 

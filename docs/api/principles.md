@@ -1,5 +1,20 @@
 # API Principles
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0004](../adr/0004-select-fastify-as-the-backend-http-framework.md), [ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Canonical API Contract](#canonical-api-contract)
+- [Validation](#validation)
+- [Pagination](#pagination)
+- [Idempotency](#idempotency)
+- [Authentication](#authentication)
+- [New API Operation Checklist](#new-api-operation-checklist)
+
+Related policy: [error contract](error-contract.md), [versioning](versioning.md), [authentication](../security/authentication.md), [authorization](../security/authorization.md), [delivery and side effects](../architecture/delivery-and-side-effects.md).
+
 ## Purpose
 
 This document defines the API design principles used by Orion.
@@ -25,18 +40,18 @@ It must not be treated as a direct serialization of internal implementation.
 
 This document is technology-agnostic.
 
-Specific transport frameworks, schema libraries, OpenAPI tooling, RPC systems, serialization formats, API gateways, and SDK generators will be selected later through explicit architectural decisions.
+Fastify and the HTTP/JSON, TypeBox, generated OpenAPI, and thin SDK strategy are selected in ADR-0004 and ADR-0007. Gateways and other explicitly deferred mechanisms remain application decisions; implementation is pending.
 
 This document complements:
 
-- `docs/architecture/application-boundaries.md`;
-- `docs/architecture/dependency-rules.md`;
-- `docs/architecture/error-handling.md`;
-- `docs/architecture/versioning-and-compatibility.md`;
-- `docs/security/authentication.md`;
-- `docs/security/authorization.md`;
-- `docs/database/principles.md`;
-- `docs/architecture/testing-strategy.md`.
+- [docs/architecture/application-boundaries.md](../architecture/application-boundaries.md);
+- [docs/architecture/dependency-rules.md](../architecture/dependency-rules.md);
+- [docs/architecture/error-handling.md](../architecture/error-handling.md);
+- [docs/architecture/versioning-and-compatibility.md](../architecture/versioning-and-compatibility.md);
+- [docs/security/authentication.md](../security/authentication.md);
+- [docs/security/authorization.md](../security/authorization.md);
+- [docs/database/principles.md](../database/principles.md);
+- [docs/architecture/testing-strategy.md](../architecture/testing-strategy.md).
 
 ---
 
@@ -46,7 +61,7 @@ An API exposes application capabilities through explicit contracts.
 
 The intended model is:
 
-```text id="wy9bzg"
+```text
 external input
     ↓
 transport boundary
@@ -64,7 +79,7 @@ explicit response contract
 
 The API contract should remain distinct from:
 
-```text id="xjxq2i"
+```text
 database schema
 ORM model
 domain entity
@@ -78,13 +93,13 @@ They should not be assumed identical by default.
 
 ---
 
-# API as a Contract
+## API as a Contract
 
 An API contract defines what a consumer may rely on.
 
 Potential contract elements include:
 
-```text id="weqn8x"
+```text
 operation
 route or method
 request shape
@@ -101,13 +116,13 @@ Once external consumers depend on these elements, changing them may require comp
 
 ---
 
-# API Ownership
+## API Ownership
 
 Every API operation should have identifiable ownership.
 
 Ownership should answer:
 
-```text id="epurxc"
+```text
 Which domain or capability owns this operation?
 
 Where is its business behavior implemented?
@@ -121,13 +136,13 @@ The HTTP framework or transport package does not own business semantics.
 
 ---
 
-# Transport Is an Adapter
+## Transport Is an Adapter
 
 HTTP, RPC, WebSocket, GraphQL, or another protocol is a delivery mechanism.
 
 Transport code should primarily handle concerns such as:
 
-```text id="3bfd4z"
+```text
 routing
 serialization
 input validation
@@ -143,11 +158,11 @@ Business rules should not depend unnecessarily on transport concepts.
 
 ---
 
-# HTTP Is Not the Domain
+## HTTP Is Not the Domain
 
 Domain logic should not depend on:
 
-```text id="xdfeli"
+```text
 HTTP status codes
 HTTP headers
 request objects
@@ -159,7 +174,7 @@ unless the behavior itself is transport-specific.
 
 Prefer:
 
-```text id="rxsm5e"
+```text
 transport
     ↓
 application operation
@@ -169,7 +184,7 @@ domain
 
 rather than:
 
-```text id="qb3c1g"
+```text
 domain
     ↓
 HTTP framework
@@ -177,25 +192,25 @@ HTTP framework
 
 ---
 
-# Operation-Oriented Design
+## Operation-Oriented Design
 
 API design should begin from meaningful application capabilities.
 
 Ask:
 
-```text id="ocxlpj"
+```text
 What is the consumer trying to accomplish?
 ```
 
 not merely:
 
-```text id="laxezs"
+```text
 Which database table exists?
 ```
 
 For example:
 
-```text id="tmvf18"
+```text
 cancel order
 ```
 
@@ -203,13 +218,13 @@ may be a clearer capability than exposing arbitrary updates to an `orders` row.
 
 ---
 
-# Resource-Oriented Design
+## Resource-Oriented Design
 
 Resource-oriented APIs are useful when the domain naturally exposes resources.
 
 Examples may include:
 
-```text id="8ijrlr"
+```text
 users
 orders
 invoices
@@ -220,13 +235,13 @@ Resources should represent application concepts rather than tables by default.
 
 ---
 
-# Commands and Actions
+## Commands and Actions
 
 Not every operation maps cleanly to generic CRUD.
 
 Examples include:
 
-```text id="hbqt2n"
+```text
 cancel order
 approve invoice
 resend invitation
@@ -238,11 +253,11 @@ Explicit actions may be clearer than generic update endpoints when behavior carr
 
 ---
 
-# Avoid CRUD by Reflex
+## Avoid CRUD by Reflex
 
 Do not automatically create:
 
-```text id="pmggtn"
+```text
 create
 read
 update
@@ -257,11 +272,11 @@ A database table is not automatically an API resource.
 
 ---
 
-# Generic Update Endpoints
+## Generic Update Endpoints
 
 Generic update contracts such as:
 
-```text id="kcdyu0"
+```text
 PATCH /users/{id}
 {
     ...arbitrary fields
@@ -272,7 +287,7 @@ can create security and domain problems.
 
 They may accidentally expose:
 
-```text id="n4hgw9"
+```text
 role
 permission
 tenant
@@ -285,13 +300,13 @@ Prefer explicit update contracts for meaningful responsibilities.
 
 ---
 
-# Mass Assignment
+## Mass Assignment
 
 API implementations must not blindly map external objects into persistence models.
 
 Avoid:
 
-```text id="ruy778"
+```text
 database.update(request.body)
 ```
 
@@ -301,7 +316,7 @@ This helps prevent mass-assignment vulnerabilities.
 
 ---
 
-# Contract-First Thinking
+## Contract-First Thinking
 
 API behavior should have an explicit contract before internal implementation details become externally visible.
 
@@ -311,13 +326,15 @@ It requires deliberate boundary design.
 
 ---
 
-# Canonical API Contract
+## Canonical API Contract
+
+[ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md#canonical-contract-schemas) selects wire-oriented TypeBox 1.x schemas plus route metadata, Fastify validation/serialization, generated OpenAPI (3.1.x initially), stable unique `operationId` values, and openapi-typescript with openapi-fetch for the default thin TypeScript client. Generated artifacts remain derived; client-side successful-response revalidation is not enabled automatically. Internal domain types need not become TypeBox schemas.
 
 Orion should eventually maintain machine-readable canonical API contracts.
 
 Potential technologies may include:
 
-```text id="vngrtb"
+```text
 OpenAPI
 JSON Schema
 typed schema definitions
@@ -328,7 +345,7 @@ The specific representation is deferred.
 
 The key principle is:
 
-```text id="5aj6rc"
+```text
 one canonical contract
     ↓
 validation
@@ -341,11 +358,11 @@ where practical.
 
 ---
 
-# Contract Duplication
+## Contract Duplication
 
 Avoid separately maintaining:
 
-```text id="5ju5jh"
+```text
 runtime validator
 TypeScript interface
 OpenAPI schema
@@ -359,13 +376,13 @@ Duplicated contract definitions drift.
 
 ---
 
-# Request Contracts
+## Request Contracts
 
 Every external input should have an explicit request contract.
 
 The contract should define, where relevant:
 
-```text id="63tjvk"
+```text
 fields
 types
 required fields
@@ -380,7 +397,7 @@ Unknown fields should have deliberate behavior.
 
 ---
 
-# Response Contracts
+## Response Contracts
 
 Responses should be deliberately shaped.
 
@@ -388,7 +405,7 @@ Do not serialize internal objects automatically.
 
 Prefer:
 
-```text id="z5dg3r"
+```text
 application result
     ↓
 response mapping
@@ -400,17 +417,17 @@ This prevents accidental exposure of internal fields.
 
 ---
 
-# Persistence Models Are Not API Contracts
+## Persistence Models Are Not API Contracts
 
 Avoid:
 
-```text id="a1pk71"
+```text
 return ormUser
 ```
 
 when the ORM object contains fields such as:
 
-```text id="2tfdzz"
+```text
 passwordHash
 internalFlags
 deletedAt
@@ -421,11 +438,11 @@ Even if sensitive fields are excluded today, direct coupling creates future risk
 
 ---
 
-# Domain Models Are Not Automatically API Contracts
+## Domain Models Are Not Automatically API Contracts
 
 Domain entities may contain:
 
-```text id="tpptgk"
+```text
 behavior
 internal state
 invariants
@@ -436,13 +453,13 @@ A public contract should expose only what consumers require.
 
 ---
 
-# Internal Models May Change Faster
+## Internal Models May Change Faster
 
 Keeping external contracts separate allows internal refactoring without forcing API changes.
 
 For example:
 
-```text id="g02t7o"
+```text
 database normalization
 domain refactor
 ORM replacement
@@ -452,13 +469,13 @@ should not automatically break consumers.
 
 ---
 
-# Input Is Untrusted
+## Input Is Untrusted
 
 All external input must be treated as untrusted.
 
 This includes:
 
-```text id="9ff92s"
+```text
 request body
 query parameters
 path parameters
@@ -473,13 +490,13 @@ Validation occurs at trusted boundaries.
 
 ---
 
-# Validation
+## Validation
 
 Validation should verify that input satisfies the transport contract before application logic relies on it.
 
 Potential checks include:
 
-```text id="qn3eqv"
+```text
 type
 required fields
 length
@@ -492,29 +509,29 @@ Validation does not replace domain rules.
 
 ---
 
-# Contract Validation vs Domain Validation
+## Contract Validation vs Domain Validation
 
 Contract validation answers:
 
-```text id="dgbqfw"
+```text
 Is this input structurally acceptable?
 ```
 
 Domain validation answers:
 
-```text id="i6bhwi"
+```text
 Is this operation valid according to business rules?
 ```
 
 For example:
 
-```text id="vg4e94"
+```text
 quantity must be integer > 0
 ```
 
 may be contract validation.
 
-```text id="lnxytx"
+```text
 ordered quantity exceeds available allocation
 ```
 
@@ -522,7 +539,7 @@ may be a domain rule.
 
 ---
 
-# Authorization Is Not Validation
+## Authorization Is Not Validation
 
 A request can be structurally valid and still unauthorized.
 
@@ -530,13 +547,13 @@ These concerns must remain distinct.
 
 ---
 
-# Normalization
+## Normalization
 
 Input normalization may be appropriate at boundaries.
 
 Examples:
 
-```text id="u3kqxp"
+```text
 trim controlled textual identifiers
 normalize case where semantics require it
 canonicalize known formats
@@ -548,13 +565,13 @@ Do not silently modify user content merely for convenience.
 
 ---
 
-# Unknown Fields
+## Unknown Fields
 
 Contract behavior for unknown fields should be deliberate.
 
 Possible strategies include:
 
-```text id="s8edx1"
+```text
 reject
 ignore
 preserve
@@ -568,7 +585,7 @@ The choice should be consistent with compatibility requirements.
 
 ---
 
-# Required vs Optional
+## Required vs Optional
 
 A field being optional should have meaningful semantics.
 
@@ -576,13 +593,13 @@ Avoid making fields optional merely to simplify evolution.
 
 Optional may mean:
 
-```text id="naq28x"
+```text
 consumer may omit value
 ```
 
 which is different from:
 
-```text id="ahw03h"
+```text
 consumer sends null
 ```
 
@@ -590,13 +607,13 @@ These semantics should remain explicit.
 
 ---
 
-# Missing vs Null
+## Missing vs Null
 
 Contracts should distinguish missing values and explicit null values where the distinction matters.
 
 For example:
 
-```text id="oa107f"
+```text
 field omitted
     → do not change value
 
@@ -610,13 +627,13 @@ Do not let framework defaults define this semantics accidentally.
 
 ---
 
-# String Length
+## String Length
 
 Text input should use explicit reasonable limits where practical.
 
 Unbounded strings may create:
 
-```text id="t257hf"
+```text
 storage issues
 logging issues
 abuse opportunities
@@ -627,13 +644,13 @@ Limits should follow product requirements rather than arbitrary tiny values.
 
 ---
 
-# Numeric Bounds
+## Numeric Bounds
 
 Numeric fields should define meaningful ranges.
 
 Examples:
 
-```text id="9aik77"
+```text
 quantity > 0
 percentage between 0 and 100
 page size <= maximum
@@ -643,7 +660,7 @@ Database constraints may additionally protect durable state.
 
 ---
 
-# Enumeration Values
+## Enumeration Values
 
 Bounded contract values should use explicit enums or equivalent schemas.
 
@@ -651,13 +668,13 @@ Avoid arbitrary strings when only a fixed set is valid.
 
 ---
 
-# Date and Time Contracts
+## Date and Time Contracts
 
 API date/time formats should have explicit semantics.
 
 Distinguish:
 
-```text id="srxurf"
+```text
 absolute instant
 calendar date
 local time
@@ -669,11 +686,11 @@ Serialization should be standardized once the concrete contract technology is se
 
 ---
 
-# Money Contracts
+## Money Contracts
 
 Monetary values require explicit:
 
-```text id="kl08s7"
+```text
 amount semantics
 currency
 precision
@@ -683,7 +700,7 @@ Avoid ambiguous floating-point contracts for exact financial amounts.
 
 ---
 
-# Identifiers
+## Identifiers
 
 Public identifiers should have stable semantics.
 
@@ -693,7 +710,7 @@ A resource ID should represent the API resource identity expected by consumers.
 
 ---
 
-# Opaque Identifiers
+## Opaque Identifiers
 
 Opaque identifiers are generally useful because consumers should not infer internal structure.
 
@@ -703,13 +720,13 @@ Opaque identifiers still require authorization.
 
 ---
 
-# Client-Generated Identifiers
+## Client-Generated Identifiers
 
 Some APIs may allow clients to generate identifiers.
 
 This can be useful for:
 
-```text id="emd3io"
+```text
 offline creation
 idempotency
 distributed creation
@@ -719,13 +736,13 @@ Such behavior should be intentional.
 
 ---
 
-# Idempotency
+## Idempotency
 
 Operations vulnerable to duplicate submission or uncertain outcomes may require idempotency.
 
 Examples include:
 
-```text id="2u03ud"
+```text
 payment creation
 order submission
 external side-effecting operation
@@ -733,13 +750,11 @@ external side-effecting operation
 
 Idempotency semantics should follow:
 
-```text id="jgncnj"
-docs/database/transactions-and-concurrency.md
-```
+- [docs/database/transactions-and-concurrency.md](../database/transactions-and-concurrency.md)
 
 ---
 
-# HTTP Method Idempotency
+## HTTP Method Idempotency
 
 Protocol-level method semantics may guide API design.
 
@@ -749,11 +764,11 @@ An implementation of an ostensibly idempotent operation can still violate idempo
 
 ---
 
-# Idempotency Keys
+## Idempotency Keys
 
 Where idempotency keys are supported, the API contract should define:
 
-```text id="vwvjpg"
+```text
 where the key is provided
 scope
 reuse behavior
@@ -765,13 +780,13 @@ Consumers should not need to guess.
 
 ---
 
-# Repeated Requests
+## Repeated Requests
 
 The API should define the result of repeating important operations.
 
 Possible semantics include:
 
-```text id="ta4bx3"
+```text
 same logical result
 already-completed result
 conflict
@@ -781,13 +796,13 @@ The choice should match domain behavior.
 
 ---
 
-# Optimistic Concurrency
+## Optimistic Concurrency
 
 Public update APIs may support optimistic concurrency when consumers must avoid overwriting newer state.
 
 Potential mechanisms include:
 
-```text id="4vl0go"
+```text
 version
 ETag
 conditional request
@@ -797,47 +812,43 @@ The exact protocol is deferred.
 
 ---
 
-# Stale Updates
+## Stale Updates
 
 When optimistic concurrency is used, stale updates should fail with stable conflict semantics.
 
 Consumers should be able to distinguish:
 
-```text id="d1prca"
+```text
 invalid input
 ```
 
 from:
 
-```text id="zlt90v"
+```text
 resource changed since you read it
 ```
 
 ---
 
-# Authentication
+## Authentication
 
 Protected API operations must derive identity through the trusted authentication architecture defined in:
 
-```text id="dvu7ol"
-docs/security/authentication.md
-```
+- [docs/security/authentication.md](../security/authentication.md)
 
 Authentication requirements should be part of the API contract.
 
 ---
 
-# Authorization
+## Authorization
 
 Protected operations must apply authorization defined by:
 
-```text id="df1xrv"
-docs/security/authorization.md
-```
+- [docs/security/authorization.md](../security/authorization.md)
 
 A consumer cannot authorize itself by sending:
 
-```text id="nv9fad"
+```text
 role
 permission
 userId
@@ -848,7 +859,7 @@ without trusted verification.
 
 ---
 
-# Anonymous APIs
+## Anonymous APIs
 
 Public endpoints should be explicitly public.
 
@@ -856,11 +867,11 @@ Anonymous behavior must not result from accidentally missing authentication enfo
 
 ---
 
-# Sensitive APIs
+## Sensitive APIs
 
 Operations involving:
 
-```text id="vm08ge"
+```text
 credentials
 personal data
 security settings
@@ -874,13 +885,13 @@ The contract should make security requirements discoverable where practical.
 
 ---
 
-# Tenant Context
+## Tenant Context
 
 Multi-tenant APIs must treat tenant selection as an authorization concern.
 
 A path such as:
 
-```text id="3hfu9v"
+```text
 /tenants/{tenantId}/orders
 ```
 
@@ -888,11 +899,11 @@ does not prove the caller belongs to the tenant.
 
 ---
 
-# Request Context
+## Request Context
 
 Transport infrastructure may construct safe context such as:
 
-```text id="muftvg"
+```text
 principal
 requestId
 traceId
@@ -904,13 +915,13 @@ Application operations should receive only the context they require.
 
 ---
 
-# Correlation
+## Correlation
 
 API requests should participate in observability correlation.
 
 Potential identifiers include:
 
-```text id="sxlwck"
+```text
 requestId
 traceId
 errorId
@@ -918,39 +929,33 @@ errorId
 
 These should follow:
 
-```text id="d912cr"
-docs/reliability/observability.md
-```
+- [docs/reliability/observability.md](../reliability/observability.md)
 
 ---
 
-# Error Contract
+## Error Contract
 
 API errors must use stable structured semantics.
 
 They should follow:
 
-```text id="coshll"
-docs/architecture/error-handling.md
-```
+- [docs/architecture/error-handling.md](../architecture/error-handling.md)
 
 and the future:
 
-```text id="ldkbnr"
-docs/api/error-contract.md
-```
+- [docs/api/error-contract.md](error-contract.md)
 
 Consumers should rely on stable error codes rather than parsing messages.
 
 ---
 
-# HTTP Status Codes
+## HTTP Status Codes
 
 For HTTP APIs, status codes should represent broad protocol semantics.
 
 Examples may include:
 
-```text id="kv8v8h"
+```text
 200 / 201
 400
 401
@@ -968,13 +973,13 @@ Status code alone should not carry all application semantics.
 
 ---
 
-# Public Error Messages
+## Public Error Messages
 
 Error messages are for humans.
 
 They must be:
 
-```text id="l57ikz"
+```text
 safe
 understandable
 non-sensitive
@@ -984,13 +989,13 @@ Clients must not depend on exact message text for application logic.
 
 ---
 
-# Error Details
+## Error Details
 
 Structured error details may provide safe machine-readable context.
 
 For example:
 
-```text id="whdmvy"
+```text
 field validation issues
 conflict version
 retry information
@@ -1002,11 +1007,11 @@ Avoid arbitrary internal data in public errors.
 
 ---
 
-# Internal Errors
+## Internal Errors
 
 Unexpected internal errors should not expose:
 
-```text id="cz2hzj"
+```text
 stack traces
 SQL
 provider payloads
@@ -1018,7 +1023,7 @@ The public contract should provide a safe generic error plus correlation identif
 
 ---
 
-# Not Found vs Permission Denied
+## Not Found vs Permission Denied
 
 Some protected resources may intentionally return equivalent not-found behavior to unauthorized callers.
 
@@ -1028,11 +1033,11 @@ The choice should follow authorization and information-disclosure requirements.
 
 ---
 
-# Collection APIs
+## Collection APIs
 
 Collection operations should define behavior for:
 
-```text id="9g89r6"
+```text
 pagination
 filtering
 sorting
@@ -1044,13 +1049,13 @@ rather than allowing framework defaults to become accidental contracts.
 
 ---
 
-# Pagination
+## Pagination
 
 Large collections should use bounded pagination.
 
 Unbounded endpoints such as:
 
-```text id="akncq6"
+```text
 GET /users
     → every user ever created
 ```
@@ -1059,11 +1064,11 @@ do not scale safely.
 
 ---
 
-# Page Size
+## Page Size
 
 Pagination should define:
 
-```text id="f2xeln"
+```text
 default size
 maximum size
 ```
@@ -1072,11 +1077,11 @@ The values should be based on actual payload and performance characteristics.
 
 ---
 
-# Offset Pagination
+## Offset Pagination
 
 Offset-based pagination may be appropriate for:
 
-```text id="bnwb9c"
+```text
 small collections
 administrative views
 stable low-volume data
@@ -1086,7 +1091,7 @@ It can become inefficient or inconsistent for large changing datasets.
 
 ---
 
-# Cursor Pagination
+## Cursor Pagination
 
 Cursor-based pagination may be preferable for large or frequently changing collections.
 
@@ -1096,7 +1101,7 @@ Consumers should not depend on its internal representation.
 
 ---
 
-# Cursor Security
+## Cursor Security
 
 Cursors should not expose sensitive internal data unnecessarily.
 
@@ -1104,13 +1109,13 @@ If a cursor contains serialized state, integrity protection or opaque encoding m
 
 ---
 
-# Stable Ordering
+## Stable Ordering
 
 Pagination requires a deterministic ordering.
 
 For example:
 
-```text id="zt36m0"
+```text
 createdAt DESC, id DESC
 ```
 
@@ -1120,7 +1125,7 @@ Ordering semantics should be explicit.
 
 ---
 
-# Filtering
+## Filtering
 
 Supported filters should be explicit.
 
@@ -1130,7 +1135,7 @@ A filter contract is an API decision, not an ORM passthrough.
 
 ---
 
-# Filter Validation
+## Filter Validation
 
 Filter values must be validated.
 
@@ -1138,13 +1143,13 @@ Unknown filter operators or fields should have deliberate behavior.
 
 ---
 
-# Sorting
+## Sorting
 
 Supported sort fields should be allowlisted.
 
 Avoid:
 
-```text id="va3yxi"
+```text
 ORDER BY <untrusted client string>
 ```
 
@@ -1154,13 +1159,13 @@ Sorting is both a contract and security concern.
 
 ---
 
-# Search
+## Search
 
 Search semantics should be explicit.
 
 A search endpoint should define whether behavior means:
 
-```text id="cv19bx"
+```text
 exact matching
 prefix matching
 full-text search
@@ -1171,7 +1176,7 @@ Consumers should not rely on accidental database implementation.
 
 ---
 
-# Query Complexity
+## Query Complexity
 
 APIs allowing highly flexible queries can create operational risk.
 
@@ -1181,13 +1186,13 @@ Do not expose arbitrary query capabilities merely because a framework supports t
 
 ---
 
-# Response Size
+## Response Size
 
 Responses should be reasonably bounded.
 
 Large responses affect:
 
-```text id="pw6a8v"
+```text
 latency
 memory
 network cost
@@ -1198,7 +1203,7 @@ Pagination, projections, or specialized export flows may be appropriate.
 
 ---
 
-# Sparse Fieldsets
+## Sparse Fieldsets
 
 Allowing consumers to select fields can reduce payload size.
 
@@ -1208,7 +1213,7 @@ Introduce only if actual consumers benefit.
 
 ---
 
-# Includes and Expansions
+## Includes and Expansions
 
 APIs may optionally support including related resources.
 
@@ -1218,7 +1223,7 @@ Avoid query patterns where a client can request arbitrary deep relationship expa
 
 ---
 
-# N+1 API Behavior
+## N+1 API Behavior
 
 API design should consider persistence cost.
 
@@ -1228,13 +1233,13 @@ Observability and integration testing should make expensive patterns discoverabl
 
 ---
 
-# Command Responses
+## Command Responses
 
 Action-style operations should return information useful to the consumer.
 
 Possible responses include:
 
-```text id="t0hd7a"
+```text
 updated resource
 operation result
 accepted job
@@ -1245,13 +1250,13 @@ The choice should match semantics.
 
 ---
 
-# Asynchronous Operations
+## Asynchronous Operations
 
 Some API operations may not complete synchronously.
 
 Potential pattern:
 
-```text id="eh491h"
+```text
 request
     ↓
 operation accepted
@@ -1263,25 +1268,25 @@ consumer checks status / receives event
 
 The contract must distinguish:
 
-```text id="z3aq6n"
+```text
 accepted
 ```
 
 from:
 
-```text id="xtegpq"
+```text
 completed
 ```
 
 ---
 
-# Long-Running Operations
+## Long-Running Operations
 
 Long-running operations may require a resource representing operation state.
 
 Conceptually:
 
-```text id="mj3jfr"
+```text
 operationId
 status
 result
@@ -1292,7 +1297,7 @@ Do not hold an HTTP request open indefinitely merely because work exists.
 
 ---
 
-# Request Timeouts
+## Request Timeouts
 
 API operations should fit within meaningful runtime timeout expectations.
 
@@ -1300,7 +1305,7 @@ Work that cannot reliably complete within the request lifecycle may require asyn
 
 ---
 
-# Cancellation
+## Cancellation
 
 Transport cancellation may indicate the caller no longer wants the result.
 
@@ -1310,11 +1315,11 @@ Cancellation semantics should be explicit for long-running operations.
 
 ---
 
-# File Uploads
+## File Uploads
 
 File-upload APIs require explicit contracts for:
 
-```text id="ass0tx"
+```text
 maximum size
 allowed media types
 ownership
@@ -1326,7 +1331,7 @@ File contents must not be captured in telemetry.
 
 ---
 
-# File Downloads
+## File Downloads
 
 Download authorization must be enforced even when storage uses pre-signed or delegated URLs.
 
@@ -1334,7 +1339,7 @@ Temporary access mechanisms should have bounded scope and lifetime.
 
 ---
 
-# Pre-Signed URLs
+## Pre-Signed URLs
 
 If external object storage uses pre-signed URLs, these URLs may grant temporary access and should be treated accordingly.
 
@@ -1342,13 +1347,13 @@ They should not be logged indiscriminately.
 
 ---
 
-# Webhooks
+## Webhooks
 
 Outbound webhook contracts are external APIs.
 
 They require:
 
-```text id="ssayva"
+```text
 schema
 authentication
 retry policy
@@ -1360,13 +1365,13 @@ Receiving systems may depend on them for long periods.
 
 ---
 
-# Inbound Webhooks
+## Inbound Webhooks
 
 Inbound provider webhooks are untrusted external inputs until authenticated and validated.
 
 Processing should account for:
 
-```text id="31ovf7"
+```text
 duplicate delivery
 out-of-order delivery
 replay
@@ -1375,7 +1380,7 @@ invalid payload
 
 ---
 
-# Webhook Acknowledgement
+## Webhook Acknowledgement
 
 Webhook handlers should generally acknowledge according to provider requirements.
 
@@ -1383,7 +1388,7 @@ Long processing may need to be decoupled from the initial HTTP request.
 
 ---
 
-# Webhook Retries
+## Webhook Retries
 
 Providers may retry delivery automatically.
 
@@ -1391,7 +1396,7 @@ Handlers should understand and document duplicate semantics.
 
 ---
 
-# Events vs APIs
+## Events vs APIs
 
 Synchronous API contracts and asynchronous event contracts serve different purposes.
 
@@ -1403,7 +1408,7 @@ Do not treat them as interchangeable.
 
 ---
 
-# API and Event Model Separation
+## API and Event Model Separation
 
 An API response schema should not automatically become an event schema.
 
@@ -1411,7 +1416,7 @@ They may evolve under different compatibility requirements.
 
 ---
 
-# SDKs
+## SDKs
 
 Client SDKs should derive from canonical contracts where practical.
 
@@ -1421,11 +1426,11 @@ They are not the source of truth.
 
 ---
 
-# SDK Boundaries
+## SDK Boundaries
 
 SDKs may contain:
 
-```text id="vvm94k"
+```text
 transport client
 request/response types
 authentication integration hooks
@@ -1436,7 +1441,7 @@ They should not contain backend-only business logic or persistence concerns.
 
 ---
 
-# Generated SDK Code
+## Generated SDK Code
 
 Generated SDK code should be clearly identified.
 
@@ -1444,7 +1449,7 @@ Manual edits should be prohibited unless the generator explicitly supports prote
 
 ---
 
-# SDK Compatibility
+## SDK Compatibility
 
 SDK versioning may differ from API versioning.
 
@@ -1452,13 +1457,13 @@ A new SDK release does not automatically imply a new API version.
 
 ---
 
-# Browser SDKs
+## Browser SDKs
 
 Client SDKs intended for browsers must not contain server-only secrets or privileged configuration.
 
 ---
 
-# Mobile SDKs
+## Mobile SDKs
 
 Mobile clients may remain deployed long after a backend release.
 
@@ -1466,13 +1471,13 @@ Backend compatibility must account for lagging mobile versions where applicable.
 
 ---
 
-# API Documentation
+## API Documentation
 
 Public and internal API documentation should derive from canonical contracts where practical.
 
 Generated documentation may include:
 
-```text id="eptvga"
+```text
 operations
 request schemas
 response schemas
@@ -1483,13 +1488,13 @@ examples
 
 ---
 
-# Documentation Examples
+## Documentation Examples
 
 Examples should use synthetic data.
 
 They must not contain:
 
-```text id="ylm7vb"
+```text
 real credentials
 production identifiers
 real personal data
@@ -1497,7 +1502,7 @@ real personal data
 
 ---
 
-# Examples Are Part of Developer Experience
+## Examples Are Part of Developer Experience
 
 Good examples should show realistic usage without becoming separate sources of truth.
 
@@ -1505,7 +1510,7 @@ They should be validated against the canonical contract where tooling supports i
 
 ---
 
-# Machine-Readable Documentation
+## Machine-Readable Documentation
 
 Machine-readable contracts are essential for Orion's AI-first goals.
 
@@ -1513,11 +1518,11 @@ An AI agent should be able to inspect the API without reverse engineering contro
 
 ---
 
-# AI-Friendly API Navigation
+## AI-Friendly API Navigation
 
 The desired workflow is:
 
-```text id="fbd84y"
+```text
 operation
     ↓
 canonical API contract
@@ -1533,13 +1538,13 @@ tests
 
 ---
 
-# Public vs Internal APIs
+## Public vs Internal APIs
 
 Not every API requires the same compatibility guarantees.
 
 Potential categories include:
 
-```text id="wmbrlh"
+```text
 public external API
 partner API
 internal service API
@@ -1551,7 +1556,7 @@ Compatibility expectations should be explicit.
 
 ---
 
-# Internal Does Not Mean Unimportant
+## Internal Does Not Mean Unimportant
 
 Internal APIs can still have many consumers.
 
@@ -1559,19 +1564,19 @@ An internal API should not be changed recklessly merely because it is not public
 
 The real question is:
 
-```text id="f8jws0"
+```text
 Which consumers depend on this contract?
 ```
 
 ---
 
-# Consumer Inventory
+## Consumer Inventory
 
 For important APIs, it should be possible to identify major consumers.
 
 Examples:
 
-```text id="7ek4qy"
+```text
 web
 mobile
 desktop
@@ -1583,13 +1588,13 @@ This informs compatibility decisions.
 
 ---
 
-# Backward Compatibility
+## Backward Compatibility
 
 Changes should preserve existing consumer behavior when compatibility is required.
 
 Potentially compatible changes may include:
 
-```text id="64vmlc"
+```text
 add optional response field
 add optional request field
 add new operation
@@ -1599,11 +1604,11 @@ depending on consumer behavior and serialization technology.
 
 ---
 
-# Potentially Breaking Changes
+## Potentially Breaking Changes
 
 Breaking changes may include:
 
-```text id="e0mf1g"
+```text
 remove field
 rename field
 change field type
@@ -1619,7 +1624,7 @@ Compatibility must be evaluated, not assumed.
 
 ---
 
-# Enum Expansion
+## Enum Expansion
 
 Adding a new enum value may break clients that assume exhaustive known values.
 
@@ -1629,7 +1634,7 @@ Enum compatibility strategy should be explicit.
 
 ---
 
-# Versioning
+## Versioning
 
 API versioning should be introduced only when compatibility cannot be preserved reasonably.
 
@@ -1637,19 +1642,17 @@ Do not create version numbers preemptively for every internal refactor.
 
 Detailed rules belong in:
 
-```text id="6m9u88"
-docs/api/versioning.md
-```
+- [docs/api/versioning.md](versioning.md)
 
 ---
 
-# Compatibility Before Versioning
+## Compatibility Before Versioning
 
 Prefer compatible evolution when practical.
 
 Versioning creates:
 
-```text id="22th6a"
+```text
 parallel contracts
 migration burden
 documentation complexity
@@ -1661,13 +1664,13 @@ A new version should pay for that complexity.
 
 ---
 
-# Deprecation
+## Deprecation
 
 Breaking behavior should normally have a deprecation path when consumers cannot migrate atomically.
 
 A deprecation should define:
 
-```text id="5e467h"
+```text
 what is deprecated
 replacement
 timeline or removal condition
@@ -1676,7 +1679,7 @@ affected consumers
 
 ---
 
-# Deprecated Fields
+## Deprecated Fields
 
 Deprecated fields should remain functional according to the compatibility promise until removal.
 
@@ -1684,7 +1687,7 @@ Marking a field deprecated while silently changing its meaning is not safe evolu
 
 ---
 
-# Mobile Compatibility
+## Mobile Compatibility
 
 Mobile applications may remain in use for months after release.
 
@@ -1692,7 +1695,7 @@ APIs consumed by mobile clients may therefore require longer compatibility windo
 
 ---
 
-# Web Compatibility
+## Web Compatibility
 
 A web application deployed atomically with the backend may allow a tighter compatibility model.
 
@@ -1700,7 +1703,7 @@ This should still be deliberate.
 
 ---
 
-# Rolling Backend Compatibility
+## Rolling Backend Compatibility
 
 During rolling deployment, two backend versions may coexist.
 
@@ -1708,7 +1711,7 @@ Internal calls, events, and database usage may need temporary compatibility even
 
 ---
 
-# API Deprecation Telemetry
+## API Deprecation Telemetry
 
 Deprecated contract usage may be observable.
 
@@ -1718,11 +1721,11 @@ Telemetry must avoid sensitive request content.
 
 ---
 
-# API Change Review
+## API Change Review
 
 API changes should be reviewed for:
 
-```text id="wzlsam"
+```text
 contract impact
 consumer impact
 security
@@ -1735,7 +1738,7 @@ documentation
 
 ---
 
-# Request Body Compatibility
+## Request Body Compatibility
 
 Adding required request fields is generally breaking for existing consumers.
 
@@ -1743,7 +1746,7 @@ Prefer optional introduction followed by coordinated migration when necessary.
 
 ---
 
-# Response Compatibility
+## Response Compatibility
 
 Removing or renaming response fields is generally breaking.
 
@@ -1751,25 +1754,25 @@ Changing field meaning without changing shape may be even more dangerous because
 
 ---
 
-# Semantic Compatibility
+## Semantic Compatibility
 
 Compatibility is not only structural.
 
 For example:
 
-```text id="5q7c6b"
+```text
 status = "completed"
 ```
 
 changing meaning from:
 
-```text id="zn5vzw"
+```text
 payment completed
 ```
 
 to:
 
-```text id="k0886z"
+```text
 shipping completed
 ```
 
@@ -1777,13 +1780,13 @@ is a breaking semantic change even if the type remains `string`.
 
 ---
 
-# Error Compatibility
+## Error Compatibility
 
 Stable public error codes are part of the API contract.
 
 Do not:
 
-```text id="ox2ywu"
+```text
 reuse old error code for different meaning
 ```
 
@@ -1791,17 +1794,17 @@ or remove widely consumed error codes without compatibility planning.
 
 ---
 
-# Authorization Compatibility
+## Authorization Compatibility
 
 Changing an operation from:
 
-```text id="vujpcu"
+```text
 ordinary user allowed
 ```
 
 to:
 
-```text id="k2d14c"
+```text
 administrator only
 ```
 
@@ -1811,7 +1814,7 @@ It may be necessary for security, but it should still be treated as contract-imp
 
 ---
 
-# Security Fixes and Compatibility
+## Security Fixes and Compatibility
 
 Security may require immediate breaking changes.
 
@@ -1823,13 +1826,13 @@ The change should still be documented and communicated appropriately.
 
 ---
 
-# Rate Limiting
+## Rate Limiting
 
 APIs exposed to abuse or expensive workloads may require rate limiting.
 
 Rate limits should be based on:
 
-```text id="luy2rp"
+```text
 risk
 resource cost
 provider constraints
@@ -1840,7 +1843,7 @@ not arbitrary defaults.
 
 ---
 
-# Rate-Limit Contract
+## Rate-Limit Contract
 
 When clients are expected to respond programmatically, the API should expose bounded stable retry information where appropriate.
 
@@ -1848,19 +1851,19 @@ Internal anti-abuse details should remain private.
 
 ---
 
-# Quotas
+## Quotas
 
 Product quotas and technical rate limits are different concepts.
 
 For example:
 
-```text id="md2g4g"
+```text
 100 exports per subscription month
 ```
 
 is a product entitlement.
 
-```text id="x23nq8"
+```text
 10 requests per second
 ```
 
@@ -1870,11 +1873,11 @@ Do not conflate them.
 
 ---
 
-# Abuse Resistance
+## Abuse Resistance
 
 Public APIs should consider:
 
-```text id="gwkmyq"
+```text
 brute force
 enumeration
 resource exhaustion
@@ -1886,7 +1889,7 @@ Controls should be proportional to exposure.
 
 ---
 
-# Payload Limits
+## Payload Limits
 
 Transport infrastructure should enforce reasonable maximum payload sizes.
 
@@ -1896,7 +1899,7 @@ Large file uploads should use dedicated handling.
 
 ---
 
-# Timeout Policy
+## Timeout Policy
 
 API handlers and outbound dependencies should have bounded execution.
 
@@ -1906,7 +1909,7 @@ They must not cause unsafe automatic retries of non-idempotent operations.
 
 ---
 
-# Retry Guidance for Consumers
+## Retry Guidance for Consumers
 
 The API contract should make retryability discoverable where relevant.
 
@@ -1916,13 +1919,13 @@ Idempotency and unknown outcomes matter.
 
 ---
 
-# Cache Semantics
+## Cache Semantics
 
 Some API responses may be cacheable.
 
 Caching policy should consider:
 
-```text id="9pmf4f"
+```text
 authentication
 authorization
 tenant
@@ -1934,11 +1937,11 @@ Protected responses must not accidentally become public cache entries.
 
 ---
 
-# Conditional Requests
+## Conditional Requests
 
 HTTP conditional mechanisms such as ETags may eventually support:
 
-```text id="ujrb6i"
+```text
 caching
 optimistic concurrency
 bandwidth reduction
@@ -1948,7 +1951,7 @@ They should be introduced only where useful.
 
 ---
 
-# Localization
+## Localization
 
 Stable machine-readable API semantics should remain language-independent.
 
@@ -1956,7 +1959,7 @@ Error codes should not change by locale.
 
 Human-readable messages may be localized by:
 
-```text id="7xfska"
+```text
 client
 backend
 ```
@@ -1965,7 +1968,7 @@ depending on product architecture.
 
 ---
 
-# API Language
+## API Language
 
 Repository API identifiers and canonical descriptions should be written in English.
 
@@ -1973,19 +1976,19 @@ Product-visible localized content is a separate concern.
 
 ---
 
-# Boolean Fields
+## Boolean Fields
 
 Boolean names should express positive semantics where practical.
 
 Prefer:
 
-```text id="nx9w8e"
+```text
 isActive
 ```
 
 over:
 
-```text id="ypjpyx"
+```text
 isNotInactive
 ```
 
@@ -1993,19 +1996,19 @@ Avoid double-negative contracts.
 
 ---
 
-# Contract Naming
+## Contract Naming
 
 Names should reflect domain semantics.
 
 Prefer:
 
-```text id="sx1wdt"
+```text
 cancellationReason
 ```
 
 over:
 
-```text id="kp3qpn"
+```text
 value2
 ```
 
@@ -2015,7 +2018,7 @@ Choose carefully.
 
 ---
 
-# Abbreviations
+## Abbreviations
 
 Avoid unclear abbreviations in public contracts.
 
@@ -2025,19 +2028,19 @@ Consistency matters.
 
 ---
 
-# Request and Response Symmetry
+## Request and Response Symmetry
 
 Request and response models do not need to be symmetrical.
 
 For example:
 
-```text id="7t736r"
+```text
 CreateUserRequest
 ```
 
 may not contain server-generated fields returned by:
 
-```text id="f2evvl"
+```text
 UserResponse
 ```
 
@@ -2045,13 +2048,13 @@ Do not force one model to serve both directions.
 
 ---
 
-# Create vs Update Contracts
+## Create vs Update Contracts
 
 Create and update operations often require different schemas.
 
 For example:
 
-```text id="fbmmf4"
+```text
 email required on create
 email optional on update
 ```
@@ -2060,13 +2063,13 @@ Separate contracts may be clearer than one overly optional universal schema.
 
 ---
 
-# Read Models
+## Read Models
 
 Different views of the same concept may have distinct contracts.
 
 Examples:
 
-```text id="08jm27"
+```text
 OrderSummary
 OrderDetails
 OrderAdminView
@@ -2078,7 +2081,7 @@ Avoid excessive model proliferation without real semantic differences.
 
 ---
 
-# Administrative APIs
+## Administrative APIs
 
 Administrative APIs may expose different capabilities and response fields from ordinary user APIs.
 
@@ -2088,13 +2091,13 @@ Do not merely add hidden query parameters that unlock admin behavior.
 
 ---
 
-# Internal Debug APIs
+## Internal Debug APIs
 
 Debug or diagnostic endpoints must not become accidental production backdoors.
 
 If they exist, they require:
 
-```text id="y5xx3c"
+```text
 authentication
 authorization
 safe output
@@ -2105,7 +2108,7 @@ as appropriate.
 
 ---
 
-# Health APIs
+## Health APIs
 
 Health endpoints are operational contracts.
 
@@ -2113,7 +2116,7 @@ They should follow the reliability health-check policy.
 
 They must not expose:
 
-```text id="7ym6zr"
+```text
 secrets
 raw configuration
 internal stack traces
@@ -2121,7 +2124,7 @@ internal stack traces
 
 ---
 
-# Metrics APIs
+## Metrics APIs
 
 Operational metrics endpoints, if exposed, require access controls appropriate to infrastructure.
 
@@ -2129,11 +2132,11 @@ They are not necessarily public product APIs.
 
 ---
 
-# API Gateway
+## API Gateway
 
 A gateway may eventually provide:
 
-```text id="erynwe"
+```text
 routing
 TLS termination
 rate limiting
@@ -2144,7 +2147,7 @@ A gateway does not own application authorization or business semantics by defaul
 
 ---
 
-# BFF
+## BFF
 
 A Backend for Frontend may be introduced when a specific client has materially distinct composition requirements.
 
@@ -2154,13 +2157,13 @@ A BFF should not merely duplicate the primary backend with a different folder na
 
 ---
 
-# GraphQL
+## GraphQL
 
 GraphQL may be appropriate for some consumer-driven query models.
 
 It introduces concerns such as:
 
-```text id="7zhn8s"
+```text
 query complexity
 authorization at field/resolver boundaries
 N+1 behavior
@@ -2171,13 +2174,13 @@ Orion does not choose GraphQL by default.
 
 ---
 
-# RPC
+## RPC
 
 RPC may be appropriate for strongly typed internal operation-oriented communication.
 
 It still requires:
 
-```text id="kokidc"
+```text
 explicit contracts
 compatibility
 authentication
@@ -2189,7 +2192,7 @@ Transport choice does not remove API design responsibilities.
 
 ---
 
-# REST
+## REST
 
 REST-style HTTP APIs may be appropriate for resource and action-oriented capabilities.
 
@@ -2199,11 +2202,11 @@ Clarity and stable semantics matter more than stylistic dogma.
 
 ---
 
-# WebSocket APIs
+## WebSocket APIs
 
 Persistent bidirectional connections introduce:
 
-```text id="i3c3w6"
+```text
 connection authentication
 reauthorization
 message contracts
@@ -2216,11 +2219,11 @@ They should be introduced only when real-time requirements justify them.
 
 ---
 
-# Streaming APIs
+## Streaming APIs
 
 Streaming responses or requests require explicit:
 
-```text id="1yx2js"
+```text
 lifecycle
 cancellation
 partial failure
@@ -2233,11 +2236,11 @@ Do not model streaming as ordinary request/response behavior accidentally.
 
 ---
 
-# API Observability
+## API Observability
 
 API telemetry should expose safe operational information such as:
 
-```text id="lghcgw"
+```text
 route template
 method
 status
@@ -2249,24 +2252,22 @@ error code
 
 It should follow:
 
-```text id="1vlfpa"
-docs/reliability/observability.md
-docs/security/telemetry-redaction.md
-```
+- [docs/reliability/observability.md](../reliability/observability.md)
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md)
 
 ---
 
-# Route Templates
+## Route Templates
 
 Telemetry should prefer:
 
-```text id="d1ctaz"
+```text
 /orders/{orderId}
 ```
 
 over:
 
-```text id="l2kucf"
+```text
 /orders/ord_01J...
 ```
 
@@ -2274,7 +2275,7 @@ to reduce cardinality and sensitive identifier exposure.
 
 ---
 
-# Request Logging
+## Request Logging
 
 API infrastructure must not log complete request bodies by default.
 
@@ -2282,7 +2283,7 @@ Headers, cookies, query strings, and bodies may contain sensitive information.
 
 ---
 
-# Response Logging
+## Response Logging
 
 Complete response payloads should not be logged by default.
 
@@ -2290,11 +2291,11 @@ Responses may contain confidential data.
 
 ---
 
-# API Metrics
+## API Metrics
 
 Useful metrics may include:
 
-```text id="ig3bsx"
+```text
 request rate
 error rate
 latency
@@ -2306,13 +2307,13 @@ Labels must remain bounded.
 
 ---
 
-# Error Metrics
+## Error Metrics
 
 Prefer stable error codes or categories over arbitrary error messages as metric labels.
 
 ---
 
-# API Traces
+## API Traces
 
 Important API operations should integrate with distributed tracing.
 
@@ -2320,17 +2321,15 @@ Trace context should propagate through supported outbound calls and async bounda
 
 ---
 
-# API Tests
+## API Tests
 
 API testing should follow:
 
-```text id="bgo0p3"
-docs/architecture/testing-strategy.md
-```
+- [docs/architecture/testing-strategy.md](../architecture/testing-strategy.md)
 
 Tests should verify relevant combinations of:
 
-```text id="hkp47h"
+```text
 validation
 authentication
 authorization
@@ -2341,7 +2340,7 @@ application behavior
 
 ---
 
-# Contract Tests
+## Contract Tests
 
 Canonical API schemas should be validated against implementation.
 
@@ -2349,13 +2348,13 @@ Generated SDKs and documentation should derive from or be validated against the 
 
 ---
 
-# Integration Tests
+## Integration Tests
 
 Transport integration tests should use the real request/response boundary where protocol behavior matters.
 
 Examples include:
 
-```text id="47re5l"
+```text
 status codes
 headers
 serialization
@@ -2364,7 +2363,7 @@ authentication middleware
 
 ---
 
-# Authorization Tests
+## Authorization Tests
 
 Protected operations should verify denial paths through the API boundary.
 
@@ -2372,11 +2371,11 @@ A policy unit test alone does not prove the endpoint applies the policy correctl
 
 ---
 
-# Validation Tests
+## Validation Tests
 
 Important validation behavior should verify:
 
-```text id="n6z31a"
+```text
 missing fields
 invalid values
 unknown fields
@@ -2387,11 +2386,11 @@ according to contract semantics.
 
 ---
 
-# Error Contract Tests
+## Error Contract Tests
 
 Stable errors should be tested for:
 
-```text id="rmy81q"
+```text
 code
 safe message
 status
@@ -2403,13 +2402,13 @@ where relevant.
 
 ---
 
-# Compatibility Tests
+## Compatibility Tests
 
 When an API has compatibility commitments, tests should preserve them.
 
 Examples may include:
 
-```text id="w7eefa"
+```text
 previous mobile client contract
 deprecated field still accepted
 old enum consumer compatibility
@@ -2417,11 +2416,11 @@ old enum consumer compatibility
 
 ---
 
-# Generated Contract Validation
+## Generated Contract Validation
 
 CI should eventually detect when:
 
-```text id="ba40v4"
+```text
 implementation
 canonical contract
 generated SDK
@@ -2432,13 +2431,13 @@ drift from one another.
 
 ---
 
-# API Schema Review
+## API Schema Review
 
 Contract changes should be visible in pull requests.
 
 A generated semantic API diff may eventually identify:
 
-```text id="sgfnpu"
+```text
 field added
 field removed
 required status changed
@@ -2450,7 +2449,7 @@ This can improve compatibility review.
 
 ---
 
-# Breaking-Change Detection
+## Breaking-Change Detection
 
 Tooling may eventually fail CI for unapproved breaking contract changes.
 
@@ -2458,11 +2457,11 @@ The exact mechanism depends on the chosen schema system.
 
 ---
 
-# API Security Testing
+## API Security Testing
 
 Security-sensitive APIs should test:
 
-```text id="sdllfx"
+```text
 unauthorized access
 cross-tenant access
 mass assignment
@@ -2475,7 +2474,7 @@ according to risk.
 
 ---
 
-# API Examples Testing
+## API Examples Testing
 
 Documentation examples may eventually be tested or generated from schemas.
 
@@ -2483,7 +2482,7 @@ Examples that do not conform to current contracts should be detected.
 
 ---
 
-# Contract Ownership
+## Contract Ownership
 
 A shared `packages/contracts` package may eventually contain canonical API schemas.
 
@@ -2493,11 +2492,11 @@ The exact ownership should follow selected stack and application architecture.
 
 ---
 
-# Contract Package Boundaries
+## Contract Package Boundaries
 
 A contract package should not depend on:
 
-```text id="szspsb"
+```text
 database
 ORM
 backend framework
@@ -2509,7 +2508,7 @@ It may depend on stable schema/validation primitives as needed.
 
 ---
 
-# Server Implementation
+## Server Implementation
 
 The backend implementation may depend on canonical contracts.
 
@@ -2517,18 +2516,18 @@ Canonical contracts should not depend on backend implementation.
 
 ---
 
-# Client Implementation
+## Client Implementation
 
 Clients may depend on:
 
-```text id="x6mvr6"
+```text
 contracts
 generated SDK
 ```
 
 They must not depend on:
 
-```text id="dgrbxk"
+```text
 server internals
 database types
 private application services
@@ -2536,13 +2535,13 @@ private application services
 
 ---
 
-# API Contract Registry
+## API Contract Registry
 
 As Orion matures, important contracts should be discoverable from a central machine-readable index.
 
 Potential metadata may include:
 
-```text id="2r34wy"
+```text
 operation
 owner
 stability
@@ -2557,11 +2556,11 @@ The exact format is deferred.
 
 ---
 
-# API Operation Metadata
+## API Operation Metadata
 
 Conceptually:
 
-```text id="ndqpxa"
+```text
 operation: orders.cancel
 owner: orders
 authentication: required
@@ -2571,7 +2570,7 @@ idempotent: true
 
 could support:
 
-```text id="c5bb6k"
+```text
 documentation
 testing
 SDK generation
@@ -2583,11 +2582,11 @@ if the selected stack supports it cleanly.
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 Before adding or changing an API operation, an AI agent should inspect:
 
-```text id="1wi1g6"
+```text
 existing contract
 operation owner
 authentication requirements
@@ -2600,17 +2599,17 @@ tests
 
 ---
 
-# AI Must Not Expose Internal Models
+## AI Must Not Expose Internal Models
 
 An AI agent must not solve API implementation by directly serializing ORM or domain objects unless the contract explicitly defines that representation.
 
 ---
 
-# AI and Breaking Changes
+## AI and Breaking Changes
 
 Before modifying a consumed contract, an AI agent should determine:
 
-```text id="1rb89u"
+```text
 which consumers exist
 whether compatibility is promised
 whether change can be additive
@@ -2621,13 +2620,13 @@ It should not introduce a new API version automatically.
 
 ---
 
-# AI and Validation
+## AI and Validation
 
 An AI agent should use canonical request schemas rather than duplicate validation manually where the architecture supports shared schemas.
 
 ---
 
-# AI and Authorization
+## AI and Authorization
 
 An AI agent must not infer that authentication alone is sufficient for protected operations.
 
@@ -2635,7 +2634,7 @@ It should identify the authorization capability required by the operation.
 
 ---
 
-# AI and Error Codes
+## AI and Error Codes
 
 An AI agent should reuse canonical registered error codes where semantics already exist.
 
@@ -2643,7 +2642,7 @@ It must not create near-duplicate error codes casually.
 
 ---
 
-# AI and Pagination
+## AI and Pagination
 
 An AI agent must not create unbounded collection endpoints for potentially large datasets.
 
@@ -2651,11 +2650,11 @@ It should evaluate pagination and maximum result size.
 
 ---
 
-# AI and Idempotency
+## AI and Idempotency
 
 Before implementing a non-idempotent state-changing endpoint, an AI agent should consider:
 
-```text id="1mo13e"
+```text
 duplicate submission
 client retry
 timeout ambiguity
@@ -2663,7 +2662,7 @@ timeout ambiguity
 
 ---
 
-# AI and Documentation
+## AI and Documentation
 
 API contract changes should update canonical machine-readable definitions so generated documentation remains current.
 
@@ -2671,7 +2670,7 @@ Manual generated-file edits are prohibited.
 
 ---
 
-# New API Operation Checklist
+## New API Operation Checklist
 
 Before introducing a new API operation, answer:
 
@@ -2698,7 +2697,7 @@ If these questions cannot be answered, the operation design is incomplete.
 
 ---
 
-# New Field Checklist
+## New Field Checklist
 
 Before adding an API field, answer:
 
@@ -2717,7 +2716,7 @@ Before adding an API field, answer:
 
 ---
 
-# API Breaking-Change Checklist
+## API Breaking-Change Checklist
 
 Before introducing a breaking change, answer:
 
@@ -2734,7 +2733,7 @@ Before introducing a breaking change, answer:
 
 ---
 
-# Collection Endpoint Checklist
+## Collection Endpoint Checklist
 
 Before exposing a collection, answer:
 
@@ -2751,115 +2750,115 @@ Before exposing a collection, answer:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Database Table Equals API Resource by Default
+### Database Table Equals API Resource by Default
 
 Avoid.
 
 ---
 
-## ORM Object Serialized Directly
+### ORM Object Serialized Directly
 
 Avoid.
 
 ---
 
-## Request Body Passed Directly to Persistence
+### Request Body Passed Directly to Persistence
 
 Prohibited.
 
 ---
 
-## Generic Mass Update
+### Generic Mass Update
 
 Avoid for security- or domain-sensitive resources.
 
 ---
 
-## Client-Provided Role Trusted
+### Client-Provided Role Trusted
 
 Prohibited.
 
 ---
 
-## Client-Provided Tenant Trusted Without Authorization
+### Client-Provided Tenant Trusted Without Authorization
 
 Prohibited.
 
 ---
 
-## Error Message Parsing as Contract
+### Error Message Parsing as Contract
 
 Prohibited.
 
 ---
 
-## Raw Database Error as API Error
+### Raw Database Error as API Error
 
 Prohibited.
 
 ---
 
-## Stack Trace in Public Response
+### Stack Trace in Public Response
 
 Prohibited.
 
 ---
 
-## Unbounded Collection Endpoint
+### Unbounded Collection Endpoint
 
 Avoid.
 
 ---
 
-## Arbitrary Sort Field Passed to Database
+### Arbitrary Sort Field Passed to Database
 
 Prohibited.
 
 ---
 
-## Arbitrary Filter Passthrough
+### Arbitrary Filter Passthrough
 
 Avoid.
 
 ---
 
-## Token in URL
+### Token in URL
 
 Avoid except when an explicit protocol requires a short-lived capability.
 
 ---
 
-## Full Request/Response Logging
+### Full Request/Response Logging
 
 Prohibited by default.
 
 ---
 
-## New API Version for Every Breaking Internal Refactor
+### New API Version for Every Breaking Internal Refactor
 
 Avoid.
 
 ---
 
-## Silent Semantic Change
+### Silent Semantic Change
 
 Prohibited when consumers rely on existing meaning.
 
 ---
 
-## Feature Flag Used as Authorization
+### Feature Flag Used as Authorization
 
 Prohibited.
 
 ---
 
-## Client SDK as Canonical Contract
+### Client SDK as Canonical Contract
 
 Avoid.
 
@@ -2867,13 +2866,13 @@ SDKs should derive from canonical contracts.
 
 ---
 
-## Generated Contract Documentation Edited Manually
+### Generated Contract Documentation Edited Manually
 
 Prohibited.
 
 ---
 
-# Initial API Policy
+## Initial API Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2900,21 +2899,14 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Remaining Implementation Decisions
 
-The following decisions are intentionally deferred:
+The accepted choices are linked above. These remaining details are intentionally deferred:
 
-```text id="bgiv1x"
-primary API style
-HTTP framework
-canonical schema library
-OpenAPI generation
-request validation mechanism
-response serialization mechanism
+```text
 pagination convention
 cursor format
 idempotency-key convention
-SDK generation
 API documentation tooling
 rate-limiting implementation
 API gateway
@@ -2927,33 +2919,28 @@ Significant choices should be captured through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should be complemented by:
 
-```text id="cdx4qr"
-docs/api/error-contract.md
-docs/api/versioning.md
-
-docs/architecture/versioning-and-compatibility.md
-
-docs/reliability/logging.md
-docs/reliability/tracing.md
-
-docs/security/data-retention.md
-```
+- [docs/api/error-contract.md](error-contract.md)
+- [docs/api/versioning.md](versioning.md)
+- [docs/architecture/versioning-and-compatibility.md](../architecture/versioning-and-compatibility.md)
+- [docs/reliability/logging.md](../reliability/logging.md)
+- [docs/reliability/tracing.md](../reliability/tracing.md)
+- [docs/security/data-retention.md](../security/data-retention.md)
 
 Implementation-specific API documentation should derive from canonical contracts rather than redefining them manually.
 
 ---
 
-# Summary
+## Summary
 
 An API exposes application capabilities through explicit contracts.
 
 The intended boundary is:
 
-```text id="1yn2zg"
+```text
 untrusted consumer
         ↓
 explicit contract
@@ -2971,7 +2958,7 @@ explicit response contract
 
 Orion prefers:
 
-```text id="q3sh8n"
+```text
 capabilities over database exposure
 
 explicit contracts over implicit serialization

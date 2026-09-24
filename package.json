@@ -1,0 +1,31 @@
+{
+  "name": "orion",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": "^24.13.0",
+    "pnpm": "11.25.0"
+  },
+  "scripts": {
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,yaml,yml}\" \".*.mjs\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,yaml,yml}\" \".*.mjs\"",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "architecture": "depcruise --config .dependency-cruiser.mjs --include-only \"^(apps|packages|tooling|infra)/|^(eslint\\.config|\\.dependency-cruiser)\" .",
+    "docs:check": "node tooling/validate/docs.ts",
+    "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm architecture && pnpm docs:check"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/markdown-it": "14.2.0",
+    "@types/node": "24.13.6",
+    "dependency-cruiser": "18.4.0",
+    "eslint": "10.11.0",
+    "github-slugger": "2.0.0",
+    "markdown-it": "15.0.2",
+    "prettier": "3.9.8",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.1"
+  }
+}

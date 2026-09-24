@@ -1,5 +1,19 @@
 # Tracing
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0010](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Context Propagation](#context-propagation)
+- [Untrusted Trace Context](#untrusted-trace-context)
+- [Trace Links](#trace-links)
+- [Sampling Checklist](#sampling-checklist)
+- [New Span Checklist](#new-span-checklist)
+
+Related policy: [telemetry redaction](../security/telemetry-redaction.md), [logging](logging.md).
+
 ## Purpose
 
 This document defines the distributed tracing principles used by Orion.
@@ -37,15 +51,15 @@ Tracing must not become a mechanism for recording arbitrary application data.
 
 This document is technology-agnostic.
 
-Specific tracing SDKs, OpenTelemetry implementation, collectors, sampling providers, storage systems, and visualization tools will be selected later through explicit architectural decisions.
+ADR-0010 selects OpenTelemetry, W3C Trace Context, and OTLP, with a Collector preferred when justified. Implementation details, sampling, storage, and visualization remain deployment-specific.
 
 This document complements:
 
-- `docs/reliability/observability.md`;
-- `docs/reliability/logging.md`;
-- `docs/reliability/error-reporting.md`;
-- `docs/security/telemetry-redaction.md`;
-- `docs/architecture/error-handling.md`.
+- [docs/reliability/observability.md](observability.md);
+- [docs/reliability/logging.md](logging.md);
+- [docs/reliability/error-reporting.md](error-reporting.md);
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md);
+- [docs/architecture/error-handling.md](../architecture/error-handling.md).
 
 ---
 
@@ -73,7 +87,7 @@ It should not attempt to record every function call.
 
 ---
 
-# Trace
+## Trace
 
 A trace represents one logical execution across one or more components.
 
@@ -107,7 +121,7 @@ when context propagation exists.
 
 ---
 
-# Trace ID
+## Trace ID
 
 A trace should have a stable opaque:
 
@@ -121,7 +135,7 @@ Where practical, logs and error reports produced inside the traced execution sho
 
 ---
 
-# Span
+## Span
 
 A span represents one meaningful unit of work inside a trace.
 
@@ -158,7 +172,7 @@ according to the selected tracing standard.
 
 ---
 
-# Span ID
+## Span ID
 
 Each span should have a stable opaque:
 
@@ -178,7 +192,7 @@ trace visualization
 
 ---
 
-# Parent and Child Spans
+## Parent and Child Spans
 
 Synchronous nested operations normally form parent-child relationships.
 
@@ -198,7 +212,7 @@ This relationship should represent actual execution causality.
 
 ---
 
-# Trace Links
+## Trace Links
 
 Not all causal relationships are strict parent-child relationships.
 
@@ -218,7 +232,7 @@ Where the tracing standard supports links, use them when they better represent c
 
 ---
 
-# Trace Context
+## Trace Context
 
 Trace context contains the identifiers and metadata required to continue a trace across a boundary.
 
@@ -235,7 +249,7 @@ The exact representation should use established standards rather than custom pro
 
 ---
 
-# Context Propagation
+## Context Propagation
 
 Trace context should propagate across supported boundaries automatically where practical.
 
@@ -253,7 +267,7 @@ Application developers should not manually pass trace IDs through every business
 
 ---
 
-# Propagation Is Boundary Infrastructure
+## Propagation Is Boundary Infrastructure
 
 Trace propagation belongs in:
 
@@ -269,7 +283,7 @@ rather than domain logic.
 
 ---
 
-# Open Standards
+## Open Standards
 
 Orion should prefer established tracing standards.
 
@@ -279,7 +293,7 @@ The exact implementation is deferred.
 
 ---
 
-# Vendor Isolation
+## Vendor Isolation
 
 Application code should use Orion tracing semantics or standard instrumentation.
 
@@ -289,7 +303,7 @@ A tracing vendor should be replaceable without rewriting business logic.
 
 ---
 
-# Root Spans
+## Root Spans
 
 A root span begins a new trace.
 
@@ -311,7 +325,7 @@ Do not create unrelated root traces inside one logical operation unnecessarily.
 
 ---
 
-# Incoming Requests
+## Incoming Requests
 
 An incoming network request should normally create or continue a trace.
 
@@ -321,7 +335,7 @@ Otherwise it should start a new trace.
 
 ---
 
-# Untrusted Trace Context
+## Untrusted Trace Context
 
 Trace headers come from external input.
 
@@ -331,7 +345,7 @@ Malformed trace context must not cause request failure unless the protocol expli
 
 ---
 
-# External Trace IDs Are Not Identity
+## External Trace IDs Are Not Identity
 
 A caller-provided trace identifier does not establish:
 
@@ -346,7 +360,7 @@ Tracing context is operational metadata only.
 
 ---
 
-# Trace Context Trust
+## Trace Context Trust
 
 Externally supplied trace metadata should not be allowed to inject:
 
@@ -362,7 +376,7 @@ Only supported tracing fields should be accepted.
 
 ---
 
-# Outbound HTTP Calls
+## Outbound HTTP Calls
 
 Instrumented outbound calls should continue the current trace where supported.
 
@@ -380,7 +394,7 @@ Avoid raw query parameters and sensitive headers.
 
 ---
 
-# External Providers
+## External Providers
 
 Calls to external providers should usually appear as spans when they materially affect latency or failure.
 
@@ -400,7 +414,7 @@ The span should expose enough metadata to distinguish operational dependencies w
 
 ---
 
-# Provider Span Names
+## Provider Span Names
 
 Prefer stable semantic names.
 
@@ -420,7 +434,7 @@ Avoid names derived from raw URL paths containing identifiers.
 
 ---
 
-# Database Spans
+## Database Spans
 
 Database operations should be traceable when meaningful.
 
@@ -439,7 +453,7 @@ depending on the selected instrumentation.
 
 ---
 
-# Database Query Data
+## Database Query Data
 
 Raw query parameters must not enter traces by default.
 
@@ -456,7 +470,7 @@ Tracing follows the same telemetry-redaction policy as logs.
 
 ---
 
-# Database Statement Capture
+## Database Statement Capture
 
 Automatic statement capture should be reviewed carefully.
 
@@ -473,7 +487,7 @@ as appropriate.
 
 ---
 
-# ORM Instrumentation
+## ORM Instrumentation
 
 ORM tracing is useful only if it preserves meaningful database visibility.
 
@@ -481,7 +495,7 @@ Instrumentation should not produce dozens of redundant spans for one logical que
 
 ---
 
-# Application Spans
+## Application Spans
 
 Application-level spans should represent important logical operations.
 
@@ -501,7 +515,7 @@ Do not create spans for every private helper.
 
 ---
 
-# Span Granularity
+## Span Granularity
 
 A span should justify its existence through:
 
@@ -525,7 +539,7 @@ unless those operations are unusually expensive or operationally significant.
 
 ---
 
-# Trace Noise
+## Trace Noise
 
 Too many spans make traces difficult to understand and expensive to store.
 
@@ -542,7 +556,7 @@ not maximum span count.
 
 ---
 
-# Span Naming
+## Span Naming
 
 Span names should be stable and low cardinality.
 
@@ -574,7 +588,7 @@ Identifiers and personal data do not belong in span names.
 
 ---
 
-# Span Names Are Operational Contracts
+## Span Names Are Operational Contracts
 
 Dashboards and trace searches may depend on span names.
 
@@ -589,7 +603,7 @@ error messages
 
 ---
 
-# Attributes
+## Attributes
 
 Span attributes provide structured context.
 
@@ -614,7 +628,7 @@ when safe and useful.
 
 ---
 
-# Attribute Naming
+## Attribute Naming
 
 Attribute names should follow established semantic conventions where available.
 
@@ -624,7 +638,7 @@ The exact convention is deferred.
 
 ---
 
-# Attribute Values
+## Attribute Values
 
 Attribute values should preferably be:
 
@@ -639,7 +653,7 @@ Do not attach arbitrary complex objects.
 
 ---
 
-# High-Cardinality Attributes
+## High-Cardinality Attributes
 
 Traces can tolerate some identifiers better than metrics.
 
@@ -655,7 +669,7 @@ Only attach high-cardinality fields when they materially improve diagnosis.
 
 ---
 
-# Actor Identifiers
+## Actor Identifiers
 
 An opaque internal actor identifier may be useful in traces for authorized investigation.
 
@@ -671,7 +685,7 @@ when a safe internal ID is sufficient.
 
 ---
 
-# Tenant Identifiers
+## Tenant Identifiers
 
 Tenant IDs may improve multi-tenant diagnosis.
 
@@ -681,32 +695,30 @@ Do not expose tenant names or other sensitive tenant information unless operatio
 
 ---
 
-# Sensitive Data
+## Sensitive Data
 
 Tracing must follow:
 
-```text
-docs/security/data-classification.md
-docs/security/telemetry-redaction.md
-```
+- [docs/security/data-classification.md](../security/data-classification.md)
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md)
 
 `RESTRICTED` data must never be intentionally recorded in traces.
 
 ---
 
-# Request Payloads
+## Request Payloads
 
 Complete request bodies must not be recorded as span attributes or events by default.
 
 ---
 
-# Response Payloads
+## Response Payloads
 
 Complete response bodies must not be recorded in traces by default.
 
 ---
 
-# Headers
+## Headers
 
 Sensitive headers must not be attached to spans.
 
@@ -722,7 +734,7 @@ provider signatures
 
 ---
 
-# URLs
+## URLs
 
 Raw URLs may include sensitive query parameters.
 
@@ -738,7 +750,7 @@ according to tracing conventions.
 
 ---
 
-# Exceptions
+## Exceptions
 
 Unexpected exceptions may be attached to the responsible span using standardized exception events or attributes.
 
@@ -748,7 +760,7 @@ Do not attach entire request objects or raw internal state alongside the excepti
 
 ---
 
-# Span Status
+## Span Status
 
 Span status should indicate whether the span completed successfully according to tracing semantics.
 
@@ -756,7 +768,7 @@ Do not mark every expected business rejection as an infrastructure tracing error
 
 ---
 
-# Business Failure vs Technical Failure
+## Business Failure vs Technical Failure
 
 For example:
 
@@ -777,7 +789,7 @@ without necessarily treating the trace as an unexpected system failure.
 
 ---
 
-# HTTP Client Errors
+## HTTP Client Errors
 
 A `4xx` response does not automatically imply a trace error.
 
@@ -803,7 +815,7 @@ Context matters.
 
 ---
 
-# Error Recording
+## Error Recording
 
 Unexpected errors should be associated with the span that owns the failed operation.
 
@@ -821,7 +833,7 @@ logs
 
 ---
 
-# Error Events
+## Error Events
 
 Do not create repeated exception events across every parent span.
 
@@ -829,7 +841,7 @@ One failure should not appear as duplicated error evidence throughout the entire
 
 ---
 
-# Logs and Traces
+## Logs and Traces
 
 Logs emitted inside an active span should inherit:
 
@@ -844,7 +856,7 @@ This enables correlation without manually copying identifiers.
 
 ---
 
-# Traces and Metrics
+## Traces and Metrics
 
 Tracing and metrics serve different purposes.
 
@@ -864,7 +876,7 @@ Instrumentation may derive metrics from traces, but the operational concepts rem
 
 ---
 
-# Span Events vs Logs
+## Span Events vs Logs
 
 Span events may represent important occurrences tied directly to one span.
 
@@ -884,7 +896,7 @@ Avoid recording both automatically without reason.
 
 ---
 
-# Baggage
+## Baggage
 
 Distributed tracing standards may support baggage that propagates arbitrary key-value context.
 
@@ -894,7 +906,7 @@ It is propagated broadly and may reach external systems.
 
 ---
 
-# Baggage Is Not General Context Storage
+## Baggage Is Not General Context Storage
 
 Do not put:
 
@@ -911,7 +923,7 @@ in tracing baggage.
 
 ---
 
-# Safe Baggage
+## Safe Baggage
 
 If baggage is used, fields should be:
 
@@ -926,7 +938,7 @@ Many contexts should remain local rather than propagated.
 
 ---
 
-# Baggage Cardinality
+## Baggage Cardinality
 
 Baggage increases network and processing overhead.
 
@@ -934,7 +946,7 @@ Avoid unnecessary fields.
 
 ---
 
-# Authentication Context
+## Authentication Context
 
 Authentication principal information should not be transported through tracing context as an authority mechanism.
 
@@ -944,7 +956,7 @@ Actual authentication and authorization must use trusted application context.
 
 ---
 
-# Asynchronous Messaging
+## Asynchronous Messaging
 
 Asynchronous messaging requires deliberate causal propagation.
 
@@ -962,7 +974,7 @@ The consumer should be traceable back to the producing operation where useful.
 
 ---
 
-# Producer Spans
+## Producer Spans
 
 Publishing an event or job may create a producer span representing:
 
@@ -976,7 +988,7 @@ depending on tracing conventions.
 
 ---
 
-# Consumer Spans
+## Consumer Spans
 
 Message processing should create a consumer span representing:
 
@@ -996,7 +1008,7 @@ attempt
 
 ---
 
-# Queue Delay
+## Queue Delay
 
 Where tracing infrastructure supports it, async telemetry may distinguish:
 
@@ -1014,7 +1026,7 @@ This distinction is valuable for diagnosing latency.
 
 ---
 
-# Long-Running Async Work
+## Long-Running Async Work
 
 A trace that remains conceptually open for hours or days may be impractical.
 
@@ -1030,7 +1042,7 @@ rather than one enormous trace.
 
 ---
 
-# Trace Lifetime
+## Trace Lifetime
 
 Trace boundaries should reflect useful diagnostic sessions.
 
@@ -1048,7 +1060,7 @@ and trace links where appropriate.
 
 ---
 
-# Scheduled Jobs
+## Scheduled Jobs
 
 A scheduled job with no upstream causal trace should start a new trace.
 
@@ -1064,7 +1076,7 @@ using safe bounded metadata.
 
 ---
 
-# Retry Attempts
+## Retry Attempts
 
 Retries may occur within:
 
@@ -1091,7 +1103,7 @@ retry reason
 
 ---
 
-# Immediate Retries
+## Immediate Retries
 
 Short retries within one synchronous operation may remain child spans of the same trace.
 
@@ -1107,7 +1119,7 @@ provider attempt 2
 
 ---
 
-# Delayed Retries
+## Delayed Retries
 
 A retry hours later may be better represented as a new trace linked to the original job or message.
 
@@ -1115,7 +1127,7 @@ Operational clarity takes precedence over preserving one continuous trace tree.
 
 ---
 
-# Duplicate Message Processing
+## Duplicate Message Processing
 
 Duplicate delivery may generate separate consumer traces.
 
@@ -1125,7 +1137,7 @@ Do not force duplicates into one trace if they are independent executions.
 
 ---
 
-# Fan-Out
+## Fan-Out
 
 One operation may produce many downstream tasks.
 
@@ -1143,7 +1155,7 @@ Use trace links, workflow identifiers, or selective tracing.
 
 ---
 
-# Fan-In
+## Fan-In
 
 A task may depend on several upstream operations.
 
@@ -1153,7 +1165,7 @@ Trace links should be considered where supported.
 
 ---
 
-# Batch Processing
+## Batch Processing
 
 Batch consumers should avoid attaching thousands of item identifiers to one span.
 
@@ -1169,7 +1181,7 @@ according to workload.
 
 ---
 
-# Browser Tracing
+## Browser Tracing
 
 Web applications may participate in distributed tracing.
 
@@ -1187,7 +1199,7 @@ Only safe context should cross from browser to backend.
 
 ---
 
-# Mobile Tracing
+## Mobile Tracing
 
 Mobile tracing may help diagnose:
 
@@ -1208,7 +1220,7 @@ offline behavior
 
 ---
 
-# Desktop Tracing
+## Desktop Tracing
 
 Desktop applications may similarly generate traces.
 
@@ -1216,7 +1228,7 @@ Local filesystem paths, usernames, and machine identifiers should not be capture
 
 ---
 
-# Client-to-Server Trace Propagation
+## Client-to-Server Trace Propagation
 
 Clients may propagate trace context to backend APIs where standards and security policy allow it.
 
@@ -1224,7 +1236,7 @@ The backend must treat client-provided trace context as operational metadata, no
 
 ---
 
-# Cross-Origin Propagation
+## Cross-Origin Propagation
 
 Browser trace-header propagation may require explicit allowed origins and headers.
 
@@ -1232,7 +1244,7 @@ Do not broadly expose tracing headers without understanding CORS and privacy imp
 
 ---
 
-# Third-Party Propagation
+## Third-Party Propagation
 
 Do not automatically propagate internal trace context to every third-party provider.
 
@@ -1242,7 +1254,7 @@ Some providers should be treated as external trace boundaries.
 
 ---
 
-# Trace Boundaries and Trust Boundaries
+## Trace Boundaries and Trust Boundaries
 
 A trace may cross a trust boundary.
 
@@ -1252,7 +1264,7 @@ Context propagation should send only protocol-defined trace data unless addition
 
 ---
 
-# Sampling
+## Sampling
 
 Tracing every operation may be too expensive at scale.
 
@@ -1262,7 +1274,7 @@ Sampling strategy must preserve useful diagnostic coverage.
 
 ---
 
-# Head Sampling
+## Head Sampling
 
 Head sampling decides early whether a trace should be sampled.
 
@@ -1278,7 +1290,7 @@ It may discard interesting traces before their outcome is known.
 
 ---
 
-# Tail Sampling
+## Tail Sampling
 
 Tail sampling decides after observing more of the trace.
 
@@ -1296,7 +1308,7 @@ It requires more sophisticated collection infrastructure.
 
 ---
 
-# Sampling Decision Propagation
+## Sampling Decision Propagation
 
 When using distributed head sampling, the sampling decision should propagate with trace context where standards require it.
 
@@ -1304,7 +1316,7 @@ This avoids inconsistent partial traces.
 
 ---
 
-# Errors and Sampling
+## Errors and Sampling
 
 Unexpected error traces should generally have higher retention priority.
 
@@ -1312,7 +1324,7 @@ A sampling system that routinely discards error traces reduces incident diagnosa
 
 ---
 
-# Slow Traces
+## Slow Traces
 
 Slow traces may be sampled at a higher rate or retained through tail-based policies.
 
@@ -1320,13 +1332,13 @@ Thresholds should follow actual service expectations.
 
 ---
 
-# Rare Operations
+## Rare Operations
 
 Low-volume high-value workflows may justify near-complete tracing even when high-volume endpoints are sampled.
 
 ---
 
-# Security Events
+## Security Events
 
 Tracing is not the canonical security audit mechanism.
 
@@ -1334,7 +1346,7 @@ Do not rely on sampling-sensitive traces as the only record of required security
 
 ---
 
-# Sampling and Correlation
+## Sampling and Correlation
 
 If a trace is not exported, logs and error reports may still contain the generated trace ID.
 
@@ -1342,7 +1354,7 @@ Investigators should understand that an ID may exist without a retained trace.
 
 ---
 
-# Sampling Transparency
+## Sampling Transparency
 
 Operational tooling should make it clear when a trace is unavailable due to sampling rather than missing instrumentation.
 
@@ -1350,7 +1362,7 @@ Where provider capabilities permit, this distinction is useful.
 
 ---
 
-# Sampling Cost
+## Sampling Cost
 
 Sampling should consider:
 
@@ -1366,7 +1378,7 @@ Cost management should not eliminate evidence required for reliability.
 
 ---
 
-# Dynamic Sampling
+## Dynamic Sampling
 
 Sampling rules may change according to:
 
@@ -1381,7 +1393,7 @@ Dynamic policies should remain bounded and understandable.
 
 ---
 
-# Production vs Development Sampling
+## Production vs Development Sampling
 
 Development and test environments may trace more heavily.
 
@@ -1391,7 +1403,7 @@ All environments remain subject to data-redaction rules.
 
 ---
 
-# Test Environment Tracing
+## Test Environment Tracing
 
 Tests should not require access to the production tracing provider.
 
@@ -1399,7 +1411,7 @@ Instrumentation should be testable through in-memory or test exporters where use
 
 ---
 
-# Instrumentation Tests
+## Instrumentation Tests
 
 Tracing tests should focus on important guarantees.
 
@@ -1419,7 +1431,7 @@ Do not test every automatically generated span.
 
 ---
 
-# Trace Context Propagation Tests
+## Trace Context Propagation Tests
 
 Important distributed boundaries should have integration tests verifying that context is:
 
@@ -1434,7 +1446,7 @@ correctly.
 
 ---
 
-# Context Leakage
+## Context Leakage
 
 Trace context from one execution must not leak into another.
 
@@ -1451,13 +1463,13 @@ Context leakage can corrupt diagnostics and potentially expose metadata across u
 
 ---
 
-# Context Cleanup
+## Context Cleanup
 
 Runtime instrumentation must ensure trace context is correctly restored or cleared after execution.
 
 ---
 
-# Trace Attribute Redaction Tests
+## Trace Attribute Redaction Tests
 
 If instrumentation automatically captures:
 
@@ -1472,7 +1484,7 @@ tests should verify sensitive values do not appear.
 
 ---
 
-# Automatic Instrumentation
+## Automatic Instrumentation
 
 Automatic instrumentation is useful for common technologies.
 
@@ -1489,7 +1501,7 @@ It reduces manual work and improves consistency.
 
 ---
 
-# Automatic Instrumentation Review
+## Automatic Instrumentation Review
 
 Automatically captured attributes must be reviewed before production use.
 
@@ -1497,7 +1509,7 @@ Default instrumentation may capture more data than Orion policy permits.
 
 ---
 
-# Manual Instrumentation
+## Manual Instrumentation
 
 Manual spans should be introduced when automatic instrumentation cannot explain important application behavior.
 
@@ -1513,7 +1525,7 @@ Manual instrumentation should remain focused.
 
 ---
 
-# Duplicate Instrumentation
+## Duplicate Instrumentation
 
 Avoid multiple libraries instrumenting the same dependency and producing duplicate spans.
 
@@ -1531,7 +1543,7 @@ One authoritative instrumentation path should be selected.
 
 ---
 
-# Framework Instrumentation
+## Framework Instrumentation
 
 Framework-generated span names and attributes may require normalization to Orion conventions.
 
@@ -1545,7 +1557,7 @@ implementation-specific noise
 
 ---
 
-# Database Instrumentation
+## Database Instrumentation
 
 Database instrumentation should expose enough detail to diagnose:
 
@@ -1559,7 +1571,7 @@ without exposing row values.
 
 ---
 
-# Queue Instrumentation
+## Queue Instrumentation
 
 Queue instrumentation should expose:
 
@@ -1576,7 +1588,7 @@ Queue names may be safe if they are architectural identifiers.
 
 ---
 
-# Cache Instrumentation
+## Cache Instrumentation
 
 Cache spans may be useful when cache behavior materially affects latency.
 
@@ -1592,7 +1604,7 @@ Avoid creating excessive spans for trivial local in-memory caches.
 
 ---
 
-# Filesystem Instrumentation
+## Filesystem Instrumentation
 
 Server filesystem spans are generally unnecessary unless file operations are important or slow.
 
@@ -1600,7 +1612,7 @@ Do not record sensitive absolute paths by default.
 
 ---
 
-# DNS and Network Spans
+## DNS and Network Spans
 
 Low-level network instrumentation may help diagnose specialized failures.
 
@@ -1608,7 +1620,7 @@ It should not be enabled automatically if it overwhelms higher-value application
 
 ---
 
-# Trace Events
+## Trace Events
 
 A span may contain bounded events.
 
@@ -1624,7 +1636,7 @@ Events should remain semantic and safe.
 
 ---
 
-# Trace Events vs High-Volume Loops
+## Trace Events vs High-Volume Loops
 
 Do not add one event per:
 
@@ -1649,7 +1661,7 @@ where appropriate.
 
 ---
 
-# Trace Size Limits
+## Trace Size Limits
 
 Tracing infrastructure should enforce reasonable limits on:
 
@@ -1665,7 +1677,7 @@ The exact limits depend on provider and workload.
 
 ---
 
-# Truncation
+## Truncation
 
 Tracing systems may truncate oversized attributes.
 
@@ -1675,7 +1687,7 @@ Restricted values must be omitted or redacted.
 
 ---
 
-# Trace Status and Retries
+## Trace Status and Retries
 
 A failed attempt may have an error status even when the overall operation ultimately succeeds.
 
@@ -1692,7 +1704,7 @@ This is valuable diagnostic evidence.
 
 ---
 
-# Partial Failure
+## Partial Failure
 
 Traces should make partial failures visible.
 
@@ -1700,7 +1712,7 @@ A successful parent operation should not hide significant failed dependency atte
 
 ---
 
-# Fallbacks
+## Fallbacks
 
 If a fallback path is used, tracing may record:
 
@@ -1714,7 +1726,7 @@ Fallback use may indicate degraded behavior and should be observable.
 
 ---
 
-# Circuit Breakers
+## Circuit Breakers
 
 If circuit breakers are introduced, tracing may record bounded state such as:
 
@@ -1728,7 +1740,7 @@ The exact implementation belongs to resilience infrastructure.
 
 ---
 
-# Timeouts
+## Timeouts
 
 Dependency spans should indicate timeout failures distinctly from:
 
@@ -1742,7 +1754,7 @@ where safe standardized attributes exist.
 
 ---
 
-# Cancellation
+## Cancellation
 
 A cancelled operation should be distinguishable from failure where tracing semantics support it.
 
@@ -1756,7 +1768,7 @@ request context expired
 
 ---
 
-# Process Lifecycle
+## Process Lifecycle
 
 Application startup and shutdown are usually better represented through logs and metrics than distributed traces.
 
@@ -1764,7 +1776,7 @@ Use traces only if startup has a meaningful multi-step diagnostic workflow worth
 
 ---
 
-# Migrations
+## Migrations
 
 Database migrations may use traces for complex operations if valuable.
 
@@ -1774,7 +1786,7 @@ Do not instrument every DDL statement merely to create trace volume.
 
 ---
 
-# Health Checks
+## Health Checks
 
 Routine health checks should usually be excluded from tracing or heavily sampled.
 
@@ -1784,19 +1796,19 @@ Failures may still require telemetry.
 
 ---
 
-# Metrics Scraping
+## Metrics Scraping
 
 Metrics endpoints should normally be excluded from distributed tracing.
 
 ---
 
-# Static Assets
+## Static Assets
 
 High-volume static asset requests may not require backend traces unless they participate in meaningful application behavior.
 
 ---
 
-# Route Exclusions
+## Route Exclusions
 
 The tracing configuration may exclude or sample specific routes according to:
 
@@ -1810,7 +1822,7 @@ Exclusion must not hide critical workflows.
 
 ---
 
-# Internal Diagnostics
+## Internal Diagnostics
 
 Tracing systems themselves must expose health and failure signals.
 
@@ -1827,7 +1839,7 @@ Loss of observability should be visible.
 
 ---
 
-# Telemetry Must Not Break Business Operations
+## Telemetry Must Not Break Business Operations
 
 Trace export failure should normally not cause application operations to fail.
 
@@ -1835,13 +1847,13 @@ Observability is important but must remain outside the critical business path un
 
 ---
 
-# Export Backpressure
+## Export Backpressure
 
 If the tracing exporter cannot keep up, instrumentation should use bounded buffers and safe dropping behavior rather than exhausting application memory.
 
 ---
 
-# Export Failure
+## Export Failure
 
 Exporter failures may be logged or measured in a rate-limited manner.
 
@@ -1849,7 +1861,7 @@ Avoid recursive failure where telemetry errors create more telemetry endlessly.
 
 ---
 
-# Collector Isolation
+## Collector Isolation
 
 Collector or provider outages should not create catastrophic application failure.
 
@@ -1857,7 +1869,7 @@ The observability pipeline should degrade safely.
 
 ---
 
-# Trace Retention
+## Trace Retention
 
 Trace retention should consider:
 
@@ -1872,7 +1884,7 @@ The exact policy belongs to future data-retention and provider configuration.
 
 ---
 
-# Trace Access
+## Trace Access
 
 Production traces may contain:
 
@@ -1887,7 +1899,7 @@ Access should be restricted according to production-access policy.
 
 ---
 
-# Trace Export to Third Parties
+## Trace Export to Third Parties
 
 A tracing provider is a data processor for captured telemetry.
 
@@ -1905,7 +1917,7 @@ according to actual product requirements.
 
 ---
 
-# Trace Attribute Inventory
+## Trace Attribute Inventory
 
 As Orion matures, common trace attributes should have documented semantics.
 
@@ -1922,7 +1934,7 @@ The actual naming convention should follow the chosen standard and avoid duplica
 
 ---
 
-# Semantic Conventions
+## Semantic Conventions
 
 Prefer standard semantic conventions when they accurately represent the data.
 
@@ -1930,7 +1942,7 @@ Custom attributes should exist only for Orion-specific concepts.
 
 ---
 
-# Stable Operation Names
+## Stable Operation Names
 
 Operation names shared across:
 
@@ -1955,7 +1967,7 @@ This should be encouraged where practical.
 
 ---
 
-# Unified Correlation Model
+## Unified Correlation Model
 
 The desired observability model is:
 
@@ -1975,7 +1987,7 @@ It requires enough shared metadata to navigate between them.
 
 ---
 
-# AI Investigation
+## AI Investigation
 
 Tracing should allow an AI agent, under appropriate authorization, to investigate:
 
@@ -1995,7 +2007,7 @@ without needing raw sensitive payloads.
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 Before adding manual tracing, an AI agent should ask:
 
@@ -2011,7 +2023,7 @@ Are all proposed attributes safe?
 
 ---
 
-# AI and Span Granularity
+## AI and Span Granularity
 
 An AI agent should not instrument every function automatically.
 
@@ -2026,7 +2038,7 @@ async boundaries
 
 ---
 
-# AI and Sensitive Attributes
+## AI and Sensitive Attributes
 
 An AI agent must not add:
 
@@ -2046,7 +2058,7 @@ Restricted data remains prohibited.
 
 ---
 
-# AI and Trace Propagation
+## AI and Trace Propagation
 
 When adding a new:
 
@@ -2061,7 +2073,7 @@ an AI agent should consider trace propagation and ensure context is not lost or 
 
 ---
 
-# AI and Async Causality
+## AI and Async Causality
 
 An AI agent should not force a parent-child trace relationship when:
 
@@ -2075,7 +2087,7 @@ Trace links or workflow identifiers may better represent reality.
 
 ---
 
-# AI and Sampling
+## AI and Sampling
 
 An AI agent should not disable sampling globally merely to debug a local issue.
 
@@ -2083,7 +2095,7 @@ Temporary tracing changes should remain bounded and secure.
 
 ---
 
-# AI and Error Reporting
+## AI and Error Reporting
 
 An AI agent should preserve trace correlation when integrating centralized error reporting.
 
@@ -2091,13 +2103,13 @@ Unexpected errors should ideally be navigable to their trace.
 
 ---
 
-# AI and Tests
+## AI and Tests
 
 Changes to propagation, redaction, automatic instrumentation, or context isolation should include tests where practical.
 
 ---
 
-# New Span Checklist
+## New Span Checklist
 
 Before adding a manual span, answer:
 
@@ -2114,7 +2126,7 @@ Before adding a manual span, answer:
 
 ---
 
-# New Trace Attribute Checklist
+## New Trace Attribute Checklist
 
 Before adding an attribute, answer:
 
@@ -2131,7 +2143,7 @@ Before adding an attribute, answer:
 
 ---
 
-# Async Propagation Checklist
+## Async Propagation Checklist
 
 Before propagating tracing across an asynchronous boundary, answer:
 
@@ -2148,7 +2160,7 @@ Before propagating tracing across an asynchronous boundary, answer:
 
 ---
 
-# Sampling Checklist
+## Sampling Checklist
 
 Before changing sampling, answer:
 
@@ -2165,115 +2177,115 @@ Before changing sampling, answer:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Span Per Function
+### Span Per Function
 
 Avoid.
 
 ---
 
-## Dynamic Span Names Containing Resource IDs
+### Dynamic Span Names Containing Resource IDs
 
 Avoid.
 
 ---
 
-## Request Body in Span Attributes
+### Request Body in Span Attributes
 
 Prohibited by default.
 
 ---
 
-## Response Body in Span Attributes
+### Response Body in Span Attributes
 
 Prohibited by default.
 
 ---
 
-## Credentials in Trace Context
+### Credentials in Trace Context
 
 Prohibited.
 
 ---
 
-## Personal Data in Baggage
+### Personal Data in Baggage
 
 Prohibited by default.
 
 ---
 
-## Raw SQL Parameters in Spans
+### Raw SQL Parameters in Spans
 
 Prohibited by default.
 
 ---
 
-## Entire ORM Object as Trace Attribute
+### Entire ORM Object as Trace Attribute
 
 Prohibited.
 
 ---
 
-## Trace Context Used for Authentication
+### Trace Context Used for Authentication
 
 Prohibited.
 
 ---
 
-## Trace ID Used as Authorization Evidence
+### Trace ID Used as Authorization Evidence
 
 Prohibited.
 
 ---
 
-## One Multi-Day Trace for Long Workflow
+### One Multi-Day Trace for Long Workflow
 
 Avoid.
 
 ---
 
-## Duplicate HTTP Spans From Multiple Instrumentation Layers
+### Duplicate HTTP Spans From Multiple Instrumentation Layers
 
 Avoid.
 
 ---
 
-## Tracing Every Health Check
+### Tracing Every Health Check
 
 Avoid.
 
 ---
 
-## Sampling All Traces Uniformly Regardless of Error or Value
+### Sampling All Traces Uniformly Regardless of Error or Value
 
 Avoid when smarter retention is practical.
 
 ---
 
-## Observability Provider Failure Breaks Business Operation
+### Observability Provider Failure Breaks Business Operation
 
 Avoid.
 
 ---
 
-## Alerting on High-Cardinality Span Names
+### Alerting on High-Cardinality Span Names
 
 Avoid.
 
 ---
 
-## Custom Trace Protocol When Standard Propagation Exists
+### Custom Trace Protocol When Standard Propagation Exists
 
 Avoid.
 
 ---
 
-# Initial Tracing Policy
+## Initial Tracing Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2300,16 +2312,14 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Remaining Implementation Decisions
 
-The following decisions are intentionally deferred:
+The accepted choices are linked above. These remaining details are intentionally deferred:
 
 ```text
-tracing SDK
 OpenTelemetry adoption details
 collector
 tracing provider
-propagation formats
 common span naming
 custom attribute namespace
 head vs tail sampling
@@ -2325,25 +2335,22 @@ Significant choices should be captured through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should be complemented by:
 
-```text
-docs/reliability/metrics.md
-docs/reliability/error-reporting.md
-docs/reliability/health-checks.md
-docs/reliability/alerting.md
-
-docs/security/production-access.md
-docs/security/data-retention.md
-```
+- [docs/reliability/metrics.md](metrics.md)
+- [docs/reliability/error-reporting.md](error-reporting.md)
+- [docs/reliability/health-checks.md](health-checks.md)
+- [docs/reliability/alerting.md](alerting.md)
+- [docs/security/production-access.md](../security/production-access.md)
+- [docs/security/data-retention.md](../security/data-retention.md)
 
 Provider-specific tracing configuration should be documented only after the observability stack is selected.
 
 ---
 
-# Summary
+## Summary
 
 Tracing describes causal execution.
 

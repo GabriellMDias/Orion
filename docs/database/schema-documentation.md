@@ -1,5 +1,17 @@
 # Database Schema Documentation
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0006](../adr/0006-select-prisma-orm-for-database-access-and-migrations.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Table Documentation](#table-documentation)
+- [Column Documentation](#column-documentation)
+- [Generated Reference](#generated-reference)
+- [Initial Schema Documentation Policy](#initial-schema-documentation-policy)
+- [Database Documentation](#database-documentation)
+
 ## Purpose
 
 This document defines the documentation policy for application-owned database structures in Orion.
@@ -21,15 +33,15 @@ Its documentation must explain not only what structures exist, but what those st
 
 This document is technology-agnostic.
 
-The exact schema metadata format, database-native comment mechanism, documentation generator, and output format will be selected after the database stack is chosen.
+ADR-0006 establishes the fully migrated PostgreSQL schema as the complete physical reference. The semantic metadata format, comment mechanism, generator, and output format remain implementation decisions.
 
 This document complements:
 
-- `docs/database/principles.md`;
-- `docs/database/migrations.md`;
-- `docs/database/transactions-and-concurrency.md`;
-- `docs/security/data-classification.md`;
-- `docs/architecture/principles.md`.
+- [docs/database/principles.md](principles.md);
+- [docs/database/migrations.md](migrations.md);
+- [docs/database/transactions-and-concurrency.md](transactions-and-concurrency.md);
+- [docs/security/data-classification.md](../security/data-classification.md);
+- [docs/architecture/principles.md](../architecture/principles.md).
 
 ---
 
@@ -57,7 +69,7 @@ Do not manually duplicate information that can reliably be generated.
 
 ---
 
-# Documentation Is Part of the Schema
+## Documentation Is Part of the Schema
 
 A database object is incomplete when its purpose cannot be determined reliably.
 
@@ -84,7 +96,7 @@ where supported by the selected database.
 
 ---
 
-# Canonical Documentation
+## Canonical Documentation
 
 Orion should maintain one canonical source for each database fact.
 
@@ -104,11 +116,11 @@ Do not separately maintain these structural facts in prose when tooling can deri
 
 ---
 
-# Structural vs Semantic Documentation
+## Structural vs Semantic Documentation
 
 Database documentation contains two broad classes of information.
 
-## Structural Information
+### Structural Information
 
 Structural information can usually be derived automatically.
 
@@ -126,7 +138,7 @@ unique constraint
 index
 ```
 
-## Semantic Information
+### Semantic Information
 
 Semantic information usually requires explicit metadata or authored explanation.
 
@@ -147,7 +159,7 @@ Both are necessary.
 
 ---
 
-# Machine-Readable First
+## Machine-Readable First
 
 When semantic information can be represented safely and clearly in the canonical schema, prefer machine-readable metadata.
 
@@ -168,7 +180,7 @@ The exact syntax is intentionally deferred.
 
 ---
 
-# Authored Documentation
+## Authored Documentation
 
 Not every database concept belongs inside schema metadata.
 
@@ -188,7 +200,7 @@ Schema comments should not become long architectural essays.
 
 ---
 
-# Documentation Layers
+## Documentation Layers
 
 Orion should eventually support three layers of database documentation:
 
@@ -207,7 +219,7 @@ Each layer has a different responsibility.
 
 ---
 
-# Application-Owned Objects
+## Application-Owned Objects
 
 This policy applies to application-owned database objects.
 
@@ -225,7 +237,7 @@ unless those objects materially affect application architecture or operations.
 
 ---
 
-# Ownership Metadata
+## Ownership Metadata
 
 Every application-owned database object should have identifiable ownership where practical.
 
@@ -247,7 +259,7 @@ Ownership refers to architectural responsibility, not database account ownership
 
 ---
 
-# Ownership Meaning
+## Ownership Meaning
 
 Database ownership should answer:
 
@@ -265,7 +277,7 @@ Ownership should remain stable enough to support navigation.
 
 ---
 
-# Table Documentation
+## Table Documentation
 
 Every application-owned table must have canonical documentation.
 
@@ -296,7 +308,7 @@ Owned by the Orders domain.
 
 ---
 
-# Table Purpose
+## Table Purpose
 
 A contributor should be able to determine why a table exists without tracing every query that uses it.
 
@@ -314,7 +326,7 @@ reference data
 
 ---
 
-# Table Lifecycle
+## Table Lifecycle
 
 Non-obvious table lifecycle should be documented.
 
@@ -334,7 +346,7 @@ records expire automatically
 
 ---
 
-# Table Source of Truth
+## Table Source of Truth
 
 If a table is derived rather than canonical, that must be explicit.
 
@@ -351,7 +363,7 @@ The documentation should identify the canonical source.
 
 ---
 
-# Column Documentation
+## Column Documentation
 
 Every application-owned column must have canonical documentation.
 
@@ -363,7 +375,7 @@ Complex columns may require additional metadata.
 
 ---
 
-# Column Meaning
+## Column Meaning
 
 A column description should explain semantic meaning.
 
@@ -385,7 +397,7 @@ If the state values have non-obvious semantics, those should also be documented.
 
 ---
 
-# Null Semantics
+## Null Semantics
 
 Nullable columns should document what `NULL` means when the meaning is not obvious.
 
@@ -403,7 +415,7 @@ These are not equivalent.
 
 ---
 
-# Default Semantics
+## Default Semantics
 
 Non-obvious defaults should explain their purpose.
 
@@ -417,7 +429,7 @@ Do not duplicate obvious database-generated defaults unnecessarily.
 
 ---
 
-# Units
+## Units
 
 Columns representing quantities should document units when the unit is not completely clear from the type and name.
 
@@ -437,7 +449,7 @@ Ambiguous numeric data is a documentation defect.
 
 ---
 
-# Money
+## Money
 
 Monetary fields should document:
 
@@ -457,7 +469,7 @@ Monetary amount expressed in the smallest unit of the associated currency.
 
 ---
 
-# Date and Time Semantics
+## Date and Time Semantics
 
 Temporal columns should document their semantic meaning.
 
@@ -479,7 +491,7 @@ When local timezone semantics matter, document them explicitly.
 
 ---
 
-# Identifiers
+## Identifiers
 
 Identifier columns should document what they identify.
 
@@ -497,7 +509,7 @@ Do not assume `_id` communicates all relevant semantics.
 
 ---
 
-# External Identifiers
+## External Identifiers
 
 Columns storing external-provider identifiers should document:
 
@@ -512,7 +524,7 @@ where relevant.
 
 ---
 
-# Sensitive Data Classification
+## Sensitive Data Classification
 
 Columns containing sensitive information should eventually expose machine-readable classification.
 
@@ -527,13 +539,11 @@ classification: RESTRICTED
 
 Classification semantics are defined in:
 
-```text
-docs/security/data-classification.md
-```
+- [docs/security/data-classification.md](../security/data-classification.md)
 
 ---
 
-# Personal Data Metadata
+## Personal Data Metadata
 
 Where useful, columns may additionally identify categories such as:
 
@@ -550,7 +560,7 @@ Avoid metadata complexity that cannot be maintained reliably.
 
 ---
 
-# Telemetry Policy Metadata
+## Telemetry Policy Metadata
 
 Future schema metadata may optionally indicate whether a field is appropriate for telemetry.
 
@@ -568,15 +578,13 @@ telemetry: identifier-only
 
 This may integrate with:
 
-```text
-docs/security/telemetry-redaction.md
-```
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md)
 
 Such metadata should be introduced only when it can be enforced consistently.
 
 ---
 
-# Primary Keys
+## Primary Keys
 
 Primary keys are normally structurally discoverable.
 
@@ -596,7 +604,7 @@ Internal storage identifier. Must not be used as the external resource identifie
 
 ---
 
-# Foreign Keys
+## Foreign Keys
 
 Foreign-key relationships should be visible in generated documentation.
 
@@ -615,7 +623,7 @@ The foreign key alone cannot communicate that distinction.
 
 ---
 
-# Relationship Semantics
+## Relationship Semantics
 
 A relationship may represent:
 
@@ -632,7 +640,7 @@ These semantics should be documented when not obvious.
 
 ---
 
-# Delete Behavior
+## Delete Behavior
 
 Important foreign-key delete behavior should be discoverable.
 
@@ -650,7 +658,7 @@ If the reason is non-obvious, explain it.
 
 ---
 
-# Constraints
+## Constraints
 
 Important constraints should have discoverable purpose.
 
@@ -674,7 +682,7 @@ A meaningful constraint name can provide useful documentation itself.
 
 ---
 
-# Check Constraints
+## Check Constraints
 
 A check constraint should be understandable from:
 
@@ -690,7 +698,7 @@ Do not require contributors to interpret complicated SQL to discover business me
 
 ---
 
-# Unique Constraints
+## Unique Constraints
 
 Unique constraints protecting a business invariant should document that invariant when not obvious.
 
@@ -704,7 +712,7 @@ This communicates more than the column list alone.
 
 ---
 
-# Constraint Error Semantics
+## Constraint Error Semantics
 
 When an application translates a constraint violation into a stable error code, that relationship may be documented close to persistence or error-contract code.
 
@@ -714,7 +722,7 @@ Future tooling may link constraints to error semantics.
 
 ---
 
-# Index Documentation
+## Index Documentation
 
 Indexes should be included in generated structural documentation.
 
@@ -724,7 +732,7 @@ A description is appropriate when the reason is not obvious.
 
 ---
 
-# Index Purpose
+## Index Purpose
 
 A significant index should be traceable to:
 
@@ -743,7 +751,7 @@ Supports worker lookup for pending jobs ordered by scheduled_at.
 
 ---
 
-# Specialized Indexes
+## Specialized Indexes
 
 Partial, functional, full-text, vector, or other specialized indexes should document:
 
@@ -757,7 +765,7 @@ when those facts are not obvious.
 
 ---
 
-# Redundant Indexes
+## Redundant Indexes
 
 Generated documentation may eventually help identify apparently overlapping indexes.
 
@@ -767,7 +775,7 @@ Actual query behavior matters.
 
 ---
 
-# Views
+## Views
 
 Every application-owned view must document:
 
@@ -783,7 +791,7 @@ when appropriate.
 
 ---
 
-# View Stability
+## View Stability
 
 If a view acts as a stable internal reporting or integration interface, that should be documented.
 
@@ -791,7 +799,7 @@ Changing its columns may then have compatibility implications.
 
 ---
 
-# Views Are Read Models
+## Views Are Read Models
 
 A view should not automatically become a public domain model.
 
@@ -801,7 +809,7 @@ Its architectural role should remain explicit.
 
 ---
 
-# Materialized Views
+## Materialized Views
 
 Every application-owned materialized view must document:
 
@@ -818,7 +826,7 @@ Without these facts, consumers cannot reason about freshness.
 
 ---
 
-# Materialized View Staleness
+## Materialized View Staleness
 
 A materialized view is not necessarily current.
 
@@ -836,7 +844,7 @@ when relevant.
 
 ---
 
-# Functions
+## Functions
 
 Every application-owned database function must document its purpose.
 
@@ -854,7 +862,7 @@ where not obvious from the signature.
 
 ---
 
-# Pure Database Functions
+## Pure Database Functions
 
 A pure calculation function may require little documentation beyond its purpose and units.
 
@@ -862,7 +870,7 @@ A function that writes state requires substantially more explanation.
 
 ---
 
-# Procedures
+## Procedures
 
 Every application-owned procedure should document:
 
@@ -879,7 +887,7 @@ Their documentation is mandatory.
 
 ---
 
-# Triggers
+## Triggers
 
 Every application-owned trigger must document:
 
@@ -896,7 +904,7 @@ Orion requires them to be highly discoverable.
 
 ---
 
-# Trigger Example
+## Trigger Example
 
 Documentation should make a flow such as:
 
@@ -912,7 +920,7 @@ discoverable without runtime debugging.
 
 ---
 
-# Trigger Timing
+## Trigger Timing
 
 Where relevant, document whether a trigger executes:
 
@@ -928,7 +936,7 @@ Generated structural documentation may provide this automatically.
 
 ---
 
-# Trigger Recursion and Cascades
+## Trigger Recursion and Cascades
 
 If triggers can cause other trigger execution or cascading database behavior, that behavior must be clearly documented.
 
@@ -936,7 +944,7 @@ Hidden recursion is unacceptable.
 
 ---
 
-# Generated Columns
+## Generated Columns
 
 Generated columns should document semantic purpose when the expression alone is insufficient.
 
@@ -944,7 +952,7 @@ Generated documentation should display the expression where safe and useful.
 
 ---
 
-# Database Enums
+## Database Enums
 
 Database enums should document the semantic meaning of each value when values are not self-explanatory.
 
@@ -962,13 +970,13 @@ Do not duplicate obvious meanings unnecessarily.
 
 ---
 
-# Enum Evolution
+## Enum Evolution
 
 If enum values have compatibility or migration constraints, that belongs in database implementation or migration documentation rather than ordinary field descriptions.
 
 ---
 
-# Domains and Custom Types
+## Domains and Custom Types
 
 Database domains or custom types should document:
 
@@ -985,7 +993,7 @@ Shared types should not become generic dumping grounds.
 
 ---
 
-# Sequences
+## Sequences
 
 Application-owned sequences should document their purpose when not obvious.
 
@@ -999,7 +1007,7 @@ Do not confuse a sequence with a guarantee of gapless numbering.
 
 ---
 
-# Partitioned Tables
+## Partitioned Tables
 
 If table partitioning is introduced, documentation should explain:
 
@@ -1015,7 +1023,7 @@ Partitioning is an implementation detail with operational consequences.
 
 ---
 
-# Table Inheritance
+## Table Inheritance
 
 If supported and used, inheritance relationships must be documented explicitly.
 
@@ -1023,7 +1031,7 @@ Such database-specific features should never rely solely on tribal knowledge.
 
 ---
 
-# Row-Level Security
+## Row-Level Security
 
 If row-level security is introduced, every relevant policy must be documented.
 
@@ -1041,7 +1049,7 @@ RLS is a security boundary and requires strong discoverability.
 
 ---
 
-# Database Roles and Grants
+## Database Roles and Grants
 
 Application-level schema reference does not need to list every infrastructure-generated database role by default.
 
@@ -1058,7 +1066,7 @@ This belongs partly to security and production-access documentation.
 
 ---
 
-# Database Extensions
+## Database Extensions
 
 If database extensions are required, documentation should explain:
 
@@ -1072,7 +1080,7 @@ The dependency should be discoverable during environment setup.
 
 ---
 
-# Canonical Metadata Location
+## Canonical Metadata Location
 
 The preferred long-term model is for object-level descriptions to live in or near the canonical schema.
 
@@ -1089,7 +1097,7 @@ The exact mechanism will depend on the selected stack.
 
 ---
 
-# Database-Native Comments
+## Database-Native Comments
 
 Database-native comments are attractive because they:
 
@@ -1104,7 +1112,7 @@ They should be preferred when tooling supports them cleanly.
 
 ---
 
-# Limitations of Database Comments
+## Limitations of Database Comments
 
 Database-native comments may not represent every metadata category cleanly.
 
@@ -1123,7 +1131,7 @@ Do not encode complex machine-readable policy by parsing arbitrary prose.
 
 ---
 
-# Structured Metadata
+## Structured Metadata
 
 Where automated enforcement depends on metadata, use structured representation.
 
@@ -1139,7 +1147,7 @@ Prefer explicit fields.
 
 ---
 
-# Metadata Duplication
+## Metadata Duplication
 
 Do not define ownership or classification in several independent metadata systems.
 
@@ -1153,7 +1161,7 @@ generated / validated representations
 
 ---
 
-# Description Style
+## Description Style
 
 Descriptions should be concise and semantic.
 
@@ -1173,7 +1181,7 @@ Avoid filler language.
 
 ---
 
-# Descriptions Should Explain Meaning
+## Descriptions Should Explain Meaning
 
 A good description answers:
 
@@ -1187,7 +1195,7 @@ It should not merely translate the identifier into a sentence.
 
 ---
 
-# Avoid Implementation History in Current Descriptions
+## Avoid Implementation History in Current Descriptions
 
 Current schema documentation should explain current truth.
 
@@ -1211,7 +1219,7 @@ as appropriate.
 
 ---
 
-# Examples in Schema Documentation
+## Examples in Schema Documentation
 
 Examples may be useful when semantics are difficult to understand.
 
@@ -1221,7 +1229,7 @@ Never embed real production values.
 
 ---
 
-# Sensitive Examples
+## Sensitive Examples
 
 Descriptions of sensitive columns should explain semantics without showing realistic credentials or personal data unnecessarily.
 
@@ -1237,7 +1245,7 @@ Do not include an example hash copied from production.
 
 ---
 
-# Generated Reference
+## Generated Reference
 
 Orion should eventually generate a navigable database reference.
 
@@ -1256,7 +1264,7 @@ The exact output format is deferred.
 
 ---
 
-# Generated Documentation Is Not Canonical
+## Generated Documentation Is Not Canonical
 
 Generated documentation is a representation.
 
@@ -1266,7 +1274,7 @@ Do not manually edit generated database reference files.
 
 ---
 
-# Generated Table Reference
+## Generated Table Reference
 
 A generated table page may eventually include:
 
@@ -1289,7 +1297,7 @@ where metadata exists.
 
 ---
 
-# Generated Relationship Diagrams
+## Generated Relationship Diagrams
 
 Schema tooling may generate relationship diagrams.
 
@@ -1309,7 +1317,7 @@ without metadata.
 
 ---
 
-# Entity-Relationship Diagrams
+## Entity-Relationship Diagrams
 
 ER diagrams should be generated from the actual schema where practical.
 
@@ -1319,7 +1327,7 @@ Authored diagrams may still be appropriate when they intentionally simplify or a
 
 ---
 
-# Simplified Domain Diagrams
+## Simplified Domain Diagrams
 
 A domain-focused diagram may omit infrastructure tables intentionally.
 
@@ -1329,7 +1337,7 @@ It should be clearly distinguished from generated schema diagrams.
 
 ---
 
-# Documentation Index
+## Documentation Index
 
 Generated database documentation should provide navigation by:
 
@@ -1344,7 +1352,7 @@ This helps both human and AI exploration.
 
 ---
 
-# Searchability
+## Searchability
 
 Database documentation should be searchable by:
 
@@ -1359,7 +1367,7 @@ when the documentation system supports it.
 
 ---
 
-# AI Readability
+## AI Readability
 
 Generated documentation should prefer structured text formats that AI agents can inspect reliably.
 
@@ -1369,7 +1377,7 @@ Machine-readable structure remains essential.
 
 ---
 
-# Schema Manifest
+## Schema Manifest
 
 Orion may eventually generate a machine-readable schema manifest.
 
@@ -1396,7 +1404,7 @@ The canonical source should still remain the actual schema definition.
 
 ---
 
-# Current Schema vs Migration History
+## Current Schema vs Migration History
 
 Generated database documentation describes:
 
@@ -1414,7 +1422,7 @@ Do not force users to read migrations to understand the current schema.
 
 ---
 
-# Documentation and Migrations
+## Documentation and Migrations
 
 When a migration changes schema semantics, corresponding canonical metadata must change in the same work.
 
@@ -1432,7 +1440,7 @@ A schema change without documentation is incomplete.
 
 ---
 
-# Migration-Specific Comments
+## Migration-Specific Comments
 
 Some migration rationale is temporary or historical.
 
@@ -1448,7 +1456,7 @@ That is migration documentation, not necessarily table documentation.
 
 ---
 
-# Documentation and Ownership Changes
+## Documentation and Ownership Changes
 
 If ownership of a table or object moves between domains, update canonical ownership metadata.
 
@@ -1458,7 +1466,7 @@ An ADR may be appropriate if the boundary changes significantly.
 
 ---
 
-# Documentation and Renames
+## Documentation and Renames
 
 A rename should update current descriptions to reflect current meaning.
 
@@ -1466,7 +1474,7 @@ Avoid retaining obsolete terminology unless backward compatibility requires it.
 
 ---
 
-# Documentation and Deprecated Objects
+## Documentation and Deprecated Objects
 
 Deprecated schema objects should be identifiable.
 
@@ -1483,7 +1491,7 @@ Do not retain deprecated metadata forever after the object is removed.
 
 ---
 
-# Documentation and Data Retention
+## Documentation and Data Retention
 
 Tables with special retention or deletion semantics should reference the relevant policy or document.
 
@@ -1491,7 +1499,7 @@ Avoid encoding long retention policy prose directly into every column descriptio
 
 ---
 
-# Documentation and Authorization
+## Documentation and Authorization
 
 Database documentation may identify data ownership or sensitivity.
 
@@ -1509,7 +1517,7 @@ A full permission matrix belongs in authorization documentation.
 
 ---
 
-# Documentation and Business Rules
+## Documentation and Business Rules
 
 A table description may mention durable invariants.
 
@@ -1519,7 +1527,7 @@ Avoid turning the database reference into the only location where business rules
 
 ---
 
-# Domain Documentation Links
+## Domain Documentation Links
 
 Generated table references may eventually link to domain documentation.
 
@@ -1536,7 +1544,7 @@ when domain documentation exists.
 
 ---
 
-# API Documentation Links
+## API Documentation Links
 
 A database object should not be assumed to map directly to an API resource.
 
@@ -1544,7 +1552,7 @@ Generated documentation should avoid inventing such links unless canonical metad
 
 ---
 
-# Code Navigation
+## Code Navigation
 
 Future tooling may link schema objects to:
 
@@ -1561,7 +1569,7 @@ Such links should derive from reliable metadata or code analysis.
 
 ---
 
-# Schema Documentation Completeness
+## Schema Documentation Completeness
 
 Orion should eventually validate that required documentation exists.
 
@@ -1581,7 +1589,7 @@ every view has purpose
 
 ---
 
-# Completeness Is Not Verbosity
+## Completeness Is Not Verbosity
 
 A requirement that every column has documentation does not imply every description should be long.
 
@@ -1599,7 +1607,7 @@ The goal is completeness of meaning, not word count.
 
 ---
 
-# Conventional Fields
+## Conventional Fields
 
 Repeated conventional fields may use concise standardized descriptions.
 
@@ -1615,7 +1623,7 @@ If semantics differ in one table, that difference must be explicit.
 
 ---
 
-# Generated Standard Descriptions
+## Generated Standard Descriptions
 
 Some structural conventions may eventually allow generated descriptions.
 
@@ -1625,7 +1633,7 @@ Do not generate misleading prose merely to satisfy completeness checks.
 
 ---
 
-# Missing Meaning Is Better Detected Than Invented
+## Missing Meaning Is Better Detected Than Invented
 
 If tooling cannot determine semantic meaning reliably, it should require authored metadata.
 
@@ -1639,7 +1647,7 @@ and pretend the schema is documented.
 
 ---
 
-# Documentation Validation
+## Documentation Validation
 
 CI should eventually validate database documentation.
 
@@ -1656,7 +1664,7 @@ duplicate metadata
 
 ---
 
-# Generated Documentation Drift
+## Generated Documentation Drift
 
 A canonical validation workflow may regenerate database docs and compare results.
 
@@ -1666,7 +1674,7 @@ If generated dynamically, CI should verify generation succeeds.
 
 ---
 
-# Schema Drift and Documentation Drift
+## Schema Drift and Documentation Drift
 
 Schema drift and documentation drift are related but distinct.
 
@@ -1682,7 +1690,7 @@ Both are defects.
 
 ---
 
-# Documentation Build Failure
+## Documentation Build Failure
 
 If canonical schema metadata cannot generate valid documentation, the change should fail validation once this tooling exists.
 
@@ -1690,7 +1698,7 @@ Documentation generation is part of the database build pipeline.
 
 ---
 
-# Database Documentation in Pull Requests
+## Database Documentation in Pull Requests
 
 Schema-changing pull requests should make documentation impact visible.
 
@@ -1706,7 +1714,7 @@ together.
 
 ---
 
-# Schema Diff Review
+## Schema Diff Review
 
 A schema diff is especially useful for reviewing:
 
@@ -1721,7 +1729,7 @@ Tooling should make these changes clear where possible.
 
 ---
 
-# Classification Diff
+## Classification Diff
 
 Changes such as:
 
@@ -1741,7 +1749,7 @@ A future schema-review tool should make classification changes prominent.
 
 ---
 
-# Documentation Review
+## Documentation Review
 
 Reviewers should ask:
 
@@ -1761,7 +1769,7 @@ Can this information be derived instead of duplicated?
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 Before modifying an application-owned database object, an AI agent should inspect:
 
@@ -1779,7 +1787,7 @@ where available.
 
 ---
 
-# AI and Missing Documentation
+## AI and Missing Documentation
 
 An AI agent must not guess non-obvious database semantics when documentation is missing.
 
@@ -1789,7 +1797,7 @@ If a change depends on uncertain semantics, that uncertainty is itself a documen
 
 ---
 
-# AI and New Columns
+## AI and New Columns
 
 When adding a column, an AI agent should provide:
 
@@ -1805,7 +1813,7 @@ as part of the schema change.
 
 ---
 
-# AI and Sensitive Data
+## AI and Sensitive Data
 
 If a new column appears to contain:
 
@@ -1820,7 +1828,7 @@ an AI agent should evaluate classification before treating the schema change as 
 
 ---
 
-# AI and Generated Documentation
+## AI and Generated Documentation
 
 AI agents should not manually modify generated database documentation.
 
@@ -1828,7 +1836,7 @@ They should modify canonical schema metadata and regenerate.
 
 ---
 
-# AI and Schema Navigation
+## AI and Schema Navigation
 
 The desired AI workflow is:
 
@@ -1850,7 +1858,7 @@ This reduces speculative code generation.
 
 ---
 
-# Documentation Metadata Checklist
+## Documentation Metadata Checklist
 
 For every application-owned table, determine:
 
@@ -1863,7 +1871,7 @@ For every application-owned table, determine:
 
 ---
 
-# Column Documentation Checklist
+## Column Documentation Checklist
 
 For every application-owned column, determine:
 
@@ -1880,7 +1888,7 @@ For every application-owned column, determine:
 
 ---
 
-# Constraint Documentation Checklist
+## Constraint Documentation Checklist
 
 For each significant constraint, determine:
 
@@ -1892,7 +1900,7 @@ For each significant constraint, determine:
 
 ---
 
-# Index Documentation Checklist
+## Index Documentation Checklist
 
 For each significant index, determine:
 
@@ -1904,7 +1912,7 @@ For each significant index, determine:
 
 ---
 
-# View Documentation Checklist
+## View Documentation Checklist
 
 For every application-owned view, determine:
 
@@ -1917,7 +1925,7 @@ For every application-owned view, determine:
 
 ---
 
-# Trigger Documentation Checklist
+## Trigger Documentation Checklist
 
 For every application-owned trigger, determine:
 
@@ -1930,7 +1938,7 @@ For every application-owned trigger, determine:
 
 ---
 
-# Function and Procedure Checklist
+## Function and Procedure Checklist
 
 For every application-owned function or procedure, determine:
 
@@ -1944,19 +1952,19 @@ For every application-owned function or procedure, determine:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Table Without Owner
+### Table Without Owner
 
 Avoid.
 
 ---
 
-## Table Description Repeats Table Name
+### Table Description Repeats Table Name
 
 ```text
 users
@@ -1968,7 +1976,7 @@ Avoid.
 
 ---
 
-## Column Description Repeats Identifier
+### Column Description Repeats Identifier
 
 ```text
 email
@@ -1980,49 +1988,49 @@ Avoid when additional semantics matter.
 
 ---
 
-## Undocumented Null Meaning
+### Undocumented Null Meaning
 
 Avoid for non-obvious nullable fields.
 
 ---
 
-## Undocumented Unit
+### Undocumented Unit
 
 Avoid for ambiguous quantities.
 
 ---
 
-## Sensitive Field Without Classification
+### Sensitive Field Without Classification
 
 Avoid once classification metadata is implemented.
 
 ---
 
-## Undocumented Trigger
+### Undocumented Trigger
 
 Prohibited.
 
 ---
 
-## Undocumented Procedure With Side Effects
+### Undocumented Procedure With Side Effects
 
 Prohibited.
 
 ---
 
-## Manually Maintained Structural Reference
+### Manually Maintained Structural Reference
 
 Avoid when it can be generated from schema.
 
 ---
 
-## Generated Documentation Edited by Hand
+### Generated Documentation Edited by Hand
 
 Prohibited.
 
 ---
 
-## Architecture Rationale Hidden Only in Schema Comment
+### Architecture Rationale Hidden Only in Schema Comment
 
 Avoid.
 
@@ -2030,7 +2038,7 @@ Use ADR or authored documentation for significant rationale.
 
 ---
 
-## Business Rules Hidden Only in Database Reference
+### Business Rules Hidden Only in Database Reference
 
 Avoid.
 
@@ -2038,7 +2046,7 @@ Domain rules should remain discoverable from domain ownership.
 
 ---
 
-## Parsing Security Policy From Free-Form Comments
+### Parsing Security Policy From Free-Form Comments
 
 Avoid.
 
@@ -2046,13 +2054,13 @@ Use structured metadata where enforcement depends on it.
 
 ---
 
-## Documentation Generated From Naming Alone
+### Documentation Generated From Naming Alone
 
 Avoid when semantic meaning cannot be inferred safely.
 
 ---
 
-# Initial Schema Documentation Policy
+## Initial Schema Documentation Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2079,7 +2087,7 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Future Implementation Decisions
 
 The following decisions are intentionally deferred:
 
@@ -2102,7 +2110,7 @@ Significant decisions should be captured through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document may later be complemented by generated references such as:
 
@@ -2122,7 +2130,7 @@ Implementation-specific database documentation should reference this policy rath
 
 ---
 
-# Summary
+## Summary
 
 Database documentation exists to make durable state understandable.
 
@@ -2161,3 +2169,144 @@ An AI agent should not need to guess what a column means.
 A migration should not be the only documentation for current schema semantics.
 
 The database should be able to explain its structure, ownership, and important behavior from canonical sources.
+
+
+## Database Documentation
+
+Every application-owned table and column should have canonical documentation.
+
+Documentation should explain semantics that are not obvious from the name and type.
+
+This includes:
+
+```text
+purpose
+ownership
+meaning
+classification where relevant
+important constraints
+relationships
+```
+
+---
+
+## Table Documentation
+
+Each table should document:
+
+```text
+purpose
+owner
+important lifecycle behavior
+important relationships
+```
+
+Documentation should not merely restate the table name.
+
+---
+
+## Column Documentation
+
+Every column should have canonical documentation appropriate to its semantics.
+
+A trivial field may need only a concise description.
+
+A complex field may require:
+
+```text
+units
+state meaning
+classification
+null semantics
+source
+```
+
+---
+
+## Database Objects Beyond Tables
+
+Every application-owned:
+
+```text
+view
+materialized view
+function
+procedure
+trigger
+```
+
+should document its purpose and behavior.
+
+These objects often contain non-obvious logic.
+
+---
+
+## Database-Native Comments
+
+Where useful, database-native comments or schema metadata should be considered a canonical source for database documentation.
+
+This can keep documentation close to the schema and allow generated references.
+
+The exact mechanism depends on tooling.
+
+---
+
+## Generated Database Documentation
+
+The desired long-term model is:
+
+```text
+canonical schema metadata
+        ↓
+documentation generator
+        ↓
+docs/generated/database/
+```
+
+Generated documentation should not be edited manually.
+
+---
+
+## Authored Database Documentation
+
+Authored documentation should explain concepts that cannot be inferred reliably from schema metadata.
+
+Examples include:
+
+```text
+ownership rationale
+complex lifecycle
+transaction strategy
+cross-domain access
+migration constraints
+```
+
+---
+
+## Documentation Drift
+
+Database documentation that does not match the schema is harmful.
+
+Where practical, CI should validate generated documentation against the canonical schema.
+
+---
+
+## Database Introspection
+
+AI agents and humans should eventually be able to inspect current database structure through machine-readable schema sources.
+
+The intended investigation flow is:
+
+```text
+business concept
+    ↓
+domain documentation
+    ↓
+table
+    ↓
+columns / constraints / relationships
+    ↓
+migration history
+```
+
+---

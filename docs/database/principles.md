@@ -1,5 +1,20 @@
 # Database Principles
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0005](../adr/0005-select-postgresql-as-the-primary-database.md), [ADR-0006](../adr/0006-select-prisma-orm-for-database-access-and-migrations.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Database Ownership](#database-ownership)
+- [Constraints](#constraints)
+- [Data Types](#data-types)
+- [Query Design](#query-design)
+- [Schema Evolution](#schema-evolution)
+- [New Table Checklist](#new-table-checklist)
+
+Related policy: [migrations](migrations.md), [schema documentation](schema-documentation.md), [transactions and concurrency](transactions-and-concurrency.md), [data retention](../security/data-retention.md).
+
 ## Purpose
 
 This document defines the database architecture principles used by Orion.
@@ -23,17 +38,17 @@ It is a long-lived system of record whose structure, constraints, and behavior d
 
 This document is technology-agnostic.
 
-Specific database engines, ORMs, query builders, migration tools, connection libraries, and hosting platforms will be selected later through explicit architectural decisions.
+PostgreSQL and Prisma ORM/Migrate are selected by ADR-0005 and ADR-0006. Hosting and remaining runtime details are deferred; persistence tooling is not implemented.
 
 This document complements:
 
-- `docs/architecture/principles.md`;
-- `docs/architecture/application-boundaries.md`;
-- `docs/architecture/dependency-rules.md`;
-- `docs/architecture/testing-strategy.md`;
-- `docs/architecture/error-handling.md`;
-- `docs/security/data-classification.md`;
-- `docs/security/secrets-management.md`.
+- [docs/architecture/principles.md](../architecture/principles.md);
+- [docs/architecture/application-boundaries.md](../architecture/application-boundaries.md);
+- [docs/architecture/dependency-rules.md](../architecture/dependency-rules.md);
+- [docs/architecture/testing-strategy.md](../architecture/testing-strategy.md);
+- [docs/architecture/error-handling.md](../architecture/error-handling.md);
+- [docs/security/data-classification.md](../security/data-classification.md);
+- [docs/security/secrets-management.md](../security/secrets-management.md).
 
 ---
 
@@ -61,7 +76,7 @@ The database should prevent invalid persistent states where it can do so clearly
 
 ---
 
-# The Database Is a Contract
+## The Database Is a Contract
 
 The database defines durable contracts involving:
 
@@ -92,7 +107,7 @@ Database design should therefore be explicit and reviewable.
 
 ---
 
-# Database Ownership
+## Database Ownership
 
 Every application-owned database object should have identifiable ownership.
 
@@ -114,7 +129,7 @@ Tables without ownership tend to become shared mutable state.
 
 ---
 
-# Table Ownership
+## Table Ownership
 
 A table should normally belong to one primary domain or capability.
 
@@ -140,7 +155,7 @@ It means schema semantics and mutation authority have a clear owner.
 
 ---
 
-# Shared Database Does Not Mean Shared Ownership
+## Shared Database Does Not Mean Shared Ownership
 
 Multiple modules may use one physical database.
 
@@ -156,7 +171,7 @@ Ownership remains an architectural concern.
 
 ---
 
-# Cross-Domain Reads
+## Cross-Domain Reads
 
 Reading another domain's tables creates coupling.
 
@@ -174,7 +189,7 @@ Repeated cross-domain reads may indicate the need for a clearer capability bound
 
 ---
 
-# Cross-Domain Writes
+## Cross-Domain Writes
 
 Direct writes to another domain's owned tables should be strongly restricted.
 
@@ -192,7 +207,7 @@ Prefer invoking the owning capability.
 
 ---
 
-# Persistence Is Not Domain Ownership
+## Persistence Is Not Domain Ownership
 
 A database package may physically contain schema or persistence implementation for many domains.
 
@@ -216,7 +231,7 @@ while ownership still belongs to the corresponding domains.
 
 ---
 
-# Database Access Is a Capability
+## Database Access Is a Capability
 
 Database access should be deliberate.
 
@@ -226,7 +241,7 @@ Application architecture should expose only the persistence capabilities require
 
 ---
 
-# Client Applications
+## Client Applications
 
 Browser, mobile, and desktop applications should not receive direct database credentials by default.
 
@@ -246,7 +261,7 @@ It must never occur accidentally.
 
 ---
 
-# Stable Domain Concepts vs Storage Representation
+## Stable Domain Concepts vs Storage Representation
 
 Database records represent persistence structure.
 
@@ -265,7 +280,7 @@ That should be an explicit semantic decision.
 
 ---
 
-# ORM Models
+## ORM Models
 
 If an ORM is used, generated ORM types represent the ORM's view of persistence.
 
@@ -289,7 +304,7 @@ without considering ownership and compatibility.
 
 ---
 
-# Schema as a Canonical Source
+## Schema as a Canonical Source
 
 The database schema should be a canonical machine-readable source for structural database truth where practical.
 
@@ -308,16 +323,15 @@ depending on tooling.
 
 ---
 
-# Schema Definition Strategy
+## Schema Definition Strategy
 
-The exact schema source may eventually be:
+[ADR-0006](../adr/0006-select-prisma-orm-for-database-access-and-migrations.md#canonical-database-representations) distinguishes three representations:
 
-```text
-SQL
-ORM schema
-database migration definitions
-schema DSL
-```
+- Prisma Schema Language is the primary authored representation for structures it can represent.
+- Versioned SQL migrations define released database evolution.
+- Fully migrated PostgreSQL defines the complete physical schema, including custom SQL features.
+
+Generated database reference must derive from or be validated against that complete migrated schema.
 
 The chosen strategy should preserve:
 
@@ -329,11 +343,11 @@ migration control
 documentation
 ```
 
-The decision will be made after database tooling is selected.
+The representation strategy is accepted; tooling implementation is still pending.
 
 ---
 
-# Database-Native Features
+## Database-Native Features
 
 Orion should not avoid useful database-native features merely to preserve theoretical database portability.
 
@@ -354,7 +368,7 @@ Portability should be considered only when it is a real requirement.
 
 ---
 
-# Constraints
+## Constraints
 
 Database constraints should protect durable invariants whenever the database can express them clearly.
 
@@ -373,7 +387,7 @@ depending on database technology.
 
 ---
 
-# Application Validation and Database Constraints
+## Application Validation and Database Constraints
 
 Prefer both when each provides value.
 
@@ -399,7 +413,7 @@ A database uniqueness constraint should still protect against concurrency.
 
 ---
 
-# NOT NULL
+## NOT NULL
 
 A field that must always exist should normally be represented as non-nullable.
 
@@ -415,7 +429,7 @@ It should represent actual semantics.
 
 ---
 
-# Nullability
+## Nullability
 
 A nullable value should mean something explicit.
 
@@ -432,7 +446,7 @@ If these meanings differ materially, a richer model may be appropriate.
 
 ---
 
-# Unique Constraints
+## Unique Constraints
 
 Uniqueness requirements should be enforced by the database when durable uniqueness matters.
 
@@ -452,7 +466,7 @@ Without a database constraint, both may succeed.
 
 ---
 
-# Foreign Keys
+## Foreign Keys
 
 Relationships that require referential integrity should normally use foreign-key constraints where the architecture permits them.
 
@@ -468,7 +482,7 @@ Their update and delete behavior must be intentional.
 
 ---
 
-# Foreign-Key Actions
+## Foreign-Key Actions
 
 Actions such as:
 
@@ -486,7 +500,7 @@ A cascade may represent a significant data lifecycle decision.
 
 ---
 
-# Check Constraints
+## Check Constraints
 
 Check constraints can protect simple durable invariants.
 
@@ -504,7 +518,7 @@ Complex business workflows should not be forced into unreadable check expression
 
 ---
 
-# Domain Invariants
+## Domain Invariants
 
 Not every domain invariant belongs in the database.
 
@@ -522,7 +536,7 @@ The application should protect richer behavior.
 
 ---
 
-# Defense in Depth
+## Defense in Depth
 
 Critical invariants may exist at multiple layers.
 
@@ -542,7 +556,7 @@ Avoid duplicating complex business logic in multiple forms that may drift.
 
 ---
 
-# Data Types
+## Data Types
 
 Database types should represent the semantics of the stored value.
 
@@ -565,7 +579,7 @@ depending on database support.
 
 ---
 
-# Numeric Types
+## Numeric Types
 
 Financial values and other precise quantities should use numeric representations appropriate to their semantics.
 
@@ -584,7 +598,7 @@ where relevant.
 
 ---
 
-# Money
+## Money
 
 Money should have explicit semantics.
 
@@ -607,7 +621,7 @@ without clear unit or currency semantics when multiple currencies are possible.
 
 ---
 
-# Units
+## Units
 
 Stored measurements should make units explicit.
 
@@ -622,7 +636,7 @@ or another documented typed representation over ambiguous numeric columns.
 
 ---
 
-# Dates and Times
+## Dates and Times
 
 Date and time storage should represent semantics explicitly.
 
@@ -640,7 +654,7 @@ Do not use one timestamp type for every temporal concept without understanding i
 
 ---
 
-# Time Zones
+## Time Zones
 
 Absolute events should generally have unambiguous time semantics.
 
@@ -650,7 +664,7 @@ The exact database representation will depend on selected technology.
 
 ---
 
-# Timestamps
+## Timestamps
 
 Common lifecycle timestamps may include:
 
@@ -666,7 +680,7 @@ Avoid automatically adding fields that nobody uses.
 
 ---
 
-# Audit Timestamps
+## Audit Timestamps
 
 If `created_at` or `updated_at` is intended for auditing, its update semantics must be reliable.
 
@@ -674,7 +688,7 @@ A convenience timestamp is not necessarily a complete audit trail.
 
 ---
 
-# Identifiers
+## Identifiers
 
 Identifiers should have explicit scope and semantics.
 
@@ -691,7 +705,7 @@ These are not automatically interchangeable.
 
 ---
 
-# Primary Keys
+## Primary Keys
 
 Primary keys should be stable.
 
@@ -701,7 +715,7 @@ The exact key strategy will depend on database and application requirements.
 
 ---
 
-# Public Identifiers
+## Public Identifiers
 
 A public API identifier may be distinct from a database primary key.
 
@@ -717,7 +731,7 @@ It is not mandatory for every table.
 
 ---
 
-# Natural Keys
+## Natural Keys
 
 Natural business identifiers may sometimes be appropriate.
 
@@ -727,7 +741,7 @@ Mutable business identifiers often make poor primary keys.
 
 ---
 
-# Generated Identifiers
+## Generated Identifiers
 
 Generated identifiers should avoid encoding sensitive information.
 
@@ -737,7 +751,7 @@ Identifiers are not authorization mechanisms.
 
 ---
 
-# Enumerations
+## Enumerations
 
 Enums can make bounded states explicit.
 
@@ -749,7 +763,7 @@ The exact strategy depends on selected database technology.
 
 ---
 
-# State Models
+## State Models
 
 When data represents lifecycle state, values should be explicit.
 
@@ -771,7 +785,7 @@ when those combinations can represent invalid states.
 
 ---
 
-# Boolean Proliferation
+## Boolean Proliferation
 
 Multiple booleans may create impossible combinations.
 
@@ -789,7 +803,7 @@ Use an explicit state model when states are mutually exclusive.
 
 ---
 
-# JSON and Unstructured Data
+## JSON and Unstructured Data
 
 JSON or equivalent flexible columns may be useful.
 
@@ -807,7 +821,7 @@ classification
 
 ---
 
-# Free-Form Metadata
+## Free-Form Metadata
 
 Free-form metadata should be introduced cautiously.
 
@@ -826,7 +840,7 @@ Known important fields should prefer explicit schemas.
 
 ---
 
-# JSON Schema Evolution
+## JSON Schema Evolution
 
 Persisted JSON structures are still schemas.
 
@@ -836,7 +850,7 @@ Schema flexibility does not remove evolution responsibilities.
 
 ---
 
-# Large Objects
+## Large Objects
 
 Large binary data should not automatically be stored in ordinary relational tables.
 
@@ -857,7 +871,7 @@ The actual strategy will be selected only when required.
 
 ---
 
-# Files
+## Files
 
 If the application stores files externally, the database may store:
 
@@ -873,7 +887,7 @@ The database should not assume the external object still exists without consider
 
 ---
 
-# Indexes
+## Indexes
 
 Indexes exist to support real query and integrity requirements.
 
@@ -883,7 +897,7 @@ Each significant index should have a purpose.
 
 ---
 
-# Index Ownership
+## Index Ownership
 
 A meaningful index should be explainable by:
 
@@ -904,7 +918,7 @@ maintenance
 
 ---
 
-# Unique Indexes
+## Unique Indexes
 
 A unique index may enforce business integrity.
 
@@ -914,7 +928,7 @@ Do not treat it merely as a performance optimization.
 
 ---
 
-# Composite Indexes
+## Composite Indexes
 
 Column order matters.
 
@@ -924,7 +938,7 @@ Avoid speculative indexing before query behavior exists.
 
 ---
 
-# Partial and Specialized Indexes
+## Partial and Specialized Indexes
 
 Database-specific indexing features may be appropriate when they provide meaningful value.
 
@@ -932,7 +946,7 @@ They should be documented because their behavior may be less obvious than ordina
 
 ---
 
-# Query Design
+## Query Design
 
 Queries should retrieve only the data required.
 
@@ -948,7 +962,7 @@ The exact style depends on tooling.
 
 ---
 
-# Projection
+## Projection
 
 Read operations may use projections different from write/domain models.
 
@@ -974,7 +988,7 @@ API clarity
 
 ---
 
-# N+1 Queries
+## N+1 Queries
 
 Query patterns that accidentally issue one query per result should be avoided where they create material cost.
 
@@ -984,7 +998,7 @@ Database access should remain observable.
 
 ---
 
-# Query Count
+## Query Count
 
 Critical workflows may require tests or telemetry around query count when performance problems emerge.
 
@@ -994,189 +1008,13 @@ Make expensive behavior discoverable.
 
 ---
 
-# Transactions
+## Transactions
 
-Transactions protect atomic data changes.
-
-Operations that require all-or-nothing durable state should use appropriate transaction boundaries.
-
-Conceptually:
-
-```text
-begin
-    ↓
-change A
-change B
-change C
-    ↓
-commit
-```
-
-If any required change fails:
-
-```text
-rollback
-```
-
-when that behavior matches domain semantics.
+See [database transaction and concurrency requirements](transactions-and-concurrency.md#transactions). The detailed requirements are maintained there.
 
 ---
 
-# Transaction Boundaries
-
-Transactions should correspond to meaningful consistency boundaries.
-
-Avoid:
-
-```text
-one transaction around an entire HTTP request
-```
-
-without understanding the implications.
-
-Likewise, avoid splitting an atomic operation across separate transactions accidentally.
-
----
-
-# Long Transactions
-
-Long-running transactions can create:
-
-```text
-locks
-contention
-resource usage
-deadlocks
-```
-
-External network calls should generally not occur inside database transactions unless the design explicitly requires it and consequences are understood.
-
----
-
-# External Side Effects
-
-Database transactions cannot normally roll back external side effects such as:
-
-```text
-email sent
-payment captured
-message published externally
-```
-
-Distributed workflows require explicit reliability patterns rather than assuming database rollback solves everything.
-
----
-
-# Transactional Messaging
-
-Patterns such as an outbox may eventually be appropriate when durable state changes and message publication must be coordinated.
-
-Such patterns should be introduced only when real asynchronous requirements exist.
-
----
-
-# Concurrency
-
-Database design must consider concurrent operations.
-
-Sequential application code does not imply sequential production behavior.
-
-Potential problems include:
-
-```text
-lost updates
-duplicate creation
-double processing
-write skew
-deadlocks
-```
-
-Concurrency requirements should be explicit for important operations.
-
----
-
-# Optimistic Concurrency
-
-Optimistic concurrency may be appropriate when conflicts are uncommon.
-
-Potential mechanisms include:
-
-```text
-version column
-updated-at comparison
-conditional update
-```
-
-The exact approach depends on persistence tooling.
-
----
-
-# Pessimistic Concurrency
-
-Locks may be appropriate when operations require exclusive access.
-
-They should be used deliberately because they can reduce throughput and increase deadlock risk.
-
----
-
-# Idempotency
-
-Database constraints often help enforce idempotency.
-
-Examples include:
-
-```text
-unique idempotency key
-unique external event ID
-unique provider transaction ID
-```
-
-Application-level checks alone may be insufficient under concurrency.
-
----
-
-# Isolation Levels
-
-Transaction isolation affects correctness and performance.
-
-The database default should not be assumed correct for every workflow.
-
-Important concurrent workflows may require explicit analysis of:
-
-```text
-read phenomena
-write conflicts
-locking
-retry behavior
-```
-
-Detailed policy belongs in `docs/database/transactions-and-concurrency.md`.
-
----
-
-# Deadlocks
-
-Deadlocks are a normal possibility in transactional databases.
-
-Applications should have defined behavior when the database reports a retryable deadlock.
-
-Do not treat every deadlock as corruption.
-
-Repeated deadlocks may indicate poor access ordering or transaction design.
-
----
-
-# Retry Safety
-
-Database retries must consider side effects.
-
-A transaction retry may repeat application logic.
-
-The retried block should not perform unsafe external side effects unless they are idempotent or otherwise protected.
-
----
-
-# Data Integrity
+## Data Integrity
 
 Data integrity includes more than valid column values.
 
@@ -1195,7 +1033,7 @@ The architecture should identify which layer protects each invariant.
 
 ---
 
-# Derived Data
+## Derived Data
 
 Persisted derived data may improve performance.
 
@@ -1220,7 +1058,7 @@ consistency expectation
 
 ---
 
-# Normalization
+## Normalization
 
 Normalize data when it improves correctness and ownership.
 
@@ -1230,7 +1068,7 @@ Neither should be treated as doctrine.
 
 ---
 
-# Denormalization
+## Denormalization
 
 A denormalized copy is another representation that can become stale.
 
@@ -1240,7 +1078,7 @@ If the value can be regenerated, the canonical source should remain clear.
 
 ---
 
-# Views
+## Views
 
 Database views may provide:
 
@@ -1256,7 +1094,7 @@ They are database objects and part of schema evolution.
 
 ---
 
-# Materialized Views
+## Materialized Views
 
 Materialized views introduce refresh and consistency semantics.
 
@@ -1271,7 +1109,7 @@ ownership
 
 ---
 
-# Stored Functions and Procedures
+## Stored Functions and Procedures
 
 Database functions and procedures should be used intentionally.
 
@@ -1289,7 +1127,7 @@ Their purpose and behavior must therefore be documented.
 
 ---
 
-# Triggers
+## Triggers
 
 Triggers can protect invariants or implement technical behavior.
 
@@ -1301,7 +1139,7 @@ Every application-owned trigger must be documented.
 
 ---
 
-# Trigger Side Effects
+## Trigger Side Effects
 
 A contributor should be able to discover that:
 
@@ -1323,7 +1161,7 @@ Hidden persistence behavior is architectural behavior.
 
 ---
 
-# Generated Columns
+## Generated Columns
 
 Generated columns may be useful for derived values.
 
@@ -1333,7 +1171,7 @@ They remain part of schema compatibility.
 
 ---
 
-# Database Events
+## Database Events
 
 Database-native notification features should not be introduced casually as the primary application event architecture.
 
@@ -1343,7 +1181,7 @@ Application event ownership should remain explicit.
 
 ---
 
-# Data Classification
+## Data Classification
 
 Database fields inherit Orion's data-classification requirements.
 
@@ -1363,7 +1201,7 @@ users.password_hash
 
 ---
 
-# Sensitive Columns
+## Sensitive Columns
 
 Restricted columns should receive additional consideration for:
 
@@ -1380,7 +1218,7 @@ Database access alone does not justify exposing these values to application code
 
 ---
 
-# Column-Level Access
+## Column-Level Access
 
 Some systems may require limiting access to specific sensitive columns.
 
@@ -1390,7 +1228,7 @@ Application-level projections may provide sufficient protection initially.
 
 ---
 
-# Encryption
+## Encryption
 
 Infrastructure encryption at rest does not change data classification.
 
@@ -1410,7 +1248,7 @@ and should require explicit architectural justification.
 
 ---
 
-# Secrets in the Database
+## Secrets in the Database
 
 Some application secrets may require persistence.
 
@@ -1432,7 +1270,7 @@ Raw infrastructure secrets should not be stored in ordinary business tables mere
 
 ---
 
-# Password Hashes
+## Password Hashes
 
 Password hashes are database data but remain `RESTRICTED`.
 
@@ -1442,19 +1280,17 @@ Queries and projections should avoid retrieving them unless required by authenti
 
 ---
 
-# Database Credentials
+## Database Credentials
 
 Application database credentials follow:
 
-```text
-docs/security/secrets-management.md
-```
+- [docs/security/secrets-management.md](../security/secrets-management.md)
 
 Runtime database credentials should be least-privileged.
 
 ---
 
-# Runtime vs Migration Credentials
+## Runtime vs Migration Credentials
 
 Migration tooling may require privileges that runtime applications do not.
 
@@ -1462,7 +1298,7 @@ Prefer separate identities when privilege requirements differ.
 
 ---
 
-# Read-Only Credentials
+## Read-Only Credentials
 
 Operational or analytical access may use read-only credentials when possible.
 
@@ -1470,19 +1306,17 @@ Read-only access is still sensitive because it may expose confidential data.
 
 ---
 
-# Production Access
+## Production Access
 
 Humans should not routinely use unrestricted production database credentials.
 
 Production database access should follow the future:
 
-```text
-docs/security/production-access.md
-```
+- [docs/security/production-access.md](../security/production-access.md)
 
 ---
 
-# Auditability
+## Auditability
 
 Sensitive administrative database access should be auditable where infrastructure supports it.
 
@@ -1490,150 +1324,13 @@ Database access should not become an invisible backdoor around application autho
 
 ---
 
-# Data Lifecycle
+## Data Lifecycle
 
-Database design must consider:
-
-```text
-creation
-updates
-retention
-deletion
-archival
-backups
-```
-
-Data lifecycle is part of schema semantics.
+See [database lifecycle and recovery requirements](../security/data-retention.md#data-lifecycle). The detailed requirements are maintained there.
 
 ---
 
-# Deletion
-
-Deletion semantics should be explicit.
-
-Potential forms include:
-
-```text
-hard delete
-soft delete
-anonymization
-archival
-```
-
-These represent different behavior.
-
----
-
-# Soft Delete
-
-Soft delete is not equivalent to actual deletion.
-
-A row with:
-
-```text
-deleted_at != null
-```
-
-still exists.
-
-Soft deletion should be used when the application requires recoverability or historical state.
-
-It should not be the default for every table.
-
----
-
-# Cascading Delete
-
-Cascading deletion should represent intentional ownership.
-
-For example:
-
-```text
-order
-    owns
-order_items
-```
-
-may justify cascade behavior.
-
-Deletion of an account should not automatically cascade through unrelated business history unless domain and retention policy require it.
-
----
-
-# Retention
-
-Database retention should follow:
-
-```text
-docs/security/data-retention.md
-```
-
-when that document exists.
-
-Do not retain data indefinitely merely because storage is inexpensive.
-
----
-
-# Archival
-
-Archival may be appropriate for data that must remain available but is no longer part of active workloads.
-
-Archival design should consider:
-
-```text
-access
-queryability
-deletion
-security
-recovery
-```
-
----
-
-# Backups
-
-Backups contain copies of database data.
-
-They inherit the classification of their source.
-
-Backup architecture must consider:
-
-```text
-encryption
-retention
-access
-restore testing
-deletion obligations
-```
-
----
-
-# Restore Testing
-
-A backup that cannot be restored is not a reliable backup.
-
-Restore procedures should eventually be tested.
-
-The exact schedule depends on operational maturity.
-
----
-
-# Recovery Point and Recovery Time
-
-As product requirements mature, database reliability may define:
-
-```text
-Recovery Point Objective
-Recovery Time Objective
-```
-
-These should come from actual business requirements.
-
-Do not invent strict objectives prematurely.
-
----
-
-# Replication
+## Replication
 
 Replication creates additional copies of data.
 
@@ -1649,7 +1346,7 @@ They should not become uncontrolled analytical or support databases.
 
 ---
 
-# Read Replicas
+## Read Replicas
 
 Read replicas may improve scale or isolation.
 
@@ -1659,20 +1356,18 @@ Applications must understand whether reads can be stale.
 
 ---
 
-# Database Availability
+## Database Availability
 
 Database failures should be observable and handled according to:
 
-```text
-docs/architecture/error-handling.md
-docs/reliability/observability.md
-```
+- [docs/architecture/error-handling.md](../architecture/error-handling.md)
+- [docs/reliability/observability.md](../reliability/observability.md)
 
 Application behavior should not expose raw database errors to untrusted consumers.
 
 ---
 
-# Connection Pools
+## Connection Pools
 
 Connection pools are finite shared resources.
 
@@ -1689,7 +1384,7 @@ rather than arbitrary high defaults.
 
 ---
 
-# Connection Pool Exhaustion
+## Connection Pool Exhaustion
 
 Pool saturation should be observable.
 
@@ -1705,7 +1400,7 @@ Increasing pool size is not always the correct solution.
 
 ---
 
-# Query Timeouts
+## Query Timeouts
 
 Database operations should not wait indefinitely.
 
@@ -1715,7 +1410,7 @@ Timeouts should be observable.
 
 ---
 
-# Statement Cancellation
+## Statement Cancellation
 
 Where supported, timed-out or abandoned requests should avoid leaving unnecessary expensive database work running.
 
@@ -1723,7 +1418,7 @@ The exact mechanism depends on database technology.
 
 ---
 
-# Schema Naming
+## Schema Naming
 
 Database object names should use consistent conventions.
 
@@ -1742,7 +1437,7 @@ views
 
 ---
 
-# Meaningful Names
+## Meaningful Names
 
 Names should describe semantics.
 
@@ -1764,7 +1459,7 @@ Avoid historical names whose current meaning differs from their original purpose
 
 ---
 
-# Boolean Columns
+## Boolean Columns
 
 Boolean column names should read naturally as predicates.
 
@@ -1781,7 +1476,7 @@ Avoid ambiguous booleans.
 
 ---
 
-# Foreign-Key Column Names
+## Foreign-Key Column Names
 
 Relationship columns should make their target clear.
 
@@ -1803,7 +1498,7 @@ unless the semantics genuinely differ.
 
 ---
 
-# Constraint Names
+## Constraint Names
 
 Constraint names should be deterministic and understandable where tooling permits.
 
@@ -1811,7 +1506,7 @@ Useful names improve migration diagnostics and production debugging.
 
 ---
 
-# Index Names
+## Index Names
 
 Index names should reveal their purpose or indexed fields where practical.
 
@@ -1819,147 +1514,13 @@ Generated names are acceptable if they remain deterministic and discoverable.
 
 ---
 
-# Database Documentation
+## Database Documentation
 
-Every application-owned table and column should have canonical documentation.
-
-Documentation should explain semantics that are not obvious from the name and type.
-
-This includes:
-
-```text
-purpose
-ownership
-meaning
-classification where relevant
-important constraints
-relationships
-```
+See [database documentation requirements](schema-documentation.md#database-documentation). The detailed requirements are maintained there.
 
 ---
 
-# Table Documentation
-
-Each table should document:
-
-```text
-purpose
-owner
-important lifecycle behavior
-important relationships
-```
-
-Documentation should not merely restate the table name.
-
----
-
-# Column Documentation
-
-Every column should have canonical documentation appropriate to its semantics.
-
-A trivial field may need only a concise description.
-
-A complex field may require:
-
-```text
-units
-state meaning
-classification
-null semantics
-source
-```
-
----
-
-# Database Objects Beyond Tables
-
-Every application-owned:
-
-```text
-view
-materialized view
-function
-procedure
-trigger
-```
-
-should document its purpose and behavior.
-
-These objects often contain non-obvious logic.
-
----
-
-# Database-Native Comments
-
-Where useful, database-native comments or schema metadata should be considered a canonical source for database documentation.
-
-This can keep documentation close to the schema and allow generated references.
-
-The exact mechanism depends on tooling.
-
----
-
-# Generated Database Documentation
-
-The desired long-term model is:
-
-```text
-canonical schema metadata
-        ↓
-documentation generator
-        ↓
-docs/generated/database/
-```
-
-Generated documentation should not be edited manually.
-
----
-
-# Authored Database Documentation
-
-Authored documentation should explain concepts that cannot be inferred reliably from schema metadata.
-
-Examples include:
-
-```text
-ownership rationale
-complex lifecycle
-transaction strategy
-cross-domain access
-migration constraints
-```
-
----
-
-# Documentation Drift
-
-Database documentation that does not match the schema is harmful.
-
-Where practical, CI should validate generated documentation against the canonical schema.
-
----
-
-# Database Introspection
-
-AI agents and humans should eventually be able to inspect current database structure through machine-readable schema sources.
-
-The intended investigation flow is:
-
-```text
-business concept
-    ↓
-domain documentation
-    ↓
-table
-    ↓
-columns / constraints / relationships
-    ↓
-migration history
-```
-
----
-
-# AI-Friendly Database Design
+## AI-Friendly Database Design
 
 Database structures should be understandable without reverse engineering hidden conventions.
 
@@ -1982,7 +1543,7 @@ undocumented triggers
 
 ---
 
-# Magic Values
+## Magic Values
 
 Avoid storing undocumented sentinel values such as:
 
@@ -1998,7 +1559,7 @@ Use explicit schema semantics.
 
 ---
 
-# Historical Columns
+## Historical Columns
 
 Columns that remain only for compatibility or migration reasons should be documented as such.
 
@@ -2006,7 +1567,7 @@ Stale columns should eventually be removed when safe.
 
 ---
 
-# Deprecated Database Objects
+## Deprecated Database Objects
 
 Database objects may require deprecation before removal.
 
@@ -2024,185 +1585,23 @@ remove in later migration
 
 ---
 
-# Schema Evolution
+## Schema Evolution
 
-Database schemas evolve through migrations.
-
-The canonical migration policy is:
-
-```text
-production history is immutable
-development history is disposable
-```
-
-More precisely:
-
-```text
-released migration history is immutable
-unreleased migration history may be refined
-```
-
-Detailed policy belongs in:
-
-```text
-docs/database/migrations.md
-```
+See [database schema-evolution requirements](migrations.md#schema-evolution). The detailed requirements are maintained there.
 
 ---
 
-# Released State
-
-A migration becomes immutable once it participates in a permanent released database history according to the repository's release policy.
-
-After that point, correcting the schema requires a new migration.
-
----
-
-# Unreleased State
-
-Before a migration becomes part of released history, it may be:
-
-```text
-rewritten
-combined
-regenerated
-removed
-```
-
-when doing so results in cleaner meaningful history.
-
-Git preserves development history.
-
-Database migrations preserve released schema transitions.
-
----
-
-# Migration Count
-
-The goal is not the smallest possible number of migrations.
-
-The goal is the smallest number of meaningful and safe migrations.
-
-Multiple migrations may be required for:
-
-```text
-backfill
-expand-migrate-contract
-large transformations
-backward-compatible deployment
-zero-downtime changes
-```
-
----
-
-# Schema Change Safety
-
-Schema changes should consider:
-
-```text
-data loss
-locking
-table rewrite
-deployment compatibility
-rollback
-backfill duration
-application version coexistence
-```
-
-A syntactically valid migration may still be operationally unsafe.
-
----
-
-# Destructive Changes
-
-Changes such as:
-
-```text
-DROP TABLE
-DROP COLUMN
-truncate
-type narrowing
-```
-
-require explicit review of data-loss implications.
-
-Do not assume unused application code means stored data is disposable.
-
----
-
-# Renames
-
-Column or table renames may be operationally breaking.
-
-Depending on deployment topology, an expand-and-contract sequence may be safer than direct rename.
-
----
-
-# Backfills
-
-Data backfills should be treated as data migrations.
-
-Large backfills may require:
-
-```text
-batching
-progress tracking
-retry
-observability
-```
-
-They should not automatically run inside one long transaction.
-
----
-
-# Schema and Application Compatibility
-
-During rolling deployments, old and new application versions may coexist.
-
-Schema evolution should account for this when deployment architecture requires it.
-
-The database is often a shared compatibility boundary between versions.
-
----
-
-# Migration Rollback
-
-Not every database migration is safely reversible.
-
-Rollback strategy should distinguish:
-
-```text
-application rollback
-schema rollback
-data restoration
-forward fix
-```
-
-Blind automatic down migrations can be dangerous after data has changed.
-
----
-
-# Forward Recovery
-
-For released migrations, fixing forward is often safer than attempting destructive rollback.
-
-The correct strategy depends on migration type and incident severity.
-
----
-
-# Database Testing
+## Database Testing
 
 Database behavior should be tested according to:
 
-```text
-docs/architecture/testing-strategy.md
-```
+- [docs/architecture/testing-strategy.md](../architecture/testing-strategy.md)
 
 Important persistence behavior should use the actual database technology where semantics matter.
 
 ---
 
-# Constraint Tests
+## Constraint Tests
 
 Critical constraints should have tests when their behavior is important to application correctness.
 
@@ -2218,7 +1617,7 @@ Testing only application validation does not prove database enforcement exists.
 
 ---
 
-# Transaction Tests
+## Transaction Tests
 
 Critical atomic workflows should verify transaction behavior.
 
@@ -2226,7 +1625,7 @@ A failure should not leave partial persistent state when the operation promises 
 
 ---
 
-# Concurrency Tests
+## Concurrency Tests
 
 Important concurrent workflows should receive dedicated tests.
 
@@ -2234,7 +1633,7 @@ Concurrency behavior is difficult to infer from sequential unit tests.
 
 ---
 
-# Migration Tests
+## Migration Tests
 
 Migration validation should include relevant paths from released schema states.
 
@@ -2242,7 +1641,7 @@ A fresh database build alone does not prove production upgrade safety.
 
 ---
 
-# Schema Drift
+## Schema Drift
 
 Production schema must not drift silently from the repository's canonical schema history.
 
@@ -2252,7 +1651,7 @@ Emergency changes must be reconciled back into repository history.
 
 ---
 
-# Manual Database Changes
+## Manual Database Changes
 
 Direct manual schema changes create:
 
@@ -2266,7 +1665,7 @@ Schema evolution should occur through repository-controlled migration workflows.
 
 ---
 
-# Data Fixes
+## Data Fixes
 
 Production data fixes may sometimes require manual or scripted intervention.
 
@@ -2283,7 +1682,7 @@ A complex one-time data fix may deserve a repository script or migration.
 
 ---
 
-# Database Scripts
+## Database Scripts
 
 Operational scripts that modify data should follow application ownership and security rules.
 
@@ -2291,7 +1690,7 @@ They should not become undocumented bypasses around domain invariants.
 
 ---
 
-# Administrative SQL
+## Administrative SQL
 
 Ad hoc SQL against production should be exceptional.
 
@@ -2299,7 +1698,7 @@ Important recurring operations should become controlled tooling.
 
 ---
 
-# Seed Data
+## Seed Data
 
 Seed data may support:
 
@@ -2315,7 +1714,7 @@ Do not use one uncontrolled seed mechanism for all contexts.
 
 ---
 
-# Development Seed Data
+## Development Seed Data
 
 Development seeds should be synthetic and safe.
 
@@ -2323,7 +1722,7 @@ They should create useful local scenarios without copying production information
 
 ---
 
-# Production Bootstrap Data
+## Production Bootstrap Data
 
 If production requires initial reference data, it should be treated as part of deployment or migration design.
 
@@ -2331,7 +1730,7 @@ Do not assume development seeds are appropriate for production.
 
 ---
 
-# Reference Data
+## Reference Data
 
 Stable application reference data may be represented through:
 
@@ -2347,7 +1746,7 @@ The source of truth should be explicit.
 
 ---
 
-# Lookup Tables
+## Lookup Tables
 
 Lookup tables may be useful for data-driven stable values.
 
@@ -2357,7 +1756,7 @@ Likewise, application enums should not replace values that must be operationally
 
 ---
 
-# Audit History
+## Audit History
 
 If business history must be preserved, model it explicitly.
 
@@ -2376,7 +1775,7 @@ The appropriate model depends on requirements.
 
 ---
 
-# Updated-At Is Not Audit History
+## Updated-At Is Not Audit History
 
 An `updated_at` timestamp tells when something changed.
 
@@ -2393,7 +1792,7 @@ Do not confuse modification timestamps with complete auditability.
 
 ---
 
-# Event Sourcing
+## Event Sourcing
 
 Event sourcing is not a default Orion architecture.
 
@@ -2403,7 +1802,7 @@ Ordinary CRUD or domain persistence should not be converted into event sourcing 
 
 ---
 
-# CQRS
+## CQRS
 
 Separate read and write models may be useful when their requirements diverge substantially.
 
@@ -2413,7 +1812,7 @@ Introduce it only when it solves concrete complexity or scale problems.
 
 ---
 
-# Database per Service
+## Database per Service
 
 A separate database per service may strengthen ownership in distributed systems.
 
@@ -2425,7 +1824,7 @@ Service boundaries should precede database separation decisions.
 
 ---
 
-# Modular Monolith Database
+## Modular Monolith Database
 
 A modular monolith may use one physical database while preserving logical ownership.
 
@@ -2435,7 +1834,7 @@ Logical boundaries must still be explicit.
 
 ---
 
-# Reporting
+## Reporting
 
 Reporting and analytical queries may require cross-domain data.
 
@@ -2454,7 +1853,7 @@ only when requirements justify them.
 
 ---
 
-# Analytics
+## Analytics
 
 Analytical workloads should not degrade critical transactional workloads unnecessarily.
 
@@ -2464,7 +1863,7 @@ Do not introduce a warehouse before real analytical requirements exist.
 
 ---
 
-# Search
+## Search
 
 Search indexes are derived data stores.
 
@@ -2474,7 +1873,7 @@ Synchronization and rebuild semantics must be defined.
 
 ---
 
-# Cache
+## Cache
 
 Caches are not the source of truth unless explicitly designed as durable state.
 
@@ -2482,7 +1881,7 @@ Database-backed canonical state should not depend on cache existence.
 
 ---
 
-# External Data Stores
+## External Data Stores
 
 Introducing additional persistence technologies such as:
 
@@ -2508,7 +1907,7 @@ Use additional data stores only when they provide substantial value.
 
 ---
 
-# Data Store Selection
+## Data Store Selection
 
 Choose data technology based on requirements such as:
 
@@ -2525,7 +1924,7 @@ not trend or novelty.
 
 ---
 
-# Database Observability
+## Database Observability
 
 Database operations should integrate with Orion observability.
 
@@ -2544,21 +1943,19 @@ Sensitive query values must remain protected.
 
 ---
 
-# Query Logging
+## Query Logging
 
 Raw SQL logging may expose sensitive data.
 
 Database observability must follow:
 
-```text
-docs/security/telemetry-redaction.md
-```
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md)
 
 Normalized or parameterized query representations should be preferred when possible.
 
 ---
 
-# Slow Queries
+## Slow Queries
 
 Slow query behavior should be discoverable.
 
@@ -2568,7 +1965,7 @@ Do not add indexes or caching purely from speculation.
 
 ---
 
-# Query Plans
+## Query Plans
 
 Execution plans may be useful when investigating performance.
 
@@ -2578,7 +1975,7 @@ Plan analysis belongs to implementation-specific database operations.
 
 ---
 
-# Metrics
+## Metrics
 
 Database metrics may eventually include:
 
@@ -2595,7 +1992,7 @@ Exact telemetry depends on database and hosting platform.
 
 ---
 
-# Database Error Translation
+## Database Error Translation
 
 Database errors should be translated at persistence or application boundaries.
 
@@ -2613,7 +2010,7 @@ Do not expose raw database errors as public contracts.
 
 ---
 
-# Unknown Database Errors
+## Unknown Database Errors
 
 Unexpected database errors should remain unexpected internal failures.
 
@@ -2623,7 +2020,7 @@ Preserve the original cause internally for diagnostics.
 
 ---
 
-# Database Availability
+## Database Availability
 
 A database outage is usually an infrastructure failure.
 
@@ -2633,7 +2030,7 @@ Critical dependency failure should be operationally visible.
 
 ---
 
-# Database Health Checks
+## Database Health Checks
 
 Health checks may validate database availability where readiness semantics require it.
 
@@ -2643,7 +2040,7 @@ Exact semantics belong in reliability documentation.
 
 ---
 
-# Database Documentation and AI Agents
+## Database Documentation and AI Agents
 
 AI agents should be able to determine:
 
@@ -2662,7 +2059,7 @@ This is a core Orion goal.
 
 ---
 
-# AI Agent Database Changes
+## AI Agent Database Changes
 
 Before modifying a database schema, an AI agent should:
 
@@ -2681,7 +2078,7 @@ It must not generate a migration solely from schema diff without understanding i
 
 ---
 
-# AI and Migration History
+## AI and Migration History
 
 An AI agent must distinguish:
 
@@ -2696,7 +2093,7 @@ If release status is uncertain, the migration should be treated as immutable unt
 
 ---
 
-# AI and Data Destruction
+## AI and Data Destruction
 
 AI agents must not introduce destructive database operations casually.
 
@@ -2706,7 +2103,7 @@ A schema cleanup is not automatically safe merely because code no longer referen
 
 ---
 
-# AI and Raw SQL
+## AI and Raw SQL
 
 AI-generated raw SQL should follow the same ownership, security, and transaction rules as application-generated persistence.
 
@@ -2714,7 +2111,7 @@ Raw SQL is not exempt from architecture.
 
 ---
 
-# Mechanical Enforcement
+## Mechanical Enforcement
 
 Future tooling may enforce database rules such as:
 
@@ -2733,7 +2130,7 @@ Exact enforcement depends on the chosen database tooling.
 
 ---
 
-# Machine-Readable Metadata
+## Machine-Readable Metadata
 
 A future canonical schema may include metadata such as:
 
@@ -2758,7 +2155,7 @@ migration review
 
 ---
 
-# Schema Review
+## Schema Review
 
 Database changes should receive review proportional to risk.
 
@@ -2776,7 +2173,7 @@ new unique constraints
 
 ---
 
-# New Table Checklist
+## New Table Checklist
 
 Before creating a new table, answer:
 
@@ -2800,7 +2197,7 @@ If these questions cannot be answered, the table design is incomplete.
 
 ---
 
-# New Column Checklist
+## New Column Checklist
 
 Before introducing a column, answer:
 
@@ -2820,7 +2217,7 @@ Before introducing a column, answer:
 
 ---
 
-# New Constraint Checklist
+## New Constraint Checklist
 
 Before introducing a constraint, answer:
 
@@ -2835,7 +2232,7 @@ Before introducing a constraint, answer:
 
 ---
 
-# New Index Checklist
+## New Index Checklist
 
 Before creating an index, answer:
 
@@ -2849,7 +2246,7 @@ Before creating an index, answer:
 
 ---
 
-# New Database Feature Checklist
+## New Database Feature Checklist
 
 Before introducing a:
 
@@ -2874,13 +2271,13 @@ answer:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Application-Only Uniqueness
+### Application-Only Uniqueness
 
 Checking uniqueness without a database constraint when durable uniqueness matters.
 
@@ -2888,7 +2285,7 @@ Avoid.
 
 ---
 
-## Nullable by Convenience
+### Nullable by Convenience
 
 Making required fields nullable merely to simplify implementation.
 
@@ -2896,127 +2293,127 @@ Avoid.
 
 ---
 
-## Direct Client Database Credentials
+### Direct Client Database Credentials
 
 Prohibited by default.
 
 ---
 
-## Shared Mutable Tables Without Ownership
+### Shared Mutable Tables Without Ownership
 
 Avoid.
 
 ---
 
-## Cross-Domain Writes by Convenience
+### Cross-Domain Writes by Convenience
 
 Avoid.
 
 ---
 
-## ORM Model as Universal Model
+### ORM Model as Universal Model
 
 Avoid.
 
 ---
 
-## Public API Directly Exposes Persistence Object
+### Public API Directly Exposes Persistence Object
 
 Avoid unless semantics intentionally match.
 
 ---
 
-## JSON for Everything
+### JSON for Everything
 
 Avoid.
 
 ---
 
-## Generic Metadata as Primary Schema
+### Generic Metadata as Primary Schema
 
 Avoid.
 
 ---
 
-## Floating Point for Exact Money
+### Floating Point for Exact Money
 
 Avoid.
 
 ---
 
-## Magic Sentinel Values
+### Magic Sentinel Values
 
 Avoid.
 
 ---
 
-## Index Every Column
+### Index Every Column
 
 Avoid.
 
 ---
 
-## No Foreign Keys Because Application Handles It
+### No Foreign Keys Because Application Handles It
 
 Avoid when referential integrity is important and the database can enforce it appropriately.
 
 ---
 
-## Trigger With Undocumented Side Effect
+### Trigger With Undocumented Side Effect
 
 Prohibited.
 
 ---
 
-## Long Transaction Around External API Calls
+### Long Transaction Around External API Calls
 
 Avoid unless explicitly designed.
 
 ---
 
-## Manual Production Schema Drift
+### Manual Production Schema Drift
 
 Prohibited as a normal workflow.
 
 ---
 
-## Editing Released Migrations
+### Editing Released Migrations
 
 Prohibited.
 
 ---
 
-## One Runtime Credential With Administrative Privileges
+### One Runtime Credential With Administrative Privileges
 
 Avoid.
 
 ---
 
-## Production Database Dump as Development Fixture
+### Production Database Dump as Development Fixture
 
 Prohibited by default.
 
 ---
 
-## Logging Raw Query Parameters
+### Logging Raw Query Parameters
 
 Prohibited when they may contain sensitive data.
 
 ---
 
-## Soft Delete Everywhere
+### Soft Delete Everywhere
 
 Avoid.
 
 ---
 
-## Premature Polyglot Persistence
+### Premature Polyglot Persistence
 
 Avoid.
 
 ---
 
-# Initial Database Policy
+## Initial Database Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -3043,16 +2440,12 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Remaining Implementation Decisions
 
-The following decisions are intentionally deferred:
+The accepted choices are linked above. These remaining details are intentionally deferred:
 
 ```text
-database engine
 database hosting
-ORM or query builder
-schema-definition source
-migration tooling
 identifier strategy
 naming convention
 timestamp conventions
@@ -3070,26 +2463,22 @@ Significant choices should be documented through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should be complemented by:
 
-```text
-docs/database/migrations.md
-docs/database/schema-documentation.md
-docs/database/transactions-and-concurrency.md
-
-docs/security/data-retention.md
-docs/security/production-access.md
-
-docs/reliability/health-checks.md
-```
+- [docs/database/migrations.md](migrations.md)
+- [docs/database/schema-documentation.md](schema-documentation.md)
+- [docs/database/transactions-and-concurrency.md](transactions-and-concurrency.md)
+- [docs/security/data-retention.md](../security/data-retention.md)
+- [docs/security/production-access.md](../security/production-access.md)
+- [docs/reliability/health-checks.md](../reliability/health-checks.md)
 
 Implementation-specific database documentation should reference these principles rather than redefining them independently.
 
 ---
 
-# Summary
+## Summary
 
 The database is a durable system of record and an architectural boundary.
 

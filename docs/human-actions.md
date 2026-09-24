@@ -1,0 +1,250 @@
+# Human Actions for Implementation
+
+[Implementation plan](implementation-plan.md) · [Documentation index](README.md) · [Secrets policy](security/secrets-management.md)
+
+## Purpose and current state
+
+This checklist records implementation prerequisites that require a project-owner decision, human-controlled account action, unavailable privilege, or securely supplied external configuration. Codex must maintain it throughout implementation and must never silently skip work because human intervention is needed.
+
+Phase 1 local tooling is complete. Phase 2 repository configuration is in progress; external activation and protection remain open below. Conditional items become necessary only when their trigger applies. There are currently no implemented application configuration schemas or `.env` variable names.
+
+## How Codex maintains this checklist
+
+1. Inspect existing decisions, access, tools, configuration, and prior authorization before requesting human intervention. Complete authorized automation and all useful preparation first. Do not ask a human to repeat work Codex can already perform safely within scope.
+2. Keep one stable ID per coherent action. As providers, environments, or owners become concrete, split broad anticipated items into independently verifiable actions and update the plan's links. Add newly discovered actions immediately; this initial list is not exhaustive.
+3. Every action must retain its checkbox, required action, reason, dependent phase/tasks, required non-secret values/configuration names, and verification method. Record an owner, status, applicability, and evidence as well. Use `pending`, `in progress`, `completed`, `blocked`, or `changed` consistently with the [plan](implementation-plan.md#maintaining-this-plan).
+4. Before asking the user, provide a concrete request: the exact setting or decision, prepared configuration or options where appropriate, why automation cannot finish it, affected task IDs, and how completion will be checked. Do not ask for approval again when existing authorization covers the action.
+5. If an action blocks work now, mark the dependent plan task `blocked`, link this entry, and explicitly surface the request to the user. Record the blocker here. Continue independent authorized work; do not mark the whole phase complete while required work remains blocked.
+6. Use `[x]` and `completed` only after verification. Record safe evidence and, when completed, the verification date. For owner decisions, the recorded decision is evidence; for technical actions, test the intended access or behavior. If direct verification is unavailable, record the limitation and the remaining verification task rather than claiming success.
+7. Reopen an action with `[ ]` if later evidence invalidates completion, access expires, or configuration changes. Record why and update affected plan tasks.
+8. A conditional item that is unnecessary remains `[ ]` with status `changed`, an explicit not-applicable/deferred reason, and its future trigger or replacement. It is not a completed action. Update plan applicability too; do not silently remove it or let inapplicable work block foundation completion.
+
+## Safe configuration handoff
+
+- Record configuration names, required scopes, environment, purpose, non-secret resource identifiers, and secure destination. Never record passwords, tokens, API keys, connection strings containing credentials, private keys, or complete environment dumps here, in the plan, in chat, or in tracked example files.
+- When a schema exists, replace each relevant `not defined yet` entry with the exact implemented configuration keys or `.env` names and a link to the schema/reference. Do this before requesting a value; do not invent variable names in advance.
+- Humans should place secrets directly into the selected protected secret store or an explicitly documented ignored local file, where appropriate. Codex should verify presence and authorized behavior without printing secret contents. Public client identifiers must be distinguished from server-only credentials.
+- Use synthetic local/test data and ephemeral credentials where possible. Production secrets must not be prerequisites for ordinary development or CI.
+- Prefer delegated, short-lived identity over raw long-lived credentials where supported. Existing [production-access policy](security/production-access.md) continues to govern privileged actions; a checkbox is not blanket authorization.
+
+## H-01
+
+- [ ] **Enable the Renovate GitHub App for Orion.**
+
+**Status:** blocked. **Owner:** repository owner or an administrator who can authorize GitHub Apps.
+
+**What needs to be done:** Install or authorize the Renovate GitHub App for `GabriellMDias/Orion` with repository access, if it is not already installed. Confirm its onboarding and Dependency Dashboard after `renovate.json` reaches the default branch. Existing repository access is sufficient for Codex to prepare CI and inspect settings; no new personal token is requested.
+
+**Why:** Phase 2 needs actual workflow execution and external Renovate enablement; configuration files alone do not activate an app or confer access.
+
+**When / dependency:** [Phase 2](implementation-plan.md#phase-2), P2.5. The app needs the committed configuration on the default branch. If it is already installed, verify behavior instead of installing it again.
+
+**Values / configuration:** Repository `GabriellMDias/Orion`, default branch `main`, repository file `renovate.json`, Renovate GitHub App installation with access to this repository. No application `.env` variable or personal token is required.
+
+**Codex verification:** Validate `renovate.json`, inspect the app installation or its first run, and confirm the expected onboarding/Dependency Dashboard issue and update PR behavior on the repository. Record safe URLs or IDs and any remaining external limitation.
+
+**Evidence / blocker:** Repository identity, admin permission, and Git/Actions access are verified. Renovate configuration validates locally. App installation status could not be read with the available GitHub credential (`GET /user/installations` returned 403 because that endpoint needs a GitHub App-authorized user token); the app cannot read an unmerged branch configuration yet. Owner action or verified existing installation is still required.
+
+## H-02
+
+- [ ] **Make the private repository eligible for branch protection and require Orion's CI gate.**
+
+**Status:** blocked. **Owner:** repository owner/account administrator for the entitlement decision; Codex can apply settings after eligibility is available.
+
+**What needs to be done:** Decide how to make this currently private repository eligible for GitHub branch protection or rulesets. GitHub Pro (or another eligible plan) preserves privacy; making the repository public is a separate visibility decision and must not be assumed. Once eligible and after the check appears on a real run, require `Orion required gate` on `main` before normal merge, with no ordinary bypass. Codex will apply or verify the settings using existing admin access where possible.
+
+**Why:** Required validation must be enforced outside the workflow; a successful workflow definition does not prevent merging unvalidated changes.
+
+**When / dependency:** [Phase 2](implementation-plan.md#phase-2), P2.3 and P2.6, after the aggregate check exists.
+
+**Values / configuration:** Repository `GabriellMDias/Orion` (currently private); primary branch `main`; exact required check `Orion required gate` from `.github/workflows/ci.yml`; no application `.env` variables. Record any actual ruleset/protection ID and approved exceptional bypass after setup.
+
+**Codex verification:** Read the effective protection/ruleset settings and confirm the correct check is required on the correct branch. Use a safe test PR or platform evidence to verify a failing required check prevents normal merge; do not weaken protection to test it.
+
+**Evidence / blocker:** The workflow now defines the aggregate gate. GitHub returned HTTP 403 for both `GET /branches/main/protection` and `GET /rulesets?includes_parents=true`: “Upgrade to GitHub Pro or make this repository public to enable this feature.” The repository is private. Codex cannot purchase a plan or change visibility without an owner decision, so enforcement cannot yet be configured or verified.
+
+## H-03
+
+- [ ] **Enable available GitHub security features or document verified entitlement limitations.**
+
+**Status:** in progress. **Owner:** repository/organization administrator where settings or entitlements are unavailable to Codex.
+
+**What needs to be done:** Confirm whether GitHub Code Security and Secret Protection are available for this private repository. If available, enable dependency review, CodeQL default setup, secret scanning, and push protection as applicable; set repository Actions variable `DEPENDENCY_REVIEW_ENABLED=true` only when dependency review is available so the PR gate requires it. If unavailable, record the feature-specific entitlement limits. Codex has already verified the dependency graph and enabled vulnerability alerts.
+
+**Why:** Accepted supply-chain controls include platform settings that may require administrative privileges or depend on repository visibility and entitlement.
+
+**When / dependency:** [Phase 2](implementation-plan.md#phase-2), P2.6. Code analysis becomes meaningful when supported code exists. Unavailable paid features are not mandatory architectural dependencies.
+
+**Values / configuration:** Repository `GabriellMDias/Orion` (private), repository Actions variable `DEPENDENCY_REVIEW_ENABLED=true` only when available, CodeQL default setup, secret scanning and push protection settings, and any reviewed exceptions. Dependency review's accepted initial threshold is newly introduced high/critical vulnerabilities. No production secrets or application `.env` values. Do not enable competing Dependabot version updates for ecosystems managed by Renovate.
+
+**Codex verification:** Inspect effective settings and relevant checks/results. For unavailable features, record feature-specific evidence and qualified applicability rather than reporting the feature enabled. Split entries if some settings remain outstanding; do not check the whole item while an applicable requirement is unresolved.
+
+**Evidence / blocker:** `GET /dependency-graph/sbom` returned HTTP 200. Codex enabled vulnerability alerts (`PUT /vulnerability-alerts` HTTP 204; subsequent GET HTTP 204), and `GET /dependabot/alerts` returned HTTP 200. `GET /code-scanning/default-setup` returned HTTP 403 saying code scanning is not enabled; `GET /secret-scanning/alerts` returned HTTP 404 saying secret scanning is disabled. The dependency-review variable is absent. Whether private-repository security entitlements are available remains unverified. No purchase is requested or implied; features unavailable under the current entitlement are conditional, not a reason to weaken the CI gate.
+
+## H-04
+
+- [ ] **Define the reference feature and its business acceptance criteria.**
+
+**Status:** pending. **Owner:** project owner.
+
+**What needs to be done:** Choose the reference capability and supply its business meaning: actors, supported operations, invariants, state transitions, failures, side effects, data ownership, classification, lifecycle/retention needs, and acceptance scenarios. Codex should present bounded options or identify the specific missing decisions rather than ask the owner to design the entire implementation.
+
+**Why:** Existing orders/payments examples are illustrative. Codex cannot invent product requirements or authoritative data-lifecycle obligations from architecture examples.
+
+**When / dependency:** [Phase 3](implementation-plan.md#phase-3), P3.1-P3.3; dependent feature work in Phases 5-7. Independent tooling and CI work can proceed first.
+
+**Values / configuration:** A feature name and recorded business specification; audit requirements, supported consumer/browser requirements beyond the initial baseline, integrations, and product/legal retention inputs only where relevant. No `.env` variables or credentials are needed for this decision.
+
+**Codex verification:** Link the owner's recorded decision to the feature specification and acceptance scenarios. Check that every implemented business rule traces to the specification and explicitly list any remaining ambiguity. Do not require an additional ceremonial sign-off when the existing user instruction already supplies the decision.
+
+**Evidence / blocker:** No reference business feature has been selected in the documentation.
+
+## H-05
+
+- [ ] **Resolve required identity, access, and tenancy decisions for the reference feature.**
+
+**Status:** pending. **Owner:** project owner, with identity/security administration if relevant.
+
+**What needs to be done:** Define public versus protected operations, human/machine actors, ownership or tenancy boundaries, required permissions, and session/revocation expectations. Select an authentication mechanism/provider only if required by the feature. Codex prepares suitable scoped choices; do not assume RBAC, ABAC, multi-tenancy, or a particular provider.
+
+**Why:** Security policies define constraints but intentionally leave these product choices open. Protected functionality cannot be implemented safely by guessing them.
+
+**When / dependency:** [Phase 3](implementation-plan.md#phase-3), P3.3; before P5.4 or P6.6 exposes protected behavior. If the selected feature is explicitly anonymous, record that decision and change inapplicable tasks rather than fabricate identities.
+
+**Values / configuration:** Actor/capability rules, resource/tenant scope, chosen identity strategy, and applicable lifetime/revocation requirements. Provider-specific issuer, audience, client identifiers, redirect origins, and configuration key names remain not defined yet; record exact non-secret names once selected. Provisioning and secret delivery are tracked separately in [H-07](#h-07).
+
+**Codex verification:** Link the recorded decision and any required ADR; trace protected operations to enforceable policies and allow/deny tests. Verify the implementation respects anonymous behavior and denied resource/tenant access where applicable.
+
+**Evidence / blocker:** Product identity and access requirements remain unresolved.
+
+## H-06
+
+- [ ] **Perform host-level setup only if required tooling cannot be made available autonomously.**
+
+**Status:** pending. **Owner:** developer or host administrator, if needed.
+
+**What needs to be done:** Enable or install required host capabilities when administrator privileges, virtualization settings, a reboot, licensing acceptance, or organization-managed policy prevents Codex from doing so. Inspect availability first. For PostgreSQL integration tests this may concern a Testcontainers-compatible container runtime; browser testing may require supported browser/system dependencies.
+
+**Why:** Real infrastructure and real-browser tests need host capabilities that repository package scripts may not be able to supply.
+
+**When / dependency:** [Phase 1](implementation-plan.md#phase-1) only if basic toolchain setup is blocked; [Phase 5](implementation-plan.md#phase-5), P5.2/P5.9, for container-based tests; Phase 6 for browser execution. This is not a decision to deploy applications in containers.
+
+**Values / configuration:** Exact missing runtime/capability, required compatible version, host policy/error, and documented runtime endpoint configuration if applicable. No application `.env` variables are defined for this action. Codex supplies the concrete missing prerequisite after inspection.
+
+**Codex verification:** Verify versions and runtime accessibility, then execute the relevant repository test command once implemented. Confirm ephemeral database creation, migration application, isolation/cleanup, or browser launch as appropriate. An installed executable alone is insufficient.
+
+**Evidence / blocker:** Node.js 24.13.0 and pnpm 11.25.0 are available, and Phase 1 dependency installation and local checks run without host administration. No Phase 1 human action is needed. Container and browser capabilities remain unassessed until their later phases; do not assume they are missing.
+
+## H-07
+
+- [ ] **Provision a required external service and securely supply its configuration, only when selected.**
+
+**Status:** pending. **Owner:** service account owner or administrator, if the action cannot be delegated within existing authorization.
+
+**What needs to be done:** For an actually required identity provider or other external integration, create/authorize the application or service, configure callback/origin settings, and create scoped credentials when necessary. Split this item by provider and environment before execution. Codex first prepares the integration, exact configuration contract, minimum scopes, and verification path.
+
+**Why:** Account ownership, consent, billing, and credential creation may require human-controlled interfaces. No external provider or API key is required merely because this checklist mentions one.
+
+**When / dependency:** Phases 4-7 only for selected integrations, especially P5.4/P6.6; Phase 10 for a real deployment service. Local observability, normal CI, and synthetic tests must not be held behind hypothetical service accounts.
+
+**Values / configuration:** Not defined yet. Before requesting input, record the exact schema-defined `.env`/configuration names, provider/resource name, environment, endpoint/issuer/audience/client ID as applicable, redirect URLs, scopes, secret destination, and rotation owner. Keep secret values out of this document and tracked files.
+
+**Codex verification:** Validate configuration without printing values; perform a bounded non-destructive connectivity or authentication test and the relevant integration flow. For identity, test intended redirects and claims plus denial/revocation behavior where required. Use provider evidence if Codex cannot inspect account settings and record outstanding technical verification separately.
+
+**Evidence / blocker:** No service-specific provisioning request or variable name exists yet.
+
+## H-08
+
+- [ ] **Identify durable release boundaries and support obligations when they first exist.**
+
+**Status:** pending. **Owner:** project/release owner or environment operator, only for facts Codex cannot verify independently.
+
+**What needs to be done:** Identify which environments have permanent migration history and which released consumers, contracts, and rollback/support windows must remain compatible. Codex first inspects available release and deployment evidence. If there has been no release, record that fact instead of inventing historical baselines.
+
+**Why:** Safe migration refinement and compatibility checks depend on real release state, not Git age or an assumed production deployment.
+
+**When / dependency:** [Phase 8](implementation-plan.md#phase-8), P8.1/P8.3/P8.4; earlier if a persistent environment is introduced. Unknown migration release status remains immutable until verified.
+
+**Values / configuration:** Non-secret environment identifiers, released revisions/tags, applied migration identifiers, actual supported API/client versions, and required rollback windows. No credentials or new `.env` variables are inherently required; obtain read-only delegated access if inspection needs it.
+
+**Codex verification:** Correlate the owner's information with release/deployment metadata and migration state where accessible; record immutable baseline references. Run applicable migration/contract compatibility checks once implemented. Mark history-dependent work conditional when no released baseline exists.
+
+**Evidence / blocker:** No application or persistent released database exists in the current repository.
+
+## H-09
+
+- [ ] **Define deployment and operational requirements before activating Phase 10.**
+
+**Status:** pending. **Owner:** project owner and actual operational owners.
+
+**What needs to be done:** Specify the intended environment/hosting constraints, distribution/release model, workload, consumers, service objectives, recovery objectives, retention obligations, budget constraints, and responsible operators. Resolve actual alert recipients, incident ownership, and access expectations. Codex presents implementation options only after requirements are understood.
+
+**Why:** Orion deliberately does not select a global hosting platform, CD strategy, telemetry vendor, SLO, RPO/RTO, retention duration, or organizational on-call model.
+
+**When / dependency:** [Phase 10](implementation-plan.md#phase-10), P10.1-P10.5. This action does not block Phase 9 foundation completion.
+
+**Values / configuration:** Non-secret environment names, domains/regions when chosen, service/recovery objectives, supported consumers, retention policies, operational owners, release permissions, and selected provider identifiers. `.env`/configuration names are not defined yet; derive them from real schemas and deployment tooling rather than from this checklist.
+
+**Codex verification:** Link recorded requirements and any required ADRs; map deployment, alert, backup, recovery, and access work to those requirements. Confirm there are no invented thresholds, owners, or service guarantees before planning operational acceptance tests.
+
+**Evidence / blocker:** Conditional; no deployment target or operational service objectives have been selected.
+
+## H-10
+
+- [ ] **Enable selected deployment resources, identities, and operational access that Codex cannot provision within its authority.**
+
+**Status:** pending. **Owner:** environment/account administrator and named operational owners.
+
+**What needs to be done:** After [H-09](#h-09), create or authorize required accounts/resources, DNS or domain control, secret-store entries, deployment/workload identities, protected-environment settings, backup access, telemetry destinations, and notification integrations only where the selected design needs them. Split into concrete resource/environment actions. Codex prepares deployable definitions, least-privilege requirements, and exact settings before requesting manual steps.
+
+**Why:** External ownership, billing, DNS control, account consent, and privileged resource grants may be outside Codex's available capabilities. Repository definitions alone cannot prove that operational access exists.
+
+**When / dependency:** [Phase 10](implementation-plan.md#phase-10), P10.2-P10.7. Not required for ordinary development or CI.
+
+**Values / configuration:** Not defined yet. Populate actual resource IDs, public endpoints, configuration/secret names, OIDC trust requirements where supported, runtime versus migration identity scopes, target environments, backup destinations, alert contacts, and access expiry. Store actual secrets only in the selected secure destination; do not paste connection strings or tokens into the checklist.
+
+**Codex verification:** Inspect effective scoped permissions and configuration; verify DNS/TLS when applicable, short-lived identity exchange, non-destructive resource access, staging deployment, telemetry delivery, and test notifications. Then exercise the planned restore/rotation/recovery procedures under their actual authorization. Record evidence per split action; access granted is not proof that deployment or recovery passed.
+
+**Evidence / blocker:** Conditional; resources and configuration names cannot be specified before deployment choices exist.
+
+## H-11
+
+- [ ] **Determine repository/product licensing before distribution requires it.**
+
+**Status:** pending. **Owner:** project owner, with legal input when needed.
+
+**What needs to be done:** Choose the intended repository/product license and distribution model, and identify any resulting dependency-license constraints. Codex may prepare implementation after the owner supplies the decision; it must not choose a legal/distribution policy by assumption.
+
+**Why:** No license is currently selected, and accepted CI policy intentionally does not impose a global dependency-license allowlist or denylist.
+
+**When / dependency:** [Phase 10](implementation-plan.md#phase-10), P10.8, or earlier before a distribution/publication that requires this decision. Ordinary internal foundation work need not wait.
+
+**Values / configuration:** Chosen license/terms, copyright holder where applicable, intended distribution model, and actual dependency-license restrictions if required. No `.env` variables or credentials.
+
+**Codex verification:** Link the recorded owner decision, verify the resulting license and package/publication metadata match it, and run relevant license checks only if a concrete policy has been established.
+
+**Evidence / blocker:** No license selected; no distribution action is requested by this workflow setup.
+
+## New action template
+
+Copy this structure for each newly discovered human prerequisite. Allocate a new stable H-number; do not reuse existing IDs. Link the affected plan task to the new entry.
+
+```markdown
+## H-NN
+
+- [ ] **Concrete human action.**
+
+**Status:** pending. **Owner:** actual person or responsible role once known.
+
+**What needs to be done:** Exact decision, setting, or provision; include preparation already completed by Codex and why available automation cannot finish it.
+
+**Why:** Requirement this action satisfies.
+
+**When / dependency:** Linked implementation phase and task IDs; activation condition and whether it blocks work now.
+
+**Values / configuration:** Exact non-secret values, setting names, schema-defined configuration/.env keys, minimum scopes, and secure destination. Never include secret values. Use "none" when no configuration is required.
+
+**Codex verification:** Observable checks and safe evidence needed before marking complete.
+
+**Evidence / blocker:** Current limitation or completion evidence and verification date; record changed applicability explicitly.
+```
