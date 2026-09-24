@@ -2,3 +2,6 @@ packages:
   - tooling/*
   - apps/*
   - packages/*
+allowBuilds:
+  esbuild: true
+  protobufjs: false

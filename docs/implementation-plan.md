@@ -6,7 +6,7 @@
 
 This is the living execution plan for Orion, based on the repository review and ten-phase plan. It tracks implementation progress; it does not replace current architectural policy or accepted ADRs. Preserve accepted decisions, rationale, exceptions, and technology responsibilities.
 
-Orion now contains documentation, a pnpm workspace, local validation tooling, and an initial GitHub Actions workflow. `pnpm validate` runs the checks listed in [validation](validation.md). Applications, shared runtime packages, application tests, and generators do not yet exist. Creating this plan and its companion checklist did not itself start an implementation phase; Phase 1 progress is recorded below.
+Orion now contains documentation, a pnpm workspace, local validation tooling, a GitHub Actions workflow, and the Phase 4 API runtime foundation. `pnpm validate` runs the checks listed in [validation](validation.md). The Approval Request feature, persistence, authentication integration, generated OpenAPI/client, and web application remain future work. Creating this plan and its companion checklist did not itself start an implementation phase; Phase 1 progress is recorded below.
 
 The documented destination is a reusable engineering foundation demonstrated by a complete reference feature: persistence, domain/application behavior, API contracts, generated client, web UI, tests, telemetry, and documentation. A particular business product and production environment have not been defined. Foundation completion is Phase 9; Phase 10 is conditional on concrete deployment requirements.
 
@@ -54,7 +54,7 @@ This table owns phase-level status; the tables within each phase own task-level 
 | [1](#phase-1) | Reproducible workspace and local validation | completed | None | Frozen install and `pnpm validate` pass; validation changed zero source files. |
 | [2](#phase-2) | CI and dependency security | completed | 1 | [H-01](human-actions.md#h-01), [H-02](human-actions.md#h-02), and [H-03](human-actions.md#h-03) are complete. On [PR #3 CI run #6](https://github.com/GabriellMDias/Orion/actions/runs/36009789640), validation, Dependency Review with `DEPENDENCY_REVIEW_ENABLED=true`, and the aggregate gate all passed. All applicable Phase 2 acceptance criteria are satisfied. |
 | [3](#phase-3) | Reference feature and immediate decisions | completed | 1-2; discovery may begin earlier | [Business specification](domains/approval-request.md), [feature implementation conventions](domains/approval-request-implementation.md), and [build/artifact workflow](architecture/backend-execution-and-generated-artifacts.md) resolve P3.1-P3.6; H-04/H-05 complete. No new ADR required under [authoring criteria](adr/authoring.md#when-a-decision-needs-an-adr). |
-| [4](#phase-4) | Observable API runtime | pending | 1-3 | Not started. |
+| [4](#phase-4) | Observable API runtime | completed | 1-3 | `apps/api` runtime, local instructions, generated configuration/error references, 17 tests, emitted-process smoke, and `pnpm validate` pass; [Phase 4 evidence](#phase-4). No new human action required. |
 | [5](#phase-5) | Secure persistence-backed API feature | pending | 3-4 and CI | Not started. |
 | [6](#phase-6) | Generated client and complete web workflow | pending | 5 | Not started. |
 | [7](#phase-7) | Failure recovery, concurrency, and data lifecycle | pending | 5-6 | Not started. |
@@ -139,7 +139,7 @@ This table owns phase-level status; the tables within each phase own task-level 
 | P3.2 | Define actors, use cases, ownership, invariants, state transitions, expected failures, side effects, and acceptance scenarios. | completed | Canonical [business specification and acceptance scenarios](domains/approval-request.md); H-05 now specifies enforceable ownership and review rules. |
 | P3.3 | Specify data classifications/lifecycle and determine required authentication, authorization, tenancy, audit history, and integrations. | completed | [Data and lifecycle](domains/approval-request.md#data-ownership-classification-and-lifecycle), [side-effect boundary](domains/approval-request.md#side-effect-boundary), and [identity and authorization](domains/approval-request.md#identity-and-authorization-boundary) record the H-04/H-05 decisions. No concrete identity provider is selected; future provisioning is conditional [H-07](human-actions.md#h-07). |
 | P3.4 | Resolve feature placement, identifiers, timestamps, transaction ownership, schema metadata, API errors, and pagination where applicable. | completed | [Feature implementation conventions](domains/approval-request-implementation.md) cover placement, identity/time, versioned writes, transaction ownership, create idempotency, authorized cursor lists, error mapping, and database metadata. |
-| P3.5 | Decide backend development/build execution and generated-artifact storage conventions. | completed | [Backend execution and generated artifacts](architecture/backend-execution-and-generated-artifacts.md) specifies `tsx` development, `tsc` emit/Node runtime, single-source generated outputs, commit/ignore rules, and future non-mutating drift checks. Commands are planned, not yet available. |
+| P3.5 | Decide backend development/build execution and generated-artifact storage conventions. | completed | [Backend execution and generated artifacts](architecture/backend-execution-and-generated-artifacts.md) specifies `tsx` development, `tsc` emit/Node runtime, single-source generated outputs, commit/ignore rules, and non-mutating drift checks; Phase 4 implemented the API commands and configuration/error reference checks. |
 | P3.6 | Record significant new architectural choices through the ADR process; keep ordinary conventions near their owners. | completed | [ADR authoring criteria](adr/authoring.md#when-a-decision-needs-an-adr) assessed: ADR-0001/0002/0004/0006/0007 and existing policies already establish runtime, workspace, transport, persistence, and contract/generation boundaries. P3.4 feature-local choices and P3.5 reversible execution/output conventions implement those decisions without changing cross-system ownership or technology; no new ADR is required. |
 
 **Expected deliverables:** A bounded feature specification, acceptance scenarios, dependency/ownership map, and explicit decisions needed by later phases.
@@ -168,14 +168,14 @@ This table owns phase-level status; the tables within each phase own task-level 
 
 | Task | Main work | Status | Evidence / dependency |
 | --- | --- | --- | --- |
-| P4.1 | Create `apps/api` with an explicit composition root and Fastify transport boundary. | pending | Not started. |
-| P4.2 | Implement TypeBox bootstrap configuration with explicit parsing, validation, safe defaults, immutable typed values, and centralized environment access. | pending | Not started. |
-| P4.3 | Separate server-only configuration from client-eligible values. | pending | Not started. |
-| P4.4 | Initialize Pino/OpenTelemetry before instrumented infrastructure, with preferred Fastify instrumentation, W3C propagation, and configurable OTLP export. | pending | No external observability vendor required. |
-| P4.5 | Implement centralized redaction and request/log/trace correlation. | pending | Not started. |
-| P4.6 | Establish the public error envelope and a small canonical registry for errors actually used. | pending | Not started. |
-| P4.7 | Implement distinct startup, liveness, readiness, and bounded shutdown behavior. | pending | Not started. |
-| P4.8 | Add configuration, HTTP-boundary, error, lifecycle, and telemetry tests. | pending | Not started. |
+| P4.1 | Create `apps/api` with an explicit composition root and Fastify transport boundary. | completed | `apps/api/src/main.ts` composes the runtime; `src/app.ts` owns Fastify hooks/routes and uses TypeBox provider. Emitted Node ESM starts in the smoke check. |
+| P4.2 | Implement TypeBox bootstrap configuration with explicit parsing, validation, safe defaults, immutable typed values, and centralized environment access. | completed | `src/config.ts` validates a frozen configuration; invalid `ORION_ENV` fails before listening in emitted-process smoke. Configuration tests cover parsing and malformed inputs. |
+| P4.3 | Separate server-only configuration from client-eligible values. | completed | `clientConfigFrom` currently exposes no values; configuration metadata and [generated reference](generated/configuration/api.md) mark all values server-only. |
+| P4.4 | Initialize Pino/OpenTelemetry before instrumented infrastructure, with preferred Fastify instrumentation, W3C propagation, and configurable OTLP export. | completed | `main.ts` initializes telemetry before dynamic Fastify import; `src/telemetry.ts` configures HTTP/Fastify instrumentation, W3C propagation, sampling, and optional OTLP HTTP traces/metrics. Real HTTP smoke verifies inbound trace IDs and collector delivery attempt. |
+| P4.5 | Implement centralized redaction and request/log/trace correlation. | completed | `src/logging.ts` Pino paths and safe field logging, `src/telemetry.ts` span/metric allowlists, and generated request IDs. Tests and real HTTP smoke verify redaction and correlation across concurrent requests. |
+| P4.6 | Establish the public error envelope and a small canonical registry for errors actually used. | completed | `src/errors.ts` owns foundational codes/envelope; [generated registry](generated/api/errors.md) has a non-mutating freshness check. Fastify tests verify validation, missing route, and unexpected error responses. |
+| P4.7 | Implement distinct startup, liveness, readiness, and bounded shutdown behavior. | completed | `src/lifecycle.ts` and three health endpoints cover state transitions; tests verify draining rejects work, liveness remains distinct, and HTTP/telemetry cleanup has a deadline. |
+| P4.8 | Add configuration, HTTP-boundary, error, lifecycle, and telemetry tests. | completed | Vitest covers configuration, actual Fastify injection validation/serialization, error capture, lifecycle, logging, and span redaction; emitted-process smoke covers startup, W3C propagation, failed OTLP export, and continued readiness. `pnpm validate` passes. |
 
 **Expected deliverables:** Runnable API foundation, safe health endpoints, typed configuration, foundational errors, telemetry integration, generated configuration/error references where applicable, and useful API-local instructions.
 
@@ -190,6 +190,8 @@ This table owns phase-level status; the tables within each phase own task-level 
 - Correlation remains isolated between concurrent requests.
 - Telemetry export failure does not normally fail business operations.
 - Fastify request injection exercises real validation and serialization.
+
+**Completion evidence (2026-09-24):** `pnpm install --frozen-lockfile` and `pnpm validate` passed locally on Node.js 24.13.0 / pnpm 11.25.0. Validation includes formatting, typed ESLint, typecheck, dependency boundaries, documentation links/anchors, generated-reference drift, 17 Vitest tests, emitted ESM build, and real-process smoke. The smoke check rejects invalid bootstrap configuration, verifies W3C trace/request/log correlation for concurrent HTTP requests, observes an OTLP trace export rejected by a local HTTP 503 collector, and confirms readiness remains healthy afterward. Tests verify health contains only safe status, an unexpected failure produces one diagnostic with a safe public envelope, and draining/bounded cleanup behavior. No paid collector or other human action was needed; [H-07](human-actions.md#h-07) remains conditional. Phase 5 has not started.
 
 **Usable state:** A locally runnable, observable API with safe lifecycle behavior.
 
