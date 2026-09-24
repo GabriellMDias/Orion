@@ -1,5 +1,17 @@
 # Architecture Principles
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0001](../adr/0001-select-typescript-and-nodejs-as-primary-language-and-runtime.md), [ADR-0002](../adr/0002-select-pnpm-for-package-and-workspace-management.md), [ADR-0003](../adr/0003-establish-repository-validation-and-architecture-enforcement.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Decision Priority](#decision-priority)
+- [Exceptions](#exceptions)
+- [6. Domain Rules Must Have a Clear Home](#6-domain-rules-must-have-a-clear-home)
+- [8. Shared Code Must Represent Shared Meaning](#8-shared-code-must-represent-shared-meaning)
+- [13. Release History Must Be Intentional](#13-release-history-must-be-intentional)
+
 ## Purpose
 
 This document defines the architectural principles that guide Orion.
@@ -1170,7 +1182,7 @@ docs/reliability/
 docs/security/
 ```
 
-`AGENTS.md` defines contributor and AI-agent behavior.
+[AGENTS.md](../../AGENTS.md) defines contributor and AI-agent behavior.
 
 This document defines architectural philosophy.
 

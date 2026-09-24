@@ -1,5 +1,18 @@
 # Repository Structure
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0002](../adr/0002-select-pnpm-for-package-and-workspace-management.md), [ADR-0003](../adr/0003-establish-repository-validation-and-architecture-enforcement.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [High-Level Structure](#high-level-structure)
+- [`apps/`](#apps)
+- [`packages/`](#packages)
+- [Creating a New Application](#creating-a-new-application)
+- [Creating a New Package](#creating-a-new-package)
+- [Local Agent Instructions](#local-agent-instructions)
+
 ## Purpose
 
 This document defines the intended high-level structure of the Orion monorepo.
@@ -59,7 +72,7 @@ Root-level additions should represent repository-wide concerns rather than appli
 
 ---
 
-# Root
+## Root
 
 The repository root contains the entry points required to understand and operate the monorepo as a whole.
 
@@ -91,7 +104,7 @@ Architecture and operational knowledge should normally belong under `docs/`.
 
 ---
 
-# `apps/`
+## `apps/`
 
 `apps/` contains independently executable or deployable application entry points.
 
@@ -124,7 +137,7 @@ Examples include:
 
 ---
 
-## Application Ownership
+### Application Ownership
 
 An application owns implementation that is specific to that runtime or delivery surface.
 
@@ -157,7 +170,7 @@ Reusable behavior should move into an appropriate package when there is a real s
 
 ---
 
-## Application Independence
+### Application Independence
 
 Each application should remain understandable as an application boundary.
 
@@ -179,11 +192,11 @@ Application-specific instructions may be defined through:
 apps/<application>/AGENTS.md
 ```
 
-These instructions supplement the repository-level `AGENTS.md`.
+These instructions supplement the repository-level [AGENTS.md](../../AGENTS.md).
 
 ---
 
-## Application-to-Application Dependencies
+### Application-to-Application Dependencies
 
 Applications must not depend directly on the internal implementation of other applications.
 
@@ -227,7 +240,7 @@ If multiple applications require the same implementation, that implementation sh
 
 ---
 
-# `packages/`
+## `packages/`
 
 `packages/` contains reusable capabilities with explicit responsibilities.
 
@@ -255,7 +268,7 @@ Packages should be created only when their responsibility is understood.
 
 ---
 
-## Package Requirements
+### Package Requirements
 
 Every package should have a clear answer to the following questions:
 
@@ -270,7 +283,7 @@ If those questions cannot be answered clearly, the package boundary is probably 
 
 ---
 
-## Package Public APIs
+### Package Public APIs
 
 Other parts of the repository should depend on a package through its intentional public API.
 
@@ -296,7 +309,7 @@ The project tooling should eventually enforce package boundaries where practical
 
 ---
 
-## Package Granularity
+### Package Granularity
 
 Packages should represent cohesive responsibilities.
 
@@ -310,7 +323,7 @@ A package boundary is justified when it provides meaningful ownership, reuse, de
 
 ---
 
-# Intended Shared Package Responsibilities
+## Intended Shared Package Responsibilities
 
 The following responsibilities are expected to be useful as Orion evolves.
 
@@ -318,7 +331,7 @@ Their exact existence and implementation must be decided incrementally.
 
 ---
 
-## `packages/domain/`
+### `packages/domain/`
 
 Contains platform-independent domain concepts and business behavior that are meaningfully shared.
 
@@ -351,7 +364,7 @@ Domain logic may remain within a bounded feature or application when broader sha
 
 ---
 
-## `packages/contracts/`
+### `packages/contracts/`
 
 Contains canonical contracts shared across application boundaries.
 
@@ -375,7 +388,7 @@ Internal implementation models should not automatically become public contracts.
 
 ---
 
-## `packages/database/`
+### `packages/database/`
 
 Contains shared database infrastructure and canonical persistence definitions when appropriate.
 
@@ -398,7 +411,7 @@ Direct database access remains subject to application architecture.
 
 ---
 
-## `packages/sdk/`
+### `packages/sdk/`
 
 Contains generated or maintained clients for accessing Orion APIs or other explicit service boundaries.
 
@@ -410,7 +423,7 @@ The canonical contract remains the source of truth.
 
 ---
 
-## `packages/observability/`
+### `packages/observability/`
 
 Contains shared observability conventions and integration primitives.
 
@@ -432,7 +445,7 @@ Applications should use shared observability conventions instead of inventing in
 
 ---
 
-## `packages/config/`
+### `packages/config/`
 
 Contains shared configuration validation and configuration-related primitives where appropriate.
 
@@ -451,7 +464,7 @@ Applications remain responsible for configuration that belongs exclusively to th
 
 ---
 
-## `packages/testing/`
+### `packages/testing/`
 
 Contains testing infrastructure that has genuine repository-wide value.
 
@@ -472,7 +485,7 @@ This package exists for reusable testing infrastructure, not as a centralized ho
 
 ---
 
-## `packages/ui/`
+### `packages/ui/`
 
 May contain reusable presentation primitives when multiple compatible applications genuinely share them.
 
@@ -492,7 +505,7 @@ A web component and a mobile component that happen to look similar do not automa
 
 ---
 
-# Feature Organization
+## Feature Organization
 
 Within applications and packages, Orion should prefer organization around meaningful features or domains when practical.
 
@@ -534,7 +547,7 @@ The objective is to keep related behavior close enough that a contributor can re
 
 ---
 
-# `docs/`
+## `docs/`
 
 `docs/` contains repository knowledge that cannot be represented adequately through implementation alone.
 
@@ -557,7 +570,7 @@ Documentation ownership is defined by subject matter rather than application own
 
 ---
 
-## `docs/architecture/`
+### `docs/architecture/`
 
 Contains durable architecture documentation.
 
@@ -577,7 +590,7 @@ Historical architectural reasoning belongs in ADRs.
 
 ---
 
-## `docs/domains/`
+### `docs/domains/`
 
 Contains business-domain knowledge.
 
@@ -605,7 +618,7 @@ It should not duplicate implementation details unnecessarily.
 
 ---
 
-## `docs/adr/`
+### `docs/adr/`
 
 Contains Architecture Decision Records.
 
@@ -617,7 +630,7 @@ The repository should eventually define a standard ADR format and naming convent
 
 ---
 
-## `docs/database/`
+### `docs/database/`
 
 Contains authored documentation related to database architecture and behavior.
 
@@ -636,7 +649,7 @@ Generated schema references belong under `docs/generated/`.
 
 ---
 
-## `docs/api/`
+### `docs/api/`
 
 Contains authored API architecture and design documentation.
 
@@ -655,7 +668,7 @@ Generated endpoint references should normally come from canonical machine-readab
 
 ---
 
-## `docs/reliability/`
+### `docs/reliability/`
 
 Contains reliability and observability architecture.
 
@@ -675,7 +688,7 @@ resilience
 
 ---
 
-## `docs/security/`
+### `docs/security/`
 
 Contains security architecture and repository-wide security requirements.
 
@@ -695,7 +708,7 @@ Security-sensitive implementation details should be documented carefully without
 
 ---
 
-## `docs/runbooks/`
+### `docs/runbooks/`
 
 Contains operational procedures for diagnosing and recovering from known operational conditions.
 
@@ -716,7 +729,7 @@ Runbooks should be useful to both humans and AI-assisted operational investigati
 
 ---
 
-## `docs/generated/`
+### `docs/generated/`
 
 Contains documentation generated from canonical machine-readable sources.
 
@@ -737,7 +750,7 @@ The generation process must be reproducible.
 
 ---
 
-# `tooling/`
+## `tooling/`
 
 `tooling/` contains repository-owned development tooling.
 
@@ -772,7 +785,7 @@ Reusable application runtime behavior does not belong under `tooling/`.
 
 ---
 
-# `infra/`
+## `infra/`
 
 `infra/` contains declarative infrastructure required to build, deploy, or operate Orion applications.
 
@@ -796,7 +809,7 @@ The existence of `infra/` does not imply that Orion requires complex infrastruct
 
 ---
 
-# `.github/`
+## `.github/`
 
 `.github/` contains GitHub-specific repository automation and metadata.
 
@@ -826,7 +839,7 @@ CI should call the same canonical repository workflows used locally whenever pra
 
 ---
 
-# Dependency Direction
+## Dependency Direction
 
 The high-level dependency model should generally follow:
 
@@ -871,7 +884,7 @@ Circular dependencies are not acceptable architectural boundaries.
 
 ---
 
-# Runtime Dependencies vs Development Dependencies
+## Runtime Dependencies vs Development Dependencies
 
 Runtime architecture and repository tooling are separate concerns.
 
@@ -905,7 +918,7 @@ The same principle applies to generated documentation tooling and repository scr
 
 ---
 
-# Infrastructure Dependencies
+## Infrastructure Dependencies
 
 Application code should not import infrastructure-as-code definitions.
 
@@ -927,7 +940,7 @@ rather than coupling application business logic to infrastructure implementation
 
 ---
 
-# Documentation Dependencies
+## Documentation Dependencies
 
 Documentation may reference implementation.
 
@@ -959,7 +972,7 @@ unless documentation itself is intentionally part of the product data model.
 
 ---
 
-# Generated Code
+## Generated Code
 
 Generated code should have an identifiable location and canonical source.
 
@@ -981,7 +994,7 @@ Generated code must follow the repository's generated-file policy.
 
 ---
 
-# Tests
+## Tests
 
 Tests should generally live close to the behavior they protect.
 
@@ -1013,7 +1026,7 @@ The exact testing topology will be defined after the initial technology stack is
 
 ---
 
-# Database Ownership
+## Database Ownership
 
 The presence of a shared database package does not imply unrestricted database access.
 
@@ -1043,7 +1056,7 @@ As the system evolves, database ownership rules should become mechanically enfor
 
 ---
 
-# Cross-Cutting Concerns
+## Cross-Cutting Concerns
 
 Cross-cutting concerns should normally be implemented through intentional shared packages or infrastructure rather than independently inside every application.
 
@@ -1065,7 +1078,7 @@ A shared implementation should exist only when the semantics are genuinely share
 
 ---
 
-# Utility Code
+## Utility Code
 
 Avoid generic dumping grounds such as:
 
@@ -1101,7 +1114,7 @@ when the narrower responsibility is known.
 
 ---
 
-# Internal Code
+## Internal Code
 
 Applications and packages may contain internal implementation that must not become part of their public interface.
 
@@ -1113,7 +1126,7 @@ Repository tooling should eventually enforce these boundaries where practical.
 
 ---
 
-# Naming
+## Naming
 
 Directory and package names should describe responsibilities rather than implementation accidents.
 
@@ -1135,7 +1148,7 @@ All repository names use English.
 
 ---
 
-# Creating a New Application
+## Creating a New Application
 
 A new application should be introduced only when there is a concrete runtime or delivery requirement.
 
@@ -1155,7 +1168,7 @@ A significant new application boundary may require an ADR.
 
 ---
 
-# Creating a New Package
+## Creating a New Package
 
 Before creating a package, verify that:
 
@@ -1174,7 +1187,7 @@ If creating the package makes ownership less clear, the boundary should be recon
 
 ---
 
-# Moving Code Into Shared Packages
+## Moving Code Into Shared Packages
 
 Code should not be moved into a shared package merely because a second consumer appears.
 
@@ -1186,7 +1199,7 @@ Extraction becomes appropriate when shared ownership is intentional and stable e
 
 ---
 
-# Repository Growth
+## Repository Growth
 
 The repository should grow incrementally.
 
@@ -1206,7 +1219,7 @@ The physical repository must represent the current system.
 
 ---
 
-# Local Agent Instructions
+## Local Agent Instructions
 
 Nested `AGENTS.md` files may be introduced when an area requires instructions more specific than the repository-wide rules.
 
@@ -1221,13 +1234,13 @@ tooling/AGENTS.md
 
 Nested instructions should contain local rules.
 
-They should not unnecessarily duplicate the root `AGENTS.md`.
+They should not unnecessarily duplicate the root [AGENTS.md](../../AGENTS.md).
 
-The closest applicable `AGENTS.md` defines the most specific instructions for that area while remaining compatible with higher-level repository rules.
+The closest applicable `AGENTS.md` defines the most specific instructions for that area while remaining compatible with higher-level repository rules. The existing documentation scopes are [documentation](../AGENTS.md), [ADRs](../adr/AGENTS.md), and [runbooks](../runbooks/AGENTS.md). Application/package scopes should be added only when those areas exist and need local instructions.
 
 ---
 
-# Intended Evolution
+## Intended Evolution
 
 The initial repository should remain significantly smaller than the full conceptual structure described here.
 
@@ -1263,7 +1276,7 @@ Repository growth should not define architecture accidentally.
 
 ---
 
-# Enforcement
+## Enforcement
 
 Important repository boundaries should eventually be enforced mechanically.
 
@@ -1285,7 +1298,7 @@ The architectural rule should be defined before selecting the enforcement tool.
 
 ---
 
-# Summary
+## Summary
 
 The Orion repository is organized around four primary concerns:
 

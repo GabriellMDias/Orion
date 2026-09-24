@@ -1,5 +1,19 @@
 # Metrics
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0010](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Metric Types](#metric-types)
+- [Dimensions](#dimensions)
+- [Cardinality](#cardinality)
+- [Metric Registry](#metric-registry)
+- [New Metric Checklist](#new-metric-checklist)
+
+Related policy: [telemetry redaction](../security/telemetry-redaction.md), [alerting](alerting.md).
+
 ## Purpose
 
 This document defines the metrics principles used by Orion.
@@ -41,15 +55,15 @@ That is the role of logs, traces, and error reports.
 
 This document is technology-agnostic.
 
-Specific metrics libraries, OpenTelemetry implementation, collectors, storage systems, dashboard providers, and alerting platforms will be selected later through explicit architectural decisions.
+ADR-0010 selects OpenTelemetry metrics and the telemetry transport strategy. Implementation details, storage, dashboards, and alerting platforms remain deployment-specific.
 
 This document complements:
 
-- `docs/reliability/observability.md`;
-- `docs/reliability/logging.md`;
-- `docs/reliability/tracing.md`;
-- `docs/reliability/alerting.md`;
-- `docs/security/telemetry-redaction.md`.
+- [docs/reliability/observability.md](observability.md);
+- [docs/reliability/logging.md](logging.md);
+- [docs/reliability/tracing.md](tracing.md);
+- [docs/reliability/alerting.md](alerting.md);
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md).
 
 ---
 
@@ -77,7 +91,7 @@ Do not create metrics merely because a value can be measured.
 
 ---
 
-# Metrics Are Aggregated Signals
+## Metrics Are Aggregated Signals
 
 Metrics are optimized for aggregation.
 
@@ -106,7 +120,7 @@ High-cardinality investigation belongs primarily in logs and traces.
 
 ---
 
-# Metric Types
+## Metric Types
 
 Orion recognizes three fundamental conceptual metric types:
 
@@ -122,7 +136,7 @@ These three concepts should remain sufficient for most application telemetry.
 
 ---
 
-# Counter
+## Counter
 
 A counter represents a cumulative quantity that increases over time.
 
@@ -151,7 +165,7 @@ Counters should not normally decrease.
 
 ---
 
-# Counter Rates
+## Counter Rates
 
 Operational analysis often uses the rate of a counter rather than its absolute value.
 
@@ -169,7 +183,7 @@ Do not manually emit a rate metric when the backend can calculate it reliably.
 
 ---
 
-# Counter Reset
+## Counter Reset
 
 Process restart may reset an in-process counter.
 
@@ -179,7 +193,7 @@ Application code should not attempt to preserve counters across restarts unless 
 
 ---
 
-# Gauge
+## Gauge
 
 A gauge represents a value that can increase or decrease.
 
@@ -206,7 +220,7 @@ A gauge represents current or recently observed state.
 
 ---
 
-# Gauge Ownership
+## Gauge Ownership
 
 A gauge should have one understandable source of truth.
 
@@ -220,7 +234,7 @@ when each instance only knows local queue depth unless the metrics backend aggre
 
 ---
 
-# Local vs Global Gauges
+## Local vs Global Gauges
 
 A gauge may represent:
 
@@ -238,7 +252,7 @@ The metric name and dimensions should make this distinction clear.
 
 ---
 
-# Histogram
+## Histogram
 
 A histogram represents the distribution of measured values.
 
@@ -264,7 +278,7 @@ depending on the backend.
 
 ---
 
-# Histograms for Latency
+## Histograms for Latency
 
 Latency should generally use histograms rather than averages alone.
 
@@ -285,7 +299,7 @@ Tail latency matters.
 
 ---
 
-# Percentiles
+## Percentiles
 
 Useful latency analysis may include:
 
@@ -302,7 +316,7 @@ Do not create every possible percentile merely because the provider supports it.
 
 ---
 
-# Histogram Buckets
+## Histogram Buckets
 
 Some metrics systems require explicit histogram buckets.
 
@@ -314,7 +328,7 @@ The exact bucket strategy is deferred until metrics tooling and workloads exist.
 
 ---
 
-# Summary-Type Metrics
+## Summary-Type Metrics
 
 Some metrics libraries provide summaries that calculate quantiles locally.
 
@@ -330,7 +344,7 @@ Histograms are often more suitable for distributed aggregation.
 
 ---
 
-# Metric Name
+## Metric Name
 
 Every metric should have a stable semantic name.
 
@@ -349,7 +363,7 @@ Metric names should describe the measured quantity.
 
 ---
 
-# Metric Naming Convention
+## Metric Naming Convention
 
 The exact naming convention should follow established semantic conventions where practical.
 
@@ -359,7 +373,7 @@ Custom metrics should remain consistently namespaced.
 
 ---
 
-# Metric Names Must Be Stable
+## Metric Names Must Be Stable
 
 Dashboards and alerts may depend on metric names.
 
@@ -369,7 +383,7 @@ Do not rename metrics casually after operational consumers exist.
 
 ---
 
-# Metric Name Cardinality
+## Metric Name Cardinality
 
 Metric names must not contain runtime identifiers.
 
@@ -389,7 +403,7 @@ with a bounded operation dimension if needed.
 
 ---
 
-# Dimensions
+## Dimensions
 
 Metrics may include dimensions, labels, tags, or attributes.
 
@@ -411,7 +425,7 @@ They are also the primary source of metrics-cardinality problems.
 
 ---
 
-# Cardinality
+## Cardinality
 
 Cardinality is the number of distinct time-series combinations produced by a metric.
 
@@ -440,7 +454,7 @@ Adding one unbounded identifier can increase this dramatically.
 
 ---
 
-# Cardinality Must Be Bounded
+## Cardinality Must Be Bounded
 
 Metric dimensions must have a predictable bounded set of values.
 
@@ -462,7 +476,7 @@ when their vocabularies are bounded.
 
 ---
 
-# High-Cardinality Labels
+## High-Cardinality Labels
 
 The following should not be metric labels:
 
@@ -484,7 +498,7 @@ They create unbounded or near-unbounded cardinality.
 
 ---
 
-# Resource Identifiers
+## Resource Identifiers
 
 Do not put resource identifiers in metric dimensions.
 
@@ -498,7 +512,7 @@ If investigation requires a particular order, use logs or traces.
 
 ---
 
-# Error Messages
+## Error Messages
 
 Never use arbitrary error messages as metric labels.
 
@@ -522,7 +536,7 @@ error_category="dependency"
 
 ---
 
-# Exception Type
+## Exception Type
 
 Exception class/type may still create unexpected cardinality if third-party libraries generate many classes or dynamic values.
 
@@ -530,7 +544,7 @@ Prefer stable error categories where practical.
 
 ---
 
-# HTTP Routes
+## HTTP Routes
 
 Metrics should use:
 
@@ -548,7 +562,7 @@ Raw paths create cardinality proportional to resource count.
 
 ---
 
-# Query Parameters
+## Query Parameters
 
 Query values must never become metric labels by default.
 
@@ -556,7 +570,7 @@ Even apparently harmless search terms create unbounded cardinality and may conta
 
 ---
 
-# Tenant IDs
+## Tenant IDs
 
 Tenant identifiers should generally not be metric labels.
 
@@ -566,7 +580,7 @@ Per-tenant operational analysis should use another mechanism unless a specific b
 
 ---
 
-# User IDs
+## User IDs
 
 User identifiers must not be metric labels.
 
@@ -574,7 +588,7 @@ Use logs or analytical systems for per-user investigation.
 
 ---
 
-# Client Versions
+## Client Versions
 
 Client version can become high cardinality over time.
 
@@ -594,7 +608,7 @@ Exact client versions may still belong in logs.
 
 ---
 
-# Release Versions
+## Release Versions
 
 Release identifiers may create moderate cardinality.
 
@@ -604,7 +618,7 @@ The metrics architecture should understand retention and dimension cost before u
 
 ---
 
-# Result Dimensions
+## Result Dimensions
 
 A bounded result dimension can be useful.
 
@@ -622,7 +636,7 @@ Do not generate result labels dynamically from arbitrary messages.
 
 ---
 
-# Error Code Dimensions
+## Error Code Dimensions
 
 Stable Orion error codes may be useful metric dimensions if the set is bounded for the measured operation.
 
@@ -638,7 +652,7 @@ when detailed error-code segmentation is unnecessary.
 
 ---
 
-# Dimensions Should Answer Questions
+## Dimensions Should Answer Questions
 
 Before adding a dimension, ask:
 
@@ -652,7 +666,7 @@ Every dimension increases cost and complexity.
 
 ---
 
-# Cardinality Budget
+## Cardinality Budget
 
 Important metrics should have an implicit or explicit cardinality budget.
 
@@ -668,7 +682,7 @@ Formal budgets may be introduced later if scale requires them.
 
 ---
 
-# Cardinality Review
+## Cardinality Review
 
 Metrics changes should be reviewed for worst-case cardinality.
 
@@ -678,7 +692,7 @@ A single unbounded label is enough to make a metric unsafe.
 
 ---
 
-# Units
+## Units
 
 Metric units must be explicit and standardized.
 
@@ -697,7 +711,7 @@ Prefer standard base units when the selected observability standard recommends t
 
 ---
 
-# Unit Naming
+## Unit Naming
 
 Avoid ambiguous metrics such as:
 
@@ -717,7 +731,7 @@ Unit semantics must be clear from schema or standard convention.
 
 ---
 
-# Duration
+## Duration
 
 Duration metrics should use one canonical unit according to the selected metrics conventions.
 
@@ -733,7 +747,7 @@ for equivalent concepts without a reason.
 
 ---
 
-# Data Size
+## Data Size
 
 Data size should use standardized byte-based units.
 
@@ -747,7 +761,7 @@ when the consumer cannot know whether that means bytes, KB, or MB.
 
 ---
 
-# Counts
+## Counts
 
 Counts should represent whole events or items.
 
@@ -755,7 +769,7 @@ Do not append arbitrary units when a metric is dimensionless.
 
 ---
 
-# Service Health Metrics
+## Service Health Metrics
 
 Service reliability can often be described using a small set of high-value signals.
 
@@ -771,7 +785,7 @@ sometimes called RED.
 
 ---
 
-# Rate
+## Rate
 
 Rate measures how much work the system is receiving or completing.
 
@@ -786,7 +800,7 @@ provider calls
 
 ---
 
-# Errors
+## Errors
 
 Error metrics measure unsuccessful operational outcomes.
 
@@ -806,7 +820,7 @@ when reliability analysis requires it.
 
 ---
 
-# Duration
+## Duration
 
 Duration measures latency of meaningful operations.
 
@@ -821,7 +835,7 @@ database query latency
 
 ---
 
-# RED Is a Heuristic
+## RED Is a Heuristic
 
 Rate, errors, and duration are useful for request-oriented services.
 
@@ -831,7 +845,7 @@ Workers, infrastructure resources, and queues may require additional measurement
 
 ---
 
-# Resource Metrics
+## Resource Metrics
 
 Infrastructure and constrained resources may use a conceptual model such as:
 
@@ -845,7 +859,7 @@ sometimes called USE.
 
 ---
 
-# Utilization
+## Utilization
 
 Utilization measures how busy a finite resource is.
 
@@ -859,7 +873,7 @@ worker utilization
 
 ---
 
-# Saturation
+## Saturation
 
 Saturation indicates queued demand beyond immediately available capacity.
 
@@ -873,7 +887,7 @@ thread pool backlog
 
 ---
 
-# Resource Errors
+## Resource Errors
 
 Resource systems may expose failures such as:
 
@@ -885,7 +899,7 @@ memory allocation failure
 
 ---
 
-# USE Is a Heuristic
+## USE Is a Heuristic
 
 The USE model is useful for finite resources.
 
@@ -893,7 +907,7 @@ It should not lead to speculative instrumentation for resources Orion does not o
 
 ---
 
-# Application Metrics
+## Application Metrics
 
 Application-level metrics should measure meaningful runtime behavior.
 
@@ -909,7 +923,7 @@ Only create such metrics when the aggregated behavior is operationally useful.
 
 ---
 
-# Business Metrics
+## Business Metrics
 
 Business metrics and reliability metrics are distinct.
 
@@ -927,7 +941,7 @@ These often belong in analytics or business intelligence systems.
 
 ---
 
-# Business Metrics in Operational Telemetry
+## Business Metrics in Operational Telemetry
 
 Some business-level counts may still provide useful operational signals.
 
@@ -943,7 +957,7 @@ If used operationally, their purpose should be explicit.
 
 ---
 
-# Analytics Is Not Metrics by Default
+## Analytics Is Not Metrics by Default
 
 Do not turn the observability metrics system into the primary analytics warehouse.
 
@@ -951,7 +965,7 @@ Metrics backends are optimized for bounded time-series data, not arbitrary busin
 
 ---
 
-# Technical vs Business Failure
+## Technical vs Business Failure
 
 An operation may fail for a normal business reason.
 
@@ -973,7 +987,7 @@ Reliability metrics should represent technical service health accurately.
 
 ---
 
-# Request Metrics
+## Request Metrics
 
 HTTP APIs should generally expose metrics for:
 
@@ -987,7 +1001,7 @@ using route templates and bounded dimensions.
 
 ---
 
-# HTTP Status Classes
+## HTTP Status Classes
 
 Metrics may use status class:
 
@@ -1006,7 +1020,7 @@ The convention should be consistent.
 
 ---
 
-# 4xx Errors
+## 4xx Errors
 
 A `4xx` is not automatically a system reliability failure.
 
@@ -1023,7 +1037,7 @@ Some specific 4xx spikes may still indicate application or security issues.
 
 ---
 
-# 5xx Errors
+## 5xx Errors
 
 Unexpected `5xx` responses are generally relevant reliability signals.
 
@@ -1031,7 +1045,7 @@ They should be visible through request error metrics and error-reporting systems
 
 ---
 
-# Latency Metrics
+## Latency Metrics
 
 Latency should be measured at meaningful boundaries.
 
@@ -1049,7 +1063,7 @@ Do not create latency metrics for every internal helper.
 
 ---
 
-# Dependency Metrics
+## Dependency Metrics
 
 Important external dependencies may expose:
 
@@ -1065,7 +1079,7 @@ with bounded provider and operation dimensions.
 
 ---
 
-# Provider Dimensions
+## Provider Dimensions
 
 Provider name can be a useful dimension if the number of providers is small and controlled.
 
@@ -1073,7 +1087,7 @@ Do not use arbitrary remote hostname as a metric label.
 
 ---
 
-# Database Metrics
+## Database Metrics
 
 Useful application-level database metrics may include:
 
@@ -1089,7 +1103,7 @@ Database infrastructure may expose additional native metrics.
 
 ---
 
-# Query Cardinality
+## Query Cardinality
 
 Never label database metrics with raw SQL text.
 
@@ -1105,7 +1119,7 @@ with bounded identifiers.
 
 ---
 
-# Connection Pool Metrics
+## Connection Pool Metrics
 
 Connection pools may expose:
 
@@ -1121,7 +1135,7 @@ These can be strong saturation signals.
 
 ---
 
-# Queue Metrics
+## Queue Metrics
 
 Important queue metrics may include:
 
@@ -1138,7 +1152,7 @@ depending on infrastructure.
 
 ---
 
-# Queue Depth
+## Queue Depth
 
 Queue depth is useful but incomplete.
 
@@ -1156,7 +1170,7 @@ Combine backlog with throughput and age.
 
 ---
 
-# Message Age
+## Message Age
 
 The age of the oldest unprocessed message may provide a better latency signal than queue depth alone.
 
@@ -1164,7 +1178,7 @@ This is especially useful for bursty workloads.
 
 ---
 
-# Worker Metrics
+## Worker Metrics
 
 Workers may expose:
 
@@ -1181,7 +1195,7 @@ using bounded job-type dimensions.
 
 ---
 
-# Job Type Cardinality
+## Job Type Cardinality
 
 Job types should be architectural identifiers.
 
@@ -1189,7 +1203,7 @@ Do not dynamically create a job-type label from arbitrary user-defined data.
 
 ---
 
-# Retry Metrics
+## Retry Metrics
 
 Retries should be measurable.
 
@@ -1207,7 +1221,7 @@ If attempt number has a fixed small range, it may be acceptable.
 
 ---
 
-# Retry Success
+## Retry Success
 
 It may be useful to distinguish:
 
@@ -1221,7 +1235,7 @@ when retry behavior materially affects reliability.
 
 ---
 
-# Dead-Letter Metrics
+## Dead-Letter Metrics
 
 Dead-letter queue growth is often an important operational signal.
 
@@ -1236,7 +1250,7 @@ with bounded message-type dimensions.
 
 ---
 
-# Cache Metrics
+## Cache Metrics
 
 Caches may expose:
 
@@ -1251,7 +1265,7 @@ when cache behavior materially affects reliability.
 
 ---
 
-# Cache Hit Ratio
+## Cache Hit Ratio
 
 Hit ratio should generally be derived from:
 
@@ -1264,7 +1278,7 @@ rather than emitted as a continuously calculated application metric if the backe
 
 ---
 
-# File Storage Metrics
+## File Storage Metrics
 
 If object/file storage becomes operationally significant, useful metrics may include:
 
@@ -1279,7 +1293,7 @@ with bounded operation labels.
 
 ---
 
-# Authentication Metrics
+## Authentication Metrics
 
 Authentication systems may expose operational metrics such as:
 
@@ -1294,7 +1308,7 @@ Care must be taken not to turn user or credential identifiers into labels.
 
 ---
 
-# Security Metrics
+## Security Metrics
 
 Some security-related aggregated signals may belong in metrics.
 
@@ -1310,7 +1324,7 @@ Security telemetry may require separate access or retention.
 
 ---
 
-# Authorization Metrics
+## Authorization Metrics
 
 Authorization denials can be measured in aggregate when useful.
 
@@ -1322,7 +1336,7 @@ A denial rate may be normal for some public APIs.
 
 ---
 
-# Error Metrics
+## Error Metrics
 
 Errors should use stable categories.
 
@@ -1342,7 +1356,7 @@ Detailed investigation belongs in logs and error reports.
 
 ---
 
-# Error Code Metric
+## Error Code Metric
 
 A code dimension may be useful for a bounded subset of public/application errors.
 
@@ -1356,7 +1370,7 @@ operational value
 
 ---
 
-# Error Message Metric
+## Error Message Metric
 
 Using human-readable error messages as labels is prohibited.
 
@@ -1364,32 +1378,30 @@ Messages are unstable and high cardinality.
 
 ---
 
-# Exception Message Metric
+## Exception Message Metric
 
 Using exception messages as labels is prohibited.
 
 ---
 
-# Metrics and Data Classification
+## Metrics and Data Classification
 
 Metrics must follow:
 
-```text
-docs/security/data-classification.md
-docs/security/telemetry-redaction.md
-```
+- [docs/security/data-classification.md](../security/data-classification.md)
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md)
 
 Aggregated telemetry does not automatically become non-sensitive.
 
 ---
 
-# Restricted Data
+## Restricted Data
 
 `RESTRICTED` values must never be intentionally used in metric values or labels when they represent secrets or credentials.
 
 ---
 
-# Personal Data
+## Personal Data
 
 Personal data should not be metric labels.
 
@@ -1397,7 +1409,7 @@ Metrics systems are designed for aggregation, not personal-data lookup.
 
 ---
 
-# Sensitive Categories
+## Sensitive Categories
 
 Even a bounded category may reveal sensitive information.
 
@@ -1413,7 +1425,7 @@ Classification applies before cardinality.
 
 ---
 
-# Metric Values and Sensitive Data
+## Metric Values and Sensitive Data
 
 The numerical value itself may be sensitive in some contexts.
 
@@ -1429,13 +1441,13 @@ Metrics must represent operational questions, not arbitrary database values.
 
 ---
 
-# PII-Free Design
+## PII-Free Design
 
 Metrics should ideally be designed so that an individual person cannot be identified from a time series.
 
 ---
 
-# Sampling
+## Sampling
 
 Metrics generally aggregate all observed events rather than sampling individual operations at application level.
 
@@ -1445,7 +1457,7 @@ Do not randomly sample counters unless the resulting mathematics are explicitly 
 
 ---
 
-# Metrics and Tracing Sampling
+## Metrics and Tracing Sampling
 
 A trace may be unsampled while request metrics still count the operation.
 
@@ -1453,7 +1465,7 @@ Metrics should provide broad population visibility even when tracing uses sampli
 
 ---
 
-# Metrics Loss
+## Metrics Loss
 
 Telemetry pipelines may occasionally drop metric data.
 
@@ -1463,7 +1475,7 @@ Metrics are observational, not transactional state.
 
 ---
 
-# Telemetry Must Not Break Operations
+## Telemetry Must Not Break Operations
 
 Failure to export metrics should not normally cause business operations to fail.
 
@@ -1471,7 +1483,7 @@ Use bounded buffers and safe failure behavior.
 
 ---
 
-# Instrumentation Overhead
+## Instrumentation Overhead
 
 Metrics instrumentation should have low runtime overhead.
 
@@ -1481,7 +1493,7 @@ Metric exporters should batch or aggregate according to selected tooling.
 
 ---
 
-# Cardinality Overhead
+## Cardinality Overhead
 
 Cardinality can consume:
 
@@ -1499,7 +1511,7 @@ Unsafe labels are therefore an application reliability risk, not merely a billin
 
 ---
 
-# Dashboards
+## Dashboards
 
 Dashboards should answer operational questions.
 
@@ -1519,7 +1531,7 @@ Do not create dashboards simply to display every metric available.
 
 ---
 
-# Dashboard Ownership
+## Dashboard Ownership
 
 Important dashboards should have identifiable ownership.
 
@@ -1527,7 +1539,7 @@ A dashboard with no operational use should not be treated as required infrastruc
 
 ---
 
-# Dashboard Hierarchy
+## Dashboard Hierarchy
 
 Operational dashboards may eventually be organized conceptually as:
 
@@ -1543,7 +1555,7 @@ This should follow actual runtime topology.
 
 ---
 
-# Golden Signals
+## Golden Signals
 
 A service overview may use a small group of high-value signals such as:
 
@@ -1560,7 +1572,7 @@ They are not a complete checklist for every application.
 
 ---
 
-# Dashboards and Releases
+## Dashboards and Releases
 
 Dashboards should make release changes visible where practical.
 
@@ -1576,7 +1588,7 @@ with deployments.
 
 ---
 
-# Metrics and SLOs
+## Metrics and SLOs
 
 Metrics should be designed so future Service Level Objectives can be defined from reliable measurements.
 
@@ -1593,7 +1605,7 @@ Do not create SLOs before meaningful user-facing reliability requirements exist.
 
 ---
 
-# Service Level Indicator
+## Service Level Indicator
 
 An SLI is a measured indicator of service behavior.
 
@@ -1609,7 +1621,7 @@ Metrics should support accurate SLI computation where future SLOs are expected.
 
 ---
 
-# Service Level Objective
+## Service Level Objective
 
 An SLO defines a target for an SLI over a period.
 
@@ -1625,7 +1637,7 @@ Do not invent arbitrary "three nines" goals.
 
 ---
 
-# Service Level Agreement
+## Service Level Agreement
 
 An SLA is a contractual or external commitment.
 
@@ -1635,7 +1647,7 @@ A project may use internal SLOs without any external SLA.
 
 ---
 
-# Eligible Events
+## Eligible Events
 
 SLO metrics need explicit eligibility rules.
 
@@ -1659,7 +1671,7 @@ The classification must reflect user experience and service responsibility.
 
 ---
 
-# Error Budget
+## Error Budget
 
 An error budget represents tolerated unreliability under an SLO.
 
@@ -1675,7 +1687,7 @@ This should be introduced only after real SLOs exist.
 
 ---
 
-# Burn Rate
+## Burn Rate
 
 SLO alerting may eventually use error-budget burn rate.
 
@@ -1683,13 +1695,11 @@ This is generally more meaningful than static alert thresholds for availability 
 
 Exact alerting strategy belongs in:
 
-```text
-docs/reliability/alerting.md
-```
+- [docs/reliability/alerting.md](alerting.md)
 
 ---
 
-# Metric Accuracy
+## Metric Accuracy
 
 A metric should measure what its name claims.
 
@@ -1705,7 +1715,7 @@ should increment only when the business definition of completion is satisfied.
 
 ---
 
-# Metric Emission Point
+## Metric Emission Point
 
 Emit a metric at the boundary where the outcome is authoritative.
 
@@ -1713,7 +1723,7 @@ Avoid counting the same logical operation at several layers unless the metrics h
 
 ---
 
-# Double Counting
+## Double Counting
 
 If both:
 
@@ -1734,7 +1744,7 @@ Metric ownership must be explicit.
 
 ---
 
-# Retry Counting
+## Retry Counting
 
 Retries create similar counting risks.
 
@@ -1763,7 +1773,7 @@ Names and documentation must make the difference clear.
 
 ---
 
-# Attempts vs Outcomes
+## Attempts vs Outcomes
 
 For retryable work, useful metrics may include:
 
@@ -1778,7 +1788,7 @@ Do not conflate them.
 
 ---
 
-# Idempotent Retries
+## Idempotent Retries
 
 Duplicate idempotent requests may still count as incoming traffic.
 
@@ -1786,7 +1796,7 @@ Business outcome metrics should avoid counting the same logical action repeatedl
 
 ---
 
-# Event Metrics
+## Event Metrics
 
 Event systems may distinguish:
 
@@ -1802,7 +1812,7 @@ Each metric represents a different operational question.
 
 ---
 
-# Business Outcome Counters
+## Business Outcome Counters
 
 A business outcome counter should increment only at the authoritative durable outcome.
 
@@ -1816,7 +1826,7 @@ should not increment before the transaction is known to be complete.
 
 ---
 
-# Metrics Naming and Event Naming
+## Metrics Naming and Event Naming
 
 Log event names and metric names may share conceptual vocabulary.
 
@@ -1836,7 +1846,7 @@ The exact convention should follow selected standards.
 
 ---
 
-# Monotonicity
+## Monotonicity
 
 Counters should remain monotonic within their intended lifecycle.
 
@@ -1844,7 +1854,7 @@ If a measured quantity can decrease, use a gauge instead.
 
 ---
 
-# Derived Metrics
+## Derived Metrics
 
 Prefer deriving ratios and rates in the metrics backend.
 
@@ -1862,7 +1872,7 @@ This keeps primitive instrumentation simple and avoids inconsistent calculations
 
 ---
 
-# Recording Percentages
+## Recording Percentages
 
 Do not usually emit a changing percentage gauge when the underlying counts can be emitted.
 
@@ -1870,7 +1880,7 @@ Counts retain more information and can be aggregated correctly.
 
 ---
 
-# Averages
+## Averages
 
 Avoid emitting only averages.
 
@@ -1878,7 +1888,7 @@ For latency and size distributions, histograms preserve much more operational in
 
 ---
 
-# Minimum and Maximum
+## Minimum and Maximum
 
 Min/max values alone can be misleading.
 
@@ -1888,7 +1898,7 @@ Use distributions where appropriate.
 
 ---
 
-# Time Windows
+## Time Windows
 
 Application code should not normally implement its own rolling time windows for metrics.
 
@@ -1902,7 +1912,7 @@ The metrics backend is better suited for aggregation over:
 
 ---
 
-# Metric Temporality
+## Metric Temporality
 
 Metrics backends may use cumulative or delta temporality.
 
@@ -1910,7 +1920,7 @@ Application code should follow the selected instrumentation model rather than im
 
 ---
 
-# Start-Up Metrics
+## Start-Up Metrics
 
 An application may expose process and runtime metrics automatically.
 
@@ -1918,7 +1928,7 @@ Do not create custom application metrics duplicating standard runtime metrics.
 
 ---
 
-# Runtime Metrics
+## Runtime Metrics
 
 Useful standard metrics may include:
 
@@ -1936,7 +1946,7 @@ Use mature runtime instrumentation rather than custom measurement where possible
 
 ---
 
-# Process Metrics
+## Process Metrics
 
 Process-level metrics should be standardized by observability infrastructure.
 
@@ -1944,7 +1954,7 @@ Applications should not implement their own versions of common process telemetry
 
 ---
 
-# Infrastructure Metrics
+## Infrastructure Metrics
 
 Cloud/platform systems may already provide:
 
@@ -1962,13 +1972,13 @@ Prefer authoritative platform metrics over duplicate application instrumentation
 
 ---
 
-# Application-Owned Metrics
+## Application-Owned Metrics
 
 Custom application metrics should exist where infrastructure metrics cannot answer the operational question.
 
 ---
 
-# Provider Metrics
+## Provider Metrics
 
 External providers may expose their own service metrics.
 
@@ -1985,7 +1995,7 @@ rather than trying to reproduce provider-internal telemetry.
 
 ---
 
-# Health Metrics
+## Health Metrics
 
 A health status itself does not always need a metric if readiness and alerting already have better signals.
 
@@ -1999,19 +2009,17 @@ when meaningful underlying metrics are available.
 
 ---
 
-# Health State Transitions
+## Health State Transitions
 
 Health state changes may still be logged or counted if operationally useful.
 
 Exact health semantics belong in:
 
-```text
-docs/reliability/health-checks.md
-```
+- [docs/reliability/health-checks.md](health-checks.md)
 
 ---
 
-# Deployment Metrics
+## Deployment Metrics
 
 Operational deployment systems may expose:
 
@@ -2027,7 +2035,7 @@ These may come from CI/CD rather than application runtime.
 
 ---
 
-# Migration Metrics
+## Migration Metrics
 
 Database migrations may expose:
 
@@ -2043,7 +2051,7 @@ Long-running backfills may need gauges or counters representing progress.
 
 ---
 
-# Backfill Metrics
+## Backfill Metrics
 
 Useful long-running backfill metrics may include:
 
@@ -2058,7 +2066,7 @@ where these quantities are safe and operationally meaningful.
 
 ---
 
-# Data Volume Metrics
+## Data Volume Metrics
 
 Aggregate row counts may sometimes help capacity planning.
 
@@ -2066,7 +2074,7 @@ Do not export sensitive per-customer data as dimensions.
 
 ---
 
-# Cost Metrics
+## Cost Metrics
 
 Some providers expose cost or usage metrics.
 
@@ -2076,7 +2084,7 @@ Financial reporting should remain separate from technical metrics.
 
 ---
 
-# Feature Flags
+## Feature Flags
 
 Feature-flag state should not become a label on every metric.
 
@@ -2086,7 +2094,7 @@ If comparison is required, use bounded rollout cohorts or release annotations ca
 
 ---
 
-# Experiment Metrics
+## Experiment Metrics
 
 Product experiments generally belong in analytics systems.
 
@@ -2094,7 +2102,7 @@ Observability metrics should not become an uncontrolled experimentation platform
 
 ---
 
-# Metrics Documentation
+## Metrics Documentation
 
 Important custom metrics should have canonical documentation.
 
@@ -2113,7 +2121,7 @@ where practical.
 
 ---
 
-# Metric Description
+## Metric Description
 
 A metric description should explain exactly what is measured.
 
@@ -2131,7 +2139,7 @@ Number of order cancellation attempts that reached the application operation bou
 
 ---
 
-# Label Documentation
+## Label Documentation
 
 Custom dimensions should document:
 
@@ -2145,7 +2153,7 @@ where non-obvious.
 
 ---
 
-# Metric Registry
+## Metric Registry
 
 Orion may eventually maintain a machine-readable registry for custom application metrics.
 
@@ -2162,7 +2170,7 @@ It should be introduced only if the selected metrics instrumentation does not al
 
 ---
 
-# Metric Ownership
+## Metric Ownership
 
 Every important custom metric should have an owner.
 
@@ -2178,7 +2186,7 @@ Who removes it when no longer used?
 
 ---
 
-# Metric Lifecycle
+## Metric Lifecycle
 
 Metrics have lifecycle cost.
 
@@ -2195,7 +2203,7 @@ Unused metrics should not remain emitted forever.
 
 ---
 
-# Metric Deprecation
+## Metric Deprecation
 
 If dashboards or alerts depend on a metric, removal requires migrating those consumers.
 
@@ -2203,7 +2211,7 @@ Metric names and label schemas are operational contracts.
 
 ---
 
-# Instrumentation Drift
+## Instrumentation Drift
 
 Metrics should not silently change semantics while retaining the same name.
 
@@ -2211,7 +2219,7 @@ If the meaning changes materially, either migrate consumers deliberately or intr
 
 ---
 
-# Dashboard Drift
+## Dashboard Drift
 
 A dashboard may continue rendering even after the metric semantics changed.
 
@@ -2221,7 +2229,7 @@ Semantic stability matters.
 
 ---
 
-# Metric Verification
+## Metric Verification
 
 Important metrics should be validated where practical.
 
@@ -2241,7 +2249,7 @@ Do not unit-test every automatic runtime metric.
 
 ---
 
-# Cardinality Tests
+## Cardinality Tests
 
 High-risk instrumentation may include tests ensuring no unbounded field becomes a label.
 
@@ -2257,7 +2265,7 @@ used as dimensions.
 
 ---
 
-# Instrumentation Integration Tests
+## Instrumentation Integration Tests
 
 Integration tests may verify that:
 
@@ -2273,7 +2281,7 @@ for critical observability behavior.
 
 ---
 
-# Metrics in Test Environments
+## Metrics in Test Environments
 
 Tests should not require the production metrics provider.
 
@@ -2281,13 +2289,13 @@ Use in-memory or test metric readers/exporters where useful.
 
 ---
 
-# Test Isolation
+## Test Isolation
 
 Metric state should not leak across tests in a way that makes assertions order-dependent.
 
 ---
 
-# Metrics and Local Development
+## Metrics and Local Development
 
 Local metrics collection may be optional.
 
@@ -2295,7 +2303,7 @@ Instrumentation code should still execute consistently enough that production be
 
 ---
 
-# Debugging Metrics
+## Debugging Metrics
 
 Metrics are generally poor tools for debugging one individual event.
 
@@ -2315,15 +2323,13 @@ How often are order cancellations failing?
 
 ---
 
-# Alerting
+## Alerting
 
 Metrics are a primary input for many alerts.
 
 Alert design belongs in:
 
-```text
-docs/reliability/alerting.md
-```
+- [docs/reliability/alerting.md](alerting.md)
 
 Metrics used for alerting should be:
 
@@ -2336,7 +2342,7 @@ hard to accidentally disappear
 
 ---
 
-# Alert-Safe Metrics
+## Alert-Safe Metrics
 
 A metric powering critical alerts deserves stronger compatibility and testing than an exploratory metric.
 
@@ -2344,7 +2350,7 @@ Removing or renaming it can disable incident detection.
 
 ---
 
-# Missing Data
+## Missing Data
 
 Absence of metrics can mean:
 
@@ -2360,7 +2366,7 @@ Alerting should distinguish these possibilities when important.
 
 ---
 
-# Zero vs Missing
+## Zero vs Missing
 
 A metric value of zero is not always equivalent to no time series.
 
@@ -2376,7 +2382,7 @@ Instrumentation and queries should be designed accordingly.
 
 ---
 
-# Metrics Pipeline Health
+## Metrics Pipeline Health
 
 The telemetry pipeline should expose its own health signals.
 
@@ -2393,7 +2399,7 @@ Loss of metrics should not remain invisible.
 
 ---
 
-# Recursive Telemetry Failure
+## Recursive Telemetry Failure
 
 Metrics export failures should not create unbounded new metrics or logs that worsen the telemetry outage.
 
@@ -2401,7 +2407,7 @@ Failure reporting must be bounded.
 
 ---
 
-# Provider Quotas
+## Provider Quotas
 
 Metrics providers may impose:
 
@@ -2416,7 +2422,7 @@ Instrumentation should remain within known limits.
 
 ---
 
-# Cost Control
+## Cost Control
 
 Metrics cost depends heavily on:
 
@@ -2431,7 +2437,7 @@ Cardinality discipline is a reliability and cost-control requirement.
 
 ---
 
-# Retention
+## Retention
 
 Metrics retention should reflect:
 
@@ -2446,7 +2452,7 @@ The exact retention policy is deferred.
 
 ---
 
-# Long-Term Trends
+## Long-Term Trends
 
 Long-term capacity or business analysis may require aggregated/downsampled metrics rather than full-resolution telemetry indefinitely.
 
@@ -2454,7 +2460,7 @@ Provider capabilities should guide implementation.
 
 ---
 
-# Resolution
+## Resolution
 
 High-resolution metrics may be useful for operational diagnosis.
 
@@ -2464,7 +2470,7 @@ Resolution should match the question being asked.
 
 ---
 
-# Privacy
+## Privacy
 
 Metrics access should follow data sensitivity even when metrics are aggregated.
 
@@ -2472,19 +2478,17 @@ Internal topology and business-volume information may still be confidential.
 
 ---
 
-# Production Access
+## Production Access
 
 Production metrics should be available only to authorized users and systems.
 
 Detailed access policy belongs in:
 
-```text
-docs/security/production-access.md
-```
+- [docs/security/production-access.md](../security/production-access.md)
 
 ---
 
-# AI Investigation
+## AI Investigation
 
 Metrics should allow an authorized AI agent to answer questions such as:
 
@@ -2504,7 +2508,7 @@ without needing high-cardinality personal data.
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 Before adding a metric, an AI agent should ask:
 
@@ -2524,7 +2528,7 @@ Is there already a standard metric for this?
 
 ---
 
-# AI and Cardinality
+## AI and Cardinality
 
 An AI agent must not use runtime identifiers as metric labels.
 
@@ -2545,7 +2549,7 @@ as unsafe dimensions by default.
 
 ---
 
-# AI and Metric Type
+## AI and Metric Type
 
 An AI agent should distinguish:
 
@@ -2561,19 +2565,19 @@ Do not implement latency as an incrementing counter or queue depth as a counter 
 
 ---
 
-# AI and Derived Values
+## AI and Derived Values
 
 An AI agent should prefer primitive counts and distributions over emitting locally derived percentages when backend queries can calculate them correctly.
 
 ---
 
-# AI and Existing Standards
+## AI and Existing Standards
 
 Before inventing custom HTTP, database, runtime, or messaging metrics, an AI agent should inspect whether standard instrumentation already provides the signal.
 
 ---
 
-# AI and Business Metrics
+## AI and Business Metrics
 
 An AI agent should not add business analytics data to observability metrics merely because a product event exists.
 
@@ -2581,19 +2585,19 @@ The operational purpose must be explicit.
 
 ---
 
-# AI and Error Labels
+## AI and Error Labels
 
 An AI agent should use stable bounded error categories or codes rather than exception messages.
 
 ---
 
-# AI and Tests
+## AI and Tests
 
 Changes affecting critical alerting metrics, cardinality, units, or SLO calculations should include tests where practical.
 
 ---
 
-# New Metric Checklist
+## New Metric Checklist
 
 Before introducing a custom metric, answer:
 
@@ -2614,7 +2618,7 @@ Before introducing a custom metric, answer:
 
 ---
 
-# New Dimension Checklist
+## New Dimension Checklist
 
 Before adding a metric dimension, answer:
 
@@ -2631,7 +2635,7 @@ Before adding a metric dimension, answer:
 
 ---
 
-# Latency Metric Checklist
+## Latency Metric Checklist
 
 Before adding a duration metric, answer:
 
@@ -2648,7 +2652,7 @@ Before adding a duration metric, answer:
 
 ---
 
-# SLO Metric Checklist
+## SLO Metric Checklist
 
 Before using a metric as an SLI, answer:
 
@@ -2665,91 +2669,91 @@ Before using a metric as an SLI, answer:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## User ID as Metric Label
+### User ID as Metric Label
 
 Prohibited.
 
 ---
 
-## Request ID as Metric Label
+### Request ID as Metric Label
 
 Prohibited.
 
 ---
 
-## Trace ID as Metric Label
+### Trace ID as Metric Label
 
 Prohibited.
 
 ---
 
-## Resource ID as Metric Label
+### Resource ID as Metric Label
 
 Prohibited.
 
 ---
 
-## Email as Metric Label
+### Email as Metric Label
 
 Prohibited.
 
 ---
 
-## Raw URL as Metric Label
+### Raw URL as Metric Label
 
 Prohibited.
 
 ---
 
-## Query Parameter as Metric Label
+### Query Parameter as Metric Label
 
 Prohibited by default.
 
 ---
 
-## Error Message as Metric Label
+### Error Message as Metric Label
 
 Prohibited.
 
 ---
 
-## Exception Message as Metric Label
+### Exception Message as Metric Label
 
 Prohibited.
 
 ---
 
-## SQL Statement as Metric Label
+### SQL Statement as Metric Label
 
 Prohibited.
 
 ---
 
-## Dynamic Metric Name per Resource
+### Dynamic Metric Name per Resource
 
 Prohibited.
 
 ---
 
-## Average-Only Latency Metric
+### Average-Only Latency Metric
 
 Avoid.
 
 ---
 
-## Percentage Gauge Instead of Primitive Counts
+### Percentage Gauge Instead of Primitive Counts
 
 Avoid when counts can be aggregated correctly.
 
 ---
 
-## Counter for Current Queue Depth
+### Counter for Current Queue Depth
 
 Incorrect.
 
@@ -2757,7 +2761,7 @@ Use a gauge.
 
 ---
 
-## Gauge for Total Requests Processed
+### Gauge for Total Requests Processed
 
 Incorrect for cumulative request count.
 
@@ -2765,37 +2769,37 @@ Use a counter.
 
 ---
 
-## Metric Per Function
+### Metric Per Function
 
 Avoid.
 
 ---
 
-## Metrics as Business Analytics Warehouse
+### Metrics as Business Analytics Warehouse
 
 Avoid.
 
 ---
 
-## Metric for Data That Already Has Standard Instrumentation
+### Metric for Data That Already Has Standard Instrumentation
 
 Avoid unless the standard metric is insufficient.
 
 ---
 
-## Alert Depending on Unstable Exploratory Metric
+### Alert Depending on Unstable Exploratory Metric
 
 Avoid.
 
 ---
 
-## Silent Metric Semantic Change
+### Silent Metric Semantic Change
 
 Prohibited for operationally consumed metrics.
 
 ---
 
-# Initial Metrics Policy
+## Initial Metrics Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2822,12 +2826,11 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Remaining Implementation Decisions
 
-The following decisions are intentionally deferred:
+The accepted choices are linked above. These remaining details are intentionally deferred:
 
 ```text
-metrics SDK
 OpenTelemetry metrics adoption details
 metrics provider
 collector
@@ -2848,24 +2851,21 @@ Significant choices should be captured through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should be complemented by:
 
-```text
-docs/reliability/error-reporting.md
-docs/reliability/health-checks.md
-docs/reliability/alerting.md
-
-docs/security/production-access.md
-docs/security/data-retention.md
-```
+- [docs/reliability/error-reporting.md](error-reporting.md)
+- [docs/reliability/health-checks.md](health-checks.md)
+- [docs/reliability/alerting.md](alerting.md)
+- [docs/security/production-access.md](../security/production-access.md)
+- [docs/security/data-retention.md](../security/data-retention.md)
 
 Provider-specific metric configuration and dashboards should be documented only after the observability stack is selected.
 
 ---
 
-# Summary
+## Summary
 
 Metrics provide bounded numerical visibility into system behavior over time.
 

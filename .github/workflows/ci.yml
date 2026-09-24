@@ -1,0 +1,73 @@
+name: Orion CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orion-ci-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up pinned Node.js and pnpm; install from frozen lockfile
+        uses: pnpm/setup@e0ed22ae4d909f13ed5d2688513f73e1875e46db # v3.0.0
+        with:
+          cache: true
+          require-lockfile: true
+      - name: Run repository validation
+        run: pnpm validate
+
+  dependency-review:
+    name: Dependency review
+    if: ${{ github.event_name == 'pull_request' && vars.DEPENDENCY_REVIEW_ENABLED == 'true' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Block newly introduced high and critical vulnerabilities
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+
+  required-gate:
+    name: Orion required gate
+    needs: [validate, dependency-review]
+    if: ${{ always() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Require all validation jobs to pass
+        env:
+          VALIDATE_RESULT: ${{ needs.validate.result }}
+          DEPENDENCY_REVIEW_RESULT: ${{ needs.dependency-review.result }}
+          DEPENDENCY_REVIEW_ENABLED: ${{ vars.DEPENDENCY_REVIEW_ENABLED }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$VALIDATE_RESULT" != "success" ]; then
+            echo "Validation job concluded: $VALIDATE_RESULT" >&2
+            exit 1
+          fi
+          if [ "$EVENT_NAME" = "pull_request" ] && [ "$DEPENDENCY_REVIEW_ENABLED" = "true" ] && [ "$DEPENDENCY_REVIEW_RESULT" != "success" ]; then
+            echo "Dependency review concluded: $DEPENDENCY_REVIEW_RESULT" >&2
+            exit 1
+          fi

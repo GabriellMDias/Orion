@@ -1,5 +1,17 @@
 # Incident Response
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+## Read for this change
+
+- [Severity](#severity)
+- [Containment](#containment)
+- [Incident Closure](#incident-closure)
+- [Post-Incident Review](#post-incident-review)
+- [Incident Response Checklist](#incident-response-checklist)
+
+Related policy: [production access](production-access.md), [data retention](data-retention.md), [README](../runbooks/README.md).
+
 ## Purpose
 
 This document defines the incident-response principles used by Orion.
@@ -25,13 +37,13 @@ Specific incident-management platforms, paging providers, forensic tools, commun
 
 This document complements:
 
-- `docs/reliability/alerting.md`;
-- `docs/reliability/error-reporting.md`;
-- `docs/reliability/observability.md`;
-- `docs/security/production-access.md`;
-- `docs/security/secrets-management.md`;
-- `docs/security/data-classification.md`;
-- `docs/security/data-retention.md`.
+- [docs/reliability/alerting.md](../reliability/alerting.md);
+- [docs/reliability/error-reporting.md](../reliability/error-reporting.md);
+- [docs/reliability/observability.md](../reliability/observability.md);
+- [docs/security/production-access.md](production-access.md);
+- [docs/security/secrets-management.md](secrets-management.md);
+- [docs/security/data-classification.md](data-classification.md);
+- [docs/security/data-retention.md](data-retention.md).
 
 ---
 
@@ -59,7 +71,7 @@ So do correctness, evidence preservation, and avoiding secondary damage.
 
 ---
 
-# What Is an Incident?
+## What Is an Incident?
 
 An incident is an event or condition requiring coordinated operational response because normal guarantees may be materially violated.
 
@@ -75,7 +87,7 @@ These classes may overlap.
 
 ---
 
-# Reliability Incident
+## Reliability Incident
 
 A reliability incident involves degradation or loss of intended service behavior.
 
@@ -101,7 +113,7 @@ recoverability
 
 ---
 
-# Security Incident
+## Security Incident
 
 A security incident involves actual or suspected compromise of a security property.
 
@@ -129,7 +141,7 @@ trust
 
 ---
 
-# Data Incident
+## Data Incident
 
 A data incident involves potential or confirmed loss, exposure, corruption, unauthorized modification, or improper retention of data.
 
@@ -148,7 +160,7 @@ A data incident may also be a security or reliability incident.
 
 ---
 
-# Incident Types May Overlap
+## Incident Types May Overlap
 
 For example:
 
@@ -176,7 +188,7 @@ Classification should describe reality rather than force one exclusive category.
 
 ---
 
-# Event vs Incident
+## Event vs Incident
 
 Not every error or alert is an incident.
 
@@ -202,7 +214,7 @@ or deliberate mitigation
 
 ---
 
-# Incident Trigger
+## Incident Trigger
 
 An incident may begin from:
 
@@ -221,7 +233,7 @@ Automated detection is desirable but not required.
 
 ---
 
-# Incident Declaration
+## Incident Declaration
 
 Once evidence indicates coordinated response is required, someone should explicitly declare the incident.
 
@@ -239,7 +251,7 @@ Avoid leaving serious events in an ambiguous state where everyone assumes someon
 
 ---
 
-# Incident Owner
+## Incident Owner
 
 Every active incident should have a clearly identifiable owner.
 
@@ -259,7 +271,7 @@ Small incidents may have one person performing several responsibilities.
 
 ---
 
-# Incident Commander
+## Incident Commander
 
 For significant incidents, an incident commander coordinates:
 
@@ -275,7 +287,7 @@ The commander does not need to be the person performing every technical action.
 
 ---
 
-# Technical Lead
+## Technical Lead
 
 A technical lead may coordinate:
 
@@ -290,7 +302,7 @@ for the affected system.
 
 ---
 
-# Security Lead
+## Security Lead
 
 Security incidents may require a dedicated security owner for:
 
@@ -305,7 +317,7 @@ where team structure permits.
 
 ---
 
-# Scribe
+## Scribe
 
 A scribe may maintain:
 
@@ -322,7 +334,7 @@ The purpose is durable evidence, not bureaucracy.
 
 ---
 
-# Small-Team Operation
+## Small-Team Operation
 
 In a small team, one person may be:
 
@@ -338,7 +350,7 @@ The important requirement is that responsibilities remain understood.
 
 ---
 
-# Severity
+## Severity
 
 Incidents should use a small consistent severity model.
 
@@ -365,7 +377,7 @@ recovery complexity
 
 ---
 
-# Severity Is Not Technical Complexity
+## Severity Is Not Technical Complexity
 
 A technically complex bug with no user impact may be low severity.
 
@@ -375,7 +387,7 @@ Severity reflects impact and risk.
 
 ---
 
-# SEV-1
+## SEV-1
 
 A highest-severity incident may involve:
 
@@ -391,7 +403,7 @@ It requires immediate coordinated response.
 
 ---
 
-# SEV-2
+## SEV-2
 
 A high-severity incident may involve:
 
@@ -406,7 +418,7 @@ requiring urgent response.
 
 ---
 
-# SEV-3
+## SEV-3
 
 A medium incident may involve:
 
@@ -420,7 +432,7 @@ requiring timely but not necessarily emergency response.
 
 ---
 
-# SEV-4
+## SEV-4
 
 A low-severity incident may involve:
 
@@ -434,7 +446,7 @@ that still benefits from structured tracking.
 
 ---
 
-# Security Severity
+## Security Severity
 
 Security severity may require additional criteria such as:
 
@@ -450,7 +462,7 @@ A low-volume event can still be critical if security impact is severe.
 
 ---
 
-# Unknown Scope
+## Unknown Scope
 
 When scope is uncertain, do not classify too low merely because confirmed impact is small.
 
@@ -458,7 +470,7 @@ Uncertainty itself may justify higher urgency until investigation narrows the ri
 
 ---
 
-# Classification Can Change
+## Classification Can Change
 
 Incident severity may increase or decrease as evidence improves.
 
@@ -466,7 +478,7 @@ Changes should be explicit.
 
 ---
 
-# Response Phases
+## Response Phases
 
 A conceptual incident lifecycle is:
 
@@ -490,7 +502,7 @@ Real incidents may move between phases iteratively.
 
 ---
 
-# Detection
+## Detection
 
 Detection should establish:
 
@@ -506,7 +518,7 @@ Do not spend excessive time perfecting root cause before containing obvious acti
 
 ---
 
-# Triage
+## Triage
 
 Triage determines:
 
@@ -521,7 +533,7 @@ Early triage should be fast and evidence-driven.
 
 ---
 
-# First Questions
+## First Questions
 
 Useful initial questions include:
 
@@ -541,7 +553,7 @@ Can we safely reduce impact now?
 
 ---
 
-# Impact Assessment
+## Impact Assessment
 
 Impact should be described concretely.
 
@@ -564,7 +576,7 @@ when more precise information exists.
 
 ---
 
-# Scope
+## Scope
 
 Scope may include:
 
@@ -583,7 +595,7 @@ Scope should be refined continuously during investigation.
 
 ---
 
-# Timeline
+## Timeline
 
 Significant incidents should maintain a timeline.
 
@@ -603,7 +615,7 @@ The timeline supports later analysis.
 
 ---
 
-# Time Source
+## Time Source
 
 Incident timestamps should use one consistent absolute time representation.
 
@@ -619,7 +631,7 @@ in durable incident records.
 
 ---
 
-# Containment
+## Containment
 
 Containment reduces ongoing harm.
 
@@ -639,7 +651,7 @@ Containment may happen before full root-cause understanding.
 
 ---
 
-# Containment Should Be Scoped
+## Containment Should Be Scoped
 
 Prefer:
 
@@ -659,7 +671,7 @@ However, broader containment is justified when scope is uncertain and risk is hi
 
 ---
 
-# Security Containment
+## Security Containment
 
 Possible security containment actions include:
 
@@ -674,7 +686,7 @@ restrict production access
 
 ---
 
-# Reliability Containment
+## Reliability Containment
 
 Possible reliability containment actions include:
 
@@ -689,7 +701,7 @@ route around unhealthy dependency
 
 ---
 
-# Data Containment
+## Data Containment
 
 Possible data-incident containment actions include:
 
@@ -703,7 +715,7 @@ disable affected tenant workflow
 
 ---
 
-# Containment vs Evidence
+## Containment vs Evidence
 
 Containment should not unnecessarily destroy evidence.
 
@@ -728,7 +740,7 @@ according to incident needs.
 
 ---
 
-# Safety First
+## Safety First
 
 Evidence preservation must not delay urgent containment when active harm continues.
 
@@ -742,7 +754,7 @@ then preserve as much evidence as safely possible.
 
 ---
 
-# Evidence
+## Evidence
 
 Incident evidence may include:
 
@@ -760,7 +772,7 @@ access records
 
 ---
 
-# Evidence Integrity
+## Evidence Integrity
 
 Evidence used for security or high-impact investigations should be preserved without unnecessary modification.
 
@@ -777,7 +789,7 @@ for important forensic artifacts.
 
 ---
 
-# Evidence Copies
+## Evidence Copies
 
 Copies of production evidence remain production data.
 
@@ -792,7 +804,7 @@ secure storage
 
 ---
 
-# Do Not Paste Raw Evidence Everywhere
+## Do Not Paste Raw Evidence Everywhere
 
 Avoid copying sensitive incident evidence into:
 
@@ -808,7 +820,7 @@ when a safe reference to authorized telemetry is sufficient.
 
 ---
 
-# Forensic Data
+## Forensic Data
 
 Forensic artifacts may include:
 
@@ -825,7 +837,7 @@ They require exceptional handling.
 
 ---
 
-# Memory Dumps
+## Memory Dumps
 
 Memory dumps may contain:
 
@@ -840,7 +852,7 @@ Treat them as highly sensitive.
 
 ---
 
-# Network Captures
+## Network Captures
 
 Packet captures may contain sensitive application data.
 
@@ -855,7 +867,7 @@ protected
 
 ---
 
-# Credential Exposure
+## Credential Exposure
 
 If a credential may have been exposed, assume compromise according to risk until evidence proves otherwise.
 
@@ -869,7 +881,7 @@ when rotation is feasible.
 
 ---
 
-# Secret Rotation
+## Secret Rotation
 
 Compromised or potentially exposed secrets should be:
 
@@ -881,13 +893,11 @@ replaced
 
 according to:
 
-```text
-docs/security/secrets-management.md
-```
+- [docs/security/secrets-management.md](secrets-management.md)
 
 ---
 
-# Rotation Order
+## Rotation Order
 
 Credential rotation may require sequencing.
 
@@ -909,7 +919,7 @@ The sequence depends on risk.
 
 ---
 
-# Signing Keys
+## Signing Keys
 
 Signing-key compromise may require support for:
 
@@ -926,7 +936,7 @@ This can be a high-impact incident.
 
 ---
 
-# Session Revocation
+## Session Revocation
 
 Credential compromise may require revoking:
 
@@ -941,7 +951,7 @@ Scope should follow the affected identity.
 
 ---
 
-# Access Review During Incident
+## Access Review During Incident
 
 Security incidents should review:
 
@@ -956,7 +966,7 @@ where relevant.
 
 ---
 
-# Eradication
+## Eradication
 
 Eradication removes the underlying cause or malicious persistence.
 
@@ -974,7 +984,7 @@ Containment and eradication are different.
 
 ---
 
-# Temporary Mitigation
+## Temporary Mitigation
 
 A temporary mitigation may reduce impact without fixing root cause.
 
@@ -990,7 +1000,7 @@ Such mitigations should not be mistaken for permanent resolution.
 
 ---
 
-# Permanent Fix
+## Permanent Fix
 
 The permanent correction should address the underlying defect.
 
@@ -1006,7 +1016,7 @@ patch dependency
 
 ---
 
-# Recovery
+## Recovery
 
 Recovery restores normal safe operation.
 
@@ -1020,7 +1030,7 @@ critical invariants hold
 
 ---
 
-# Recovery May Be Gradual
+## Recovery May Be Gradual
 
 Recovery may use:
 
@@ -1035,7 +1045,7 @@ rather than full immediate restoration.
 
 ---
 
-# Recovery Verification
+## Recovery Verification
 
 Recovery should be verified using relevant evidence.
 
@@ -1052,7 +1062,7 @@ data integrity validated
 
 ---
 
-# Recovery Is Not Alert Resolution Alone
+## Recovery Is Not Alert Resolution Alone
 
 An alert returning to green does not prove the system is fully recovered.
 
@@ -1060,7 +1070,7 @@ Verify the actual impacted behavior.
 
 ---
 
-# Data Integrity Verification
+## Data Integrity Verification
 
 Data incidents may require:
 
@@ -1075,7 +1085,7 @@ before closure.
 
 ---
 
-# Security Verification
+## Security Verification
 
 Security recovery may require confirming:
 
@@ -1088,7 +1098,7 @@ new controls effective
 
 ---
 
-# Reopening Traffic
+## Reopening Traffic
 
 When traffic was disabled, re-enable it only after:
 
@@ -1101,7 +1111,7 @@ rollback/containment options ready
 
 ---
 
-# Queue Recovery
+## Queue Recovery
 
 Restarting queued work should consider:
 
@@ -1117,7 +1127,7 @@ Do not blindly release a large backlog after incident mitigation.
 
 ---
 
-# Backlog Recovery
+## Backlog Recovery
 
 A backlog may require:
 
@@ -1132,7 +1142,7 @@ to avoid causing a second incident during recovery.
 
 ---
 
-# Communication
+## Communication
 
 Incident communication should match impact and audience.
 
@@ -1152,7 +1162,7 @@ Not every incident requires communication to every audience.
 
 ---
 
-# Internal Communication
+## Internal Communication
 
 Internal updates should communicate:
 
@@ -1168,7 +1178,7 @@ without unnecessary speculation.
 
 ---
 
-# Communicate Facts vs Hypotheses
+## Communicate Facts vs Hypotheses
 
 Clearly distinguish:
 
@@ -1188,7 +1198,7 @@ Premature certainty can misdirect response.
 
 ---
 
-# External Communication
+## External Communication
 
 External communication should be:
 
@@ -1205,7 +1215,7 @@ This document does not define legal disclosure obligations.
 
 ---
 
-# Customer Communication
+## Customer Communication
 
 When customers are affected, communication may include:
 
@@ -1222,7 +1232,7 @@ Avoid exposing unnecessary security details during an active incident.
 
 ---
 
-# Security Disclosure
+## Security Disclosure
 
 Security incidents may require careful disclosure timing to avoid:
 
@@ -1236,7 +1246,7 @@ Communication should coordinate with appropriate security/legal stakeholders whe
 
 ---
 
-# Regulatory Notification
+## Regulatory Notification
 
 Some data or security incidents may trigger legal notification requirements.
 
@@ -1256,7 +1266,7 @@ This document does not invent notification deadlines.
 
 ---
 
-# Support Coordination
+## Support Coordination
 
 Support teams should receive enough safe information to respond consistently to affected users.
 
@@ -1264,7 +1274,7 @@ Do not expose internal secrets or forensic details merely to improve support con
 
 ---
 
-# Single Source of Incident Status
+## Single Source of Incident Status
 
 Significant incidents should have one authoritative status location.
 
@@ -1274,7 +1284,7 @@ Avoid conflicting status across multiple chat threads.
 
 ---
 
-# Status Updates
+## Status Updates
 
 For significant incidents, updates should occur when:
 
@@ -1291,7 +1301,7 @@ rather than on arbitrary noisy intervals.
 
 ---
 
-# Decision Log
+## Decision Log
 
 Important decisions may be recorded during an incident.
 
@@ -1308,13 +1318,11 @@ The record should capture enough rationale for later review.
 
 ---
 
-# Production Changes During Incident
+## Production Changes During Incident
 
 Emergency production changes should follow:
 
-```text
-docs/security/production-access.md
-```
+- [docs/security/production-access.md](production-access.md)
 
 even when normal review timing is shortened.
 
@@ -1322,7 +1330,7 @@ Identity and auditability should remain.
 
 ---
 
-# Incident Access
+## Incident Access
 
 Responders may require temporary elevated production access.
 
@@ -1332,21 +1340,19 @@ Incidents do not justify universal production admin rights.
 
 ---
 
-# Break-Glass
+## Break-Glass
 
 Break-glass may be appropriate if normal access systems prevent urgent response.
 
 Its use should follow:
 
-```text
-docs/security/production-access.md
-```
+- [docs/security/production-access.md](production-access.md)
 
 and be reviewed afterward.
 
 ---
 
-# Change Freeze
+## Change Freeze
 
 Some incidents may justify temporarily limiting unrelated production changes.
 
@@ -1356,7 +1362,7 @@ Do not apply a blanket freeze when it prevents necessary mitigation.
 
 ---
 
-# Deployment Correlation
+## Deployment Correlation
 
 Early incident investigation should inspect:
 
@@ -1373,7 +1379,7 @@ because temporal correlation can narrow hypotheses quickly.
 
 ---
 
-# Correlation Is Not Proof
+## Correlation Is Not Proof
 
 A deployment immediately preceding an incident is a strong clue, not automatic proof.
 
@@ -1381,7 +1387,7 @@ Avoid rolling back blindly when rollback itself is dangerous or evidence indicat
 
 ---
 
-# Rollback
+## Rollback
 
 Rollback is appropriate when:
 
@@ -1395,7 +1401,7 @@ according to versioning and migration policy.
 
 ---
 
-# Forward Fix
+## Forward Fix
 
 A forward fix may be safer when:
 
@@ -1409,7 +1415,7 @@ The response plan should understand this before acting.
 
 ---
 
-# Feature Flags
+## Feature Flags
 
 A feature flag may provide rapid containment.
 
@@ -1425,7 +1431,7 @@ where practical.
 
 ---
 
-# Dependency Incidents
+## Dependency Incidents
 
 When an external dependency fails, Orion should distinguish:
 
@@ -1450,7 +1456,7 @@ provider escalation
 
 ---
 
-# Provider Status
+## Provider Status
 
 Provider status pages can be useful supporting evidence.
 
@@ -1458,7 +1464,7 @@ Observed Orion behavior remains more important than provider status alone.
 
 ---
 
-# Third-Party Security Incident
+## Third-Party Security Incident
 
 A provider security incident may require:
 
@@ -1473,7 +1479,7 @@ depending on affected data and access.
 
 ---
 
-# Incident and Backups
+## Incident and Backups
 
 Data-loss or corruption incidents may require backup restoration.
 
@@ -1488,7 +1494,7 @@ current schema compatibility
 
 ---
 
-# Restore Is Destructive
+## Restore Is Destructive
 
 A production restore can overwrite current state.
 
@@ -1496,7 +1502,7 @@ It requires deliberate authorization and validation.
 
 ---
 
-# Point-in-Time Recovery
+## Point-in-Time Recovery
 
 If supported, point-in-time recovery may reduce data loss.
 
@@ -1512,7 +1518,7 @@ after restoration.
 
 ---
 
-# Data Repair vs Restore
+## Data Repair vs Restore
 
 Not every corruption incident should restore the entire database.
 
@@ -1522,7 +1528,7 @@ Choose the smallest recovery mechanism consistent with correctness.
 
 ---
 
-# Incident Closure
+## Incident Closure
 
 An incident should not close merely because:
 
@@ -1542,7 +1548,7 @@ temporary mitigations tracked
 
 ---
 
-# Closure Criteria
+## Closure Criteria
 
 Potential closure criteria include:
 
@@ -1556,7 +1562,7 @@ required communication completed
 
 ---
 
-# Monitoring Period
+## Monitoring Period
 
 High-impact incidents may require an observation period after recovery before closure.
 
@@ -1564,13 +1570,13 @@ This helps detect relapse.
 
 ---
 
-# Temporary Mitigation Tracking
+## Temporary Mitigation Tracking
 
 If incident closure occurs before permanent correction, the temporary mitigation should have explicit follow-up ownership.
 
 ---
 
-# Post-Incident Review
+## Post-Incident Review
 
 Significant incidents should receive a post-incident review.
 
@@ -1586,7 +1592,7 @@ not individual blame.
 
 ---
 
-# Review Scope
+## Review Scope
 
 A review may examine:
 
@@ -1605,7 +1611,7 @@ corrective actions
 
 ---
 
-# Root Cause
+## Root Cause
 
 Root cause should describe why the system allowed the incident.
 
@@ -1620,7 +1626,7 @@ Ask why controls did not prevent or contain the mistake.
 
 ---
 
-# Contributing Factors
+## Contributing Factors
 
 Most incidents involve several contributors.
 
@@ -1639,7 +1645,7 @@ These may be more useful than forcing one root cause.
 
 ---
 
-# Five Whys
+## Five Whys
 
 Techniques such as repeated "why" analysis may help.
 
@@ -1649,7 +1655,7 @@ The goal is identifying actionable systemic causes.
 
 ---
 
-# Human Error
+## Human Error
 
 Human actions should be analyzed in context.
 
@@ -1669,7 +1675,7 @@ System design should reduce reliance on perfect human behavior.
 
 ---
 
-# What Went Well
+## What Went Well
 
 Post-incident reviews should record controls that worked.
 
@@ -1686,7 +1692,7 @@ This helps preserve effective practices.
 
 ---
 
-# What Went Poorly
+## What Went Poorly
 
 Record friction such as:
 
@@ -1702,7 +1708,7 @@ without hiding operational weaknesses.
 
 ---
 
-# Where We Got Lucky
+## Where We Got Lucky
 
 It may be valuable to record situations where impact stayed small only by chance.
 
@@ -1718,7 +1724,7 @@ Luck should not be mistaken for control effectiveness.
 
 ---
 
-# Corrective Actions
+## Corrective Actions
 
 A post-incident review should produce concrete actions where needed.
 
@@ -1737,7 +1743,7 @@ secret rotation automation
 
 ---
 
-# Action Ownership
+## Action Ownership
 
 Every corrective action should have an identifiable owner.
 
@@ -1745,7 +1751,7 @@ Unowned action items tend not to happen.
 
 ---
 
-# Action Priority
+## Action Priority
 
 Corrective actions should be prioritized by:
 
@@ -1760,7 +1766,7 @@ Do not create dozens of low-value actions merely to make the review appear compr
 
 ---
 
-# Preventive Control
+## Preventive Control
 
 Prefer controls that prevent recurrence mechanically.
 
@@ -1783,7 +1789,7 @@ remember to be careful
 
 ---
 
-# Detection Control
+## Detection Control
 
 When prevention is impractical, improve detection.
 
@@ -1798,7 +1804,7 @@ integrity check
 
 ---
 
-# Recovery Control
+## Recovery Control
 
 Recovery can also be improved.
 
@@ -1813,7 +1819,7 @@ automated rollback
 
 ---
 
-# Regression Tests
+## Regression Tests
 
 Confirmed software defects should receive regression tests whenever practical.
 
@@ -1821,7 +1827,7 @@ The test should fail under the defective behavior and pass after correction.
 
 ---
 
-# Incident Documentation
+## Incident Documentation
 
 Important incident records should be durable enough for future learning.
 
@@ -1831,7 +1837,7 @@ Summarize relevant evidence and link to authoritative systems where possible.
 
 ---
 
-# Repository vs Incident System
+## Repository vs Incident System
 
 Operational incident records may live in an incident-management system.
 
@@ -1849,7 +1855,7 @@ tooling
 
 ---
 
-# ADRs After Incidents
+## ADRs After Incidents
 
 An incident may reveal the need for an architectural decision.
 
@@ -1865,7 +1871,7 @@ Such decisions should use ADRs rather than being hidden only in incident notes.
 
 ---
 
-# Runbooks After Incidents
+## Runbooks After Incidents
 
 A recurring failure should often produce or improve a runbook.
 
@@ -1873,7 +1879,7 @@ A runbook is appropriate when the future response is known and repeatable.
 
 ---
 
-# Alert Changes After Incidents
+## Alert Changes After Incidents
 
 An incident may reveal:
 
@@ -1887,7 +1893,7 @@ Changes should improve detection quality, not simply increase notification volum
 
 ---
 
-# Observability Changes After Incidents
+## Observability Changes After Incidents
 
 Missing diagnostic evidence is an observability defect.
 
@@ -1897,7 +1903,7 @@ Do not respond by logging entire request bodies or enabling unsafe telemetry glo
 
 ---
 
-# Security Changes After Incidents
+## Security Changes After Incidents
 
 Security incidents may require improvements to:
 
@@ -1913,7 +1919,7 @@ depending on cause.
 
 ---
 
-# Data-Retention Changes After Incidents
+## Data-Retention Changes After Incidents
 
 A telemetry or storage incident may reveal unnecessary retention.
 
@@ -1921,7 +1927,7 @@ Reducing retained data can reduce future blast radius.
 
 ---
 
-# Incident Metrics
+## Incident Metrics
 
 Organizations may eventually track:
 
@@ -1938,7 +1944,7 @@ They should not become simplistic performance metrics for individuals.
 
 ---
 
-# MTTD
+## MTTD
 
 Mean Time to Detect may help evaluate detection capability.
 
@@ -1946,7 +1952,7 @@ It can hide distribution details and should not be treated as the only measure.
 
 ---
 
-# MTTR
+## MTTR
 
 "MTTR" can mean several different things:
 
@@ -1961,7 +1967,7 @@ If used, the meaning must be explicit.
 
 ---
 
-# Incident Count
+## Incident Count
 
 Incident count alone is a poor reliability measure.
 
@@ -1969,7 +1975,7 @@ One severe incident can matter more than many small ones.
 
 ---
 
-# Blameless Does Not Mean Accountability-Free
+## Blameless Does Not Mean Accountability-Free
 
 Incident review should avoid personal blame.
 
@@ -1986,21 +1992,19 @@ clearly.
 
 ---
 
-# Security Evidence Retention
+## Security Evidence Retention
 
 Incident evidence may require temporary extended retention.
 
 Such exceptions should follow:
 
-```text
-docs/security/data-retention.md
-```
+- [docs/security/data-retention.md](data-retention.md)
 
 and remain scoped.
 
 ---
 
-# Legal Hold
+## Legal Hold
 
 Some incident evidence may become subject to legal hold.
 
@@ -2008,7 +2012,7 @@ This is a specialized retention exception and should be explicitly authorized.
 
 ---
 
-# Deleting Incident Evidence
+## Deleting Incident Evidence
 
 Incident data should eventually follow retention policy.
 
@@ -2016,7 +2020,7 @@ A serious incident is not automatic justification for keeping all raw evidence f
 
 ---
 
-# Privacy During Incident Response
+## Privacy During Incident Response
 
 Incident urgency does not suspend privacy principles.
 
@@ -2032,13 +2036,13 @@ during investigation.
 
 ---
 
-# Need-to-Know
+## Need-to-Know
 
 Sensitive incident information should be shared only with people who need it for response or required communication.
 
 ---
 
-# Incident Channels
+## Incident Channels
 
 Incident chat channels may retain messages for long periods.
 
@@ -2055,7 +2059,7 @@ into them.
 
 ---
 
-# Screenshots
+## Screenshots
 
 Incident screenshots should be minimized and redacted.
 
@@ -2063,7 +2067,7 @@ Prefer structured evidence when possible.
 
 ---
 
-# AI-Assisted Incident Response
+## AI-Assisted Incident Response
 
 AI agents may assist with:
 
@@ -2081,13 +2085,11 @@ They do not automatically receive additional production authority because an inc
 
 ---
 
-# AI Access During Incident
+## AI Access During Incident
 
 AI production access should follow:
 
-```text
-docs/security/production-access.md
-```
+- [docs/security/production-access.md](production-access.md)
 
 The incident may justify a temporary delegated capability.
 
@@ -2095,7 +2097,7 @@ It does not justify unrestricted access.
 
 ---
 
-# AI and Evidence
+## AI and Evidence
 
 An AI agent should prefer safe:
 
@@ -2110,7 +2112,7 @@ over broad raw data exports.
 
 ---
 
-# AI and Hypotheses
+## AI and Hypotheses
 
 AI-generated hypotheses must be treated as hypotheses until supported by evidence.
 
@@ -2118,7 +2120,7 @@ Do not execute destructive mitigation solely because an AI explanation sounds pl
 
 ---
 
-# AI and Containment
+## AI and Containment
 
 An AI agent may recommend containment.
 
@@ -2126,7 +2128,7 @@ High-impact actions should require the same authorization and verification as hu
 
 ---
 
-# AI and Secrets
+## AI and Secrets
 
 Do not expose raw production secrets to AI merely to accelerate incident response.
 
@@ -2134,7 +2136,7 @@ Prefer delegated or redacted mechanisms.
 
 ---
 
-# AI and Incident Summaries
+## AI and Incident Summaries
 
 AI-generated summaries should distinguish:
 
@@ -2148,7 +2150,7 @@ clearly.
 
 ---
 
-# AI and Corrective Actions
+## AI and Corrective Actions
 
 AI agents should prefer durable mechanical fixes such as:
 
@@ -2164,7 +2166,7 @@ over reminders.
 
 ---
 
-# Incident Runbooks
+## Incident Runbooks
 
 Common incident types should eventually have runbooks.
 
@@ -2183,13 +2185,13 @@ Only create runbooks for real operational patterns.
 
 ---
 
-# Runbook Escalation
+## Runbook Escalation
 
 A runbook should identify when ordinary mitigation is insufficient and escalation is required.
 
 ---
 
-# Runbook Safety
+## Runbook Safety
 
 Runbooks must not contain raw secrets.
 
@@ -2204,7 +2206,7 @@ recovery
 
 ---
 
-# Incident Automation
+## Incident Automation
 
 Automation may assist with:
 
@@ -2219,7 +2221,7 @@ where safe and tested.
 
 ---
 
-# Automated Containment
+## Automated Containment
 
 Automated containment is high impact.
 
@@ -2236,13 +2238,13 @@ only when false positives are acceptably controlled.
 
 ---
 
-# Automation Must Be Reversible Where Possible
+## Automation Must Be Reversible Where Possible
 
 Automated incident actions should prefer reversible containment.
 
 ---
 
-# Self-Healing
+## Self-Healing
 
 Automatic reliability recovery may prevent an operational event from becoming an incident.
 
@@ -2250,7 +2252,7 @@ Repeated self-healing may itself indicate underlying instability and should beco
 
 ---
 
-# Incident Detection Gaps
+## Incident Detection Gaps
 
 An incident discovered by a customer rather than telemetry should prompt examination of detection gaps.
 
@@ -2258,7 +2260,7 @@ The goal is not necessarily to alert on every possible defect, but to detect imp
 
 ---
 
-# Incident Response Testing
+## Incident Response Testing
 
 Incident response should eventually be exercised.
 
@@ -2276,7 +2278,7 @@ according to system maturity.
 
 ---
 
-# Tabletop Exercises
+## Tabletop Exercises
 
 A tabletop exercise can test:
 
@@ -2292,7 +2294,7 @@ without causing real production failure.
 
 ---
 
-# Disaster Recovery Exercises
+## Disaster Recovery Exercises
 
 Recovery procedures that are never tested should not be assumed reliable.
 
@@ -2308,7 +2310,7 @@ where those capabilities exist.
 
 ---
 
-# Security Exercises
+## Security Exercises
 
 Security response may benefit from testing:
 
@@ -2322,7 +2324,7 @@ using synthetic scenarios.
 
 ---
 
-# Game Days
+## Game Days
 
 Controlled reliability exercises may expose weaknesses in:
 
@@ -2337,7 +2339,7 @@ Use only when the system is mature enough to conduct them safely.
 
 ---
 
-# Incident Response Checklist
+## Incident Response Checklist
 
 At incident declaration, answer:
 
@@ -2356,7 +2358,7 @@ At incident declaration, answer:
 
 ---
 
-# Security Incident Checklist
+## Security Incident Checklist
 
 For a suspected security incident, answer:
 
@@ -2375,7 +2377,7 @@ For a suspected security incident, answer:
 
 ---
 
-# Data Incident Checklist
+## Data Incident Checklist
 
 For a data incident, answer:
 
@@ -2394,7 +2396,7 @@ For a data incident, answer:
 
 ---
 
-# Reliability Incident Checklist
+## Reliability Incident Checklist
 
 For a reliability incident, answer:
 
@@ -2411,7 +2413,7 @@ For a reliability incident, answer:
 
 ---
 
-# Containment Checklist
+## Containment Checklist
 
 Before applying containment, answer:
 
@@ -2427,7 +2429,7 @@ Before applying containment, answer:
 
 ---
 
-# Credential Compromise Checklist
+## Credential Compromise Checklist
 
 Before responding to suspected credential compromise, answer:
 
@@ -2446,7 +2448,7 @@ Before responding to suspected credential compromise, answer:
 
 ---
 
-# Recovery Checklist
+## Recovery Checklist
 
 Before declaring recovery, answer:
 
@@ -2463,7 +2465,7 @@ Before declaring recovery, answer:
 
 ---
 
-# Incident Closure Checklist
+## Incident Closure Checklist
 
 Before closing an incident, answer:
 
@@ -2480,7 +2482,7 @@ Before closing an incident, answer:
 
 ---
 
-# Post-Incident Review Checklist
+## Post-Incident Review Checklist
 
 A post-incident review should answer:
 
@@ -2502,13 +2504,13 @@ A post-incident review should answer:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Do Not Declare Incident Until Root Cause Is Known
+### Do Not Declare Incident Until Root Cause Is Known
 
 Avoid.
 
@@ -2516,37 +2518,37 @@ Containment may be needed first.
 
 ---
 
-## Every Alert Becomes an Incident
+### Every Alert Becomes an Incident
 
 Avoid.
 
 ---
 
-## Incident With No Owner
+### Incident With No Owner
 
 Prohibited.
 
 ---
 
-## Severity Based Only on Error Count
+### Severity Based Only on Error Count
 
 Avoid.
 
 ---
 
-## Assume Low Confirmed Scope Means Low Risk
+### Assume Low Confirmed Scope Means Low Risk
 
 Avoid when scope remains uncertain.
 
 ---
 
-## Destroy Evidence Before Considering Preservation
+### Destroy Evidence Before Considering Preservation
 
 Avoid when preservation is safe.
 
 ---
 
-## Preserve Evidence While Active Harm Continues
+### Preserve Evidence While Active Harm Continues
 
 Avoid.
 
@@ -2554,61 +2556,61 @@ Containment takes priority.
 
 ---
 
-## Leave Potentially Exposed Credential Active Because Abuse Is Not Confirmed
+### Leave Potentially Exposed Credential Active Because Abuse Is Not Confirmed
 
 Avoid when safe rotation is practical.
 
 ---
 
-## Paste Raw Secrets Into Incident Chat
+### Paste Raw Secrets Into Incident Chat
 
 Prohibited.
 
 ---
 
-## Grant Everyone Production Admin During Incident
+### Grant Everyone Production Admin During Incident
 
 Avoid.
 
 ---
 
-## Roll Back Without Checking Compatibility
+### Roll Back Without Checking Compatibility
 
 Avoid.
 
 ---
 
-## Restore Entire Database for Small Repairable Corruption
+### Restore Entire Database for Small Repairable Corruption
 
 Avoid.
 
 ---
 
-## Declare Recovery Because Alert Cleared
+### Declare Recovery Because Alert Cleared
 
 Avoid.
 
 ---
 
-## Close Incident With Permanent Fix Undefined
+### Close Incident With Permanent Fix Undefined
 
 Avoid for significant unresolved root causes.
 
 ---
 
-## Root Cause Is "Human Error"
+### Root Cause Is "Human Error"
 
 Avoid as the final analysis.
 
 ---
 
-## Postmortem Exists Only to Assign Blame
+### Postmortem Exists Only to Assign Blame
 
 Prohibited.
 
 ---
 
-## Add Logging Everywhere After Incident
+### Add Logging Everywhere After Incident
 
 Avoid.
 
@@ -2616,31 +2618,31 @@ Add targeted safe evidence.
 
 ---
 
-## Create Dozens of Low-Value Action Items
+### Create Dozens of Low-Value Action Items
 
 Avoid.
 
 ---
 
-## Permanent Retention of Raw Incident Evidence by Default
+### Permanent Retention of Raw Incident Evidence by Default
 
 Avoid.
 
 ---
 
-## AI Hypothesis Treated as Confirmed Cause
+### AI Hypothesis Treated as Confirmed Cause
 
 Prohibited.
 
 ---
 
-## Break-Glass Used Because Normal Workflow Is Slower
+### Break-Glass Used Because Normal Workflow Is Slower
 
 Prohibited.
 
 ---
 
-# Initial Incident Response Policy
+## Initial Incident Response Policy
 
 Until stack-specific incident tooling and organization-specific procedures exist, Orion adopts the following requirements:
 
@@ -2667,7 +2669,7 @@ Until stack-specific incident tooling and organization-specific procedures exist
 
 ---
 
-# Future Implementation Decisions
+## Future Implementation Decisions
 
 The following decisions are intentionally deferred:
 
@@ -2692,7 +2694,7 @@ Significant choices should be captured through ADRs where architectural.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should be complemented by:
 
@@ -2705,7 +2707,7 @@ Concrete operational procedures should live in runbooks rather than expanding th
 
 ---
 
-# Summary
+## Summary
 
 Incident response exists to reduce harm, restore safe operation, and improve the system.
 

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    "schedule:weekly",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "automerge": false,
+  "major": {
+    "dependencyDashboardApproval": true
+  },
+  "packageRules": [
+    {
+      "groupName": "TypeScript and lint tooling",
+      "matchPackageNames": [
+        "@eslint/js",
+        "eslint",
+        "typescript",
+        "typescript-eslint"
+      ],
+      "matchUpdateTypes": ["minor", "patch"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "automerge": false
+  }
+}

@@ -5,6 +5,8 @@
 **Related alerts:**
 **Required access:**
 
+See [authoring policy](authoring.md), [production access](../security/production-access.md), [incident response](../security/incident-response.md), and [telemetry redaction](../security/telemetry-redaction.md). The procedure must reflect current operational reality and verified commands.
+
 ## Purpose
 
 Describe the operational condition or task this runbook handles.

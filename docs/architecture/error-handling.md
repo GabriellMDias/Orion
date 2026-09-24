@@ -1,5 +1,19 @@
 # Error Handling
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md), [ADR-0010](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Error Categories](#error-categories)
+- [Expected vs Unexpected Failures](#expected-vs-unexpected-failures)
+- [Error Contract](#error-contract)
+- [Correlation Identifiers](#correlation-identifiers)
+- [Testing Errors](#testing-errors)
+
+Related policy: [error contract](../api/error-contract.md), [error reporting](../reliability/error-reporting.md).
+
 ## Purpose
 
 This document defines the error-handling principles and error model used by Orion.
@@ -51,13 +65,13 @@ These concerns are related but are not the same.
 
 ---
 
-# Error Categories
+## Error Categories
 
 Orion distinguishes several high-level categories of failure.
 
 ---
 
-## Validation Errors
+### Validation Errors
 
 Validation errors occur when provided input does not satisfy the expected structure or constraints.
 
@@ -97,7 +111,7 @@ Stable machine-readable codes should remain independent of localization.
 
 ---
 
-## Domain Errors
+### Domain Errors
 
 Domain errors represent valid requests that cannot be completed because of business rules or domain state.
 
@@ -131,7 +145,7 @@ when the actual meaning is a business rule.
 
 ---
 
-## Authentication Errors
+### Authentication Errors
 
 Authentication errors occur when the system cannot establish a valid identity.
 
@@ -151,7 +165,7 @@ For example, authentication flows should avoid exposing whether a particular cre
 
 ---
 
-## Authorization Errors
+### Authorization Errors
 
 Authorization errors occur when an authenticated actor is not permitted to perform an operation.
 
@@ -172,7 +186,7 @@ Authorization failures should avoid exposing protected resource information unne
 
 ---
 
-## Not Found Errors
+### Not Found Errors
 
 A not-found error occurs when a requested resource cannot be resolved.
 
@@ -190,7 +204,7 @@ For sensitive resources, the system may intentionally avoid revealing whether th
 
 ---
 
-## Conflict Errors
+### Conflict Errors
 
 Conflict errors occur when an operation cannot proceed because of current system state.
 
@@ -209,7 +223,7 @@ Conflict errors should expose semantic meaning rather than raw persistence excep
 
 ---
 
-## Rate Limit Errors
+### Rate Limit Errors
 
 Rate-limit errors occur when an actor, client, or integration exceeds an allowed usage threshold.
 
@@ -226,7 +240,7 @@ Do not expose internal anti-abuse strategy details unnecessarily.
 
 ---
 
-## External Dependency Errors
+### External Dependency Errors
 
 External dependency errors occur when Orion depends on another system that cannot complete an operation.
 
@@ -260,7 +274,7 @@ or equivalent provider-specific implementation details to external consumers.
 
 ---
 
-## Infrastructure Errors
+### Infrastructure Errors
 
 Infrastructure errors originate from technical dependencies such as:
 
@@ -280,7 +294,7 @@ They should be translated into stable application semantics where appropriate an
 
 ---
 
-## Unexpected Internal Errors
+### Unexpected Internal Errors
 
 Unexpected internal errors represent failures that the application did not intentionally model as part of normal behavior.
 
@@ -319,7 +333,7 @@ The internal telemetry should contain substantially more diagnostic context.
 
 ---
 
-# Expected vs Unexpected Failures
+## Expected vs Unexpected Failures
 
 One of the most important distinctions in Orion is:
 
@@ -363,7 +377,7 @@ Unexpected failures should normally produce diagnostic telemetry and error track
 
 ---
 
-# Error Contract
+## Error Contract
 
 Cross-application errors should use a consistent conceptual structure.
 
@@ -405,7 +419,7 @@ The exact serialized schema will be defined when API contracts are introduced.
 
 ---
 
-# Error Codes
+## Error Codes
 
 Error codes are stable machine-readable identifiers.
 
@@ -435,7 +449,7 @@ Error codes should be:
 
 ---
 
-## Error Code Naming
+### Error Code Naming
 
 Error codes should normally use uppercase machine-readable names.
 
@@ -469,7 +483,7 @@ Implementation-specific codes may still be recorded internally.
 
 ---
 
-# Error Messages
+## Error Messages
 
 Error messages are intended for humans.
 
@@ -487,7 +501,7 @@ Messages may evolve independently.
 
 ---
 
-## User-Facing Messages
+### User-Facing Messages
 
 User-facing error messages should:
 
@@ -512,7 +526,7 @@ PaymentGatewayTimeoutException after 30000 ms.
 
 ---
 
-## Localization
+### Localization
 
 Repository code and canonical error codes remain in English.
 
@@ -538,7 +552,7 @@ The localization strategy will be defined separately.
 
 ---
 
-# Error Details
+## Error Details
 
 Errors may include structured details when consumers can act on them safely.
 
@@ -570,7 +584,7 @@ A loosely defined error payload becomes difficult to validate, document, and evo
 
 ---
 
-# Correlation Identifiers
+## Correlation Identifiers
 
 Errors should preserve identifiers that allow the observed failure to be connected with telemetry.
 
@@ -588,7 +602,7 @@ These identifiers have different responsibilities.
 
 ---
 
-## Request ID
+### Request ID
 
 A request ID identifies an individual request or operation at an application boundary.
 
@@ -609,7 +623,7 @@ A request ID is not necessarily equivalent to a distributed trace ID.
 
 ---
 
-## Trace ID
+### Trace ID
 
 A trace ID identifies a distributed execution trace.
 
@@ -639,7 +653,7 @@ Trace identifiers should be propagated where supported by the observability arch
 
 ---
 
-## Error ID
+### Error ID
 
 An error ID identifies a particular reported error occurrence or error-reporting event.
 
@@ -658,7 +672,7 @@ The user can provide this reference without seeing internal implementation detai
 
 ---
 
-# Internal Error Representation
+## Internal Error Representation
 
 Internal error objects may contain more information than public error contracts.
 
@@ -686,7 +700,7 @@ More context does not mean unrestricted data capture.
 
 ---
 
-# Error Causes
+## Error Causes
 
 When one error is translated into another, the original cause should be preserved internally when the language or runtime supports it.
 
@@ -717,7 +731,7 @@ This preserves diagnosability without leaking implementation details.
 
 ---
 
-# Error Translation
+## Error Translation
 
 Errors should be translated at architectural boundaries.
 
@@ -739,7 +753,7 @@ Do not expose raw lower-level exceptions across unrelated layers.
 
 ---
 
-# Persistence Error Translation
+## Persistence Error Translation
 
 Database failures should not normally become public database errors.
 
@@ -777,7 +791,7 @@ Do not map database errors mechanically without understanding their semantics.
 
 ---
 
-# Provider Error Translation
+## Provider Error Translation
 
 External provider errors should be mapped into application-level concepts where appropriate.
 
@@ -805,7 +819,7 @@ These failures have different operational meanings even if they originate from t
 
 ---
 
-# Transport Mapping
+## Transport Mapping
 
 Transport layers translate internal error semantics into transport-specific representations.
 
@@ -834,7 +848,7 @@ The exact HTTP mapping will be defined in API documentation.
 
 ---
 
-# HTTP Status Codes
+## HTTP Status Codes
 
 When HTTP is used, status codes should reflect broad protocol semantics.
 
@@ -876,7 +890,7 @@ Multiple different application errors may legitimately share the same HTTP statu
 
 ---
 
-# Error Ownership
+## Error Ownership
 
 Every stable error code should have an identifiable owner.
 
@@ -901,7 +915,7 @@ Avoid creating global error-code namespaces containing unrelated concepts withou
 
 ---
 
-# Domain Error Granularity
+## Domain Error Granularity
 
 Error codes should be specific enough to support meaningful behavior.
 
@@ -921,7 +935,7 @@ Error granularity should correspond to meaningful consumer behavior.
 
 ---
 
-# Public vs Internal Error Codes
+## Public vs Internal Error Codes
 
 Some error codes are public contracts.
 
@@ -946,7 +960,7 @@ Whether an internal classification becomes public should depend on whether consu
 
 ---
 
-# Retryability
+## Retryability
 
 Retry behavior should be explicit when it matters.
 
@@ -982,7 +996,7 @@ Idempotency must be considered.
 
 ---
 
-# Error Severity
+## Error Severity
 
 Operational severity is different from user-facing error type.
 
@@ -1012,7 +1026,7 @@ It should not automatically create an incident-level alert.
 
 ---
 
-# Logging Errors
+## Logging Errors
 
 Errors must not be logged redundantly at every layer.
 
@@ -1036,7 +1050,7 @@ The final logging architecture will define exact ownership.
 
 ---
 
-# Log Context
+## Log Context
 
 Useful error context may include:
 
@@ -1061,7 +1075,7 @@ Avoid embedding all context into a single human-readable message.
 
 ---
 
-# Sensitive Information
+## Sensitive Information
 
 Errors and telemetry must never intentionally expose or record prohibited sensitive information.
 
@@ -1091,7 +1105,7 @@ breadcrumbs
 
 ---
 
-# Personal Data
+## Personal Data
 
 Personal information must not be attached to errors by default merely because it may be useful for debugging.
 
@@ -1117,7 +1131,7 @@ depending on the investigation requirement and privacy policy.
 
 ---
 
-# Stack Traces
+## Stack Traces
 
 Stack traces are internal diagnostic information.
 
@@ -1129,7 +1143,7 @@ Development environments may expose additional detail when safe and explicitly c
 
 ---
 
-# Development vs Production Errors
+## Development vs Production Errors
 
 Development environments may provide richer diagnostic output.
 
@@ -1153,7 +1167,7 @@ Environment differences must not cause fundamentally different business behavior
 
 ---
 
-# Unhandled Exceptions
+## Unhandled Exceptions
 
 Every executable application should have a final unhandled-error boundary appropriate to its runtime.
 
@@ -1180,7 +1194,7 @@ It is not a substitute for handling expected failures explicitly.
 
 ---
 
-# Process-Level Failures
+## Process-Level Failures
 
 Some failures may leave process state unreliable.
 
@@ -1199,7 +1213,7 @@ The exact policy depends on runtime architecture and will be documented where re
 
 ---
 
-# Initialization Errors
+## Initialization Errors
 
 Applications should fail early when required initialization cannot complete safely.
 
@@ -1217,7 +1231,7 @@ Avoid starting an application in a partially functional state unless degraded op
 
 ---
 
-# Background Job Errors
+## Background Job Errors
 
 Background jobs require explicit error semantics.
 
@@ -1247,7 +1261,7 @@ Repeated failures should become operationally visible.
 
 ---
 
-# Event Consumer Errors
+## Event Consumer Errors
 
 Event and message consumers must distinguish between:
 
@@ -1265,7 +1279,7 @@ Poison-message behavior should be deliberate.
 
 ---
 
-# UI Error Handling
+## UI Error Handling
 
 Client applications should not present raw backend errors directly to users.
 
@@ -1301,7 +1315,7 @@ The same backend error may be presented differently across web, mobile, and desk
 
 ---
 
-# Expected UI Errors
+## Expected UI Errors
 
 Expected user-correctable failures should usually be handled locally.
 
@@ -1319,7 +1333,7 @@ These should not necessarily trigger global application error experiences.
 
 ---
 
-# Unexpected UI Errors
+## Unexpected UI Errors
 
 Unexpected client failures should be captured through client-side error reporting.
 
@@ -1337,7 +1351,7 @@ Client observability should include release information and sufficient context t
 
 ---
 
-# User Error References
+## User Error References
 
 Unexpected failures may expose a safe reference identifier to the user.
 
@@ -1356,7 +1370,7 @@ The reference must not encode sensitive information.
 
 ---
 
-# Supportability
+## Supportability
 
 A production error should ideally be diagnosable from:
 
@@ -1374,7 +1388,7 @@ The system should not depend exclusively on screenshots of error messages for di
 
 ---
 
-# Error Tracking
+## Error Tracking
 
 Unexpected failures should eventually integrate with a centralized error-tracking mechanism.
 
@@ -1398,7 +1412,7 @@ Provider selection will be documented separately.
 
 ---
 
-# Source Maps and Symbolication
+## Source Maps and Symbolication
 
 Applications that transform or compile production code should preserve the ability to map production failures back to meaningful source locations.
 
@@ -1416,7 +1430,7 @@ They should not necessarily be publicly accessible.
 
 ---
 
-# Error Reporting and Releases
+## Error Reporting and Releases
 
 Error telemetry should identify the application release where practical.
 
@@ -1434,7 +1448,7 @@ Release identity should follow repository release conventions once defined.
 
 ---
 
-# Error Metrics
+## Error Metrics
 
 Important error classes may contribute to operational metrics.
 
@@ -1454,7 +1468,7 @@ High-cardinality values such as arbitrary error messages or full identifiers mus
 
 ---
 
-# Alerting
+## Alerting
 
 Not every error occurrence should produce an alert.
 
@@ -1474,7 +1488,7 @@ Expected user errors should not generate alert fatigue.
 
 ---
 
-# Error Budgets and Reliability
+## Error Budgets and Reliability
 
 As Orion matures, error rates may become part of formal reliability objectives.
 
@@ -1494,7 +1508,7 @@ They are not required merely because the architecture supports observability.
 
 ---
 
-# Errors and Transactions
+## Errors and Transactions
 
 Errors that occur during transactional operations must preserve data integrity.
 
@@ -1514,7 +1528,7 @@ Exception handling must not accidentally swallow failures that should abort a tr
 
 ---
 
-# Errors and Side Effects
+## Errors and Side Effects
 
 When an operation performs multiple side effects, failure semantics must be explicit.
 
@@ -1532,7 +1546,7 @@ The system must not claim success when externally meaningful required side effec
 
 ---
 
-# Partial Failures
+## Partial Failures
 
 Distributed operations may fail partially.
 
@@ -1551,7 +1565,7 @@ Partial failure policy must be explicit for important workflows.
 
 ---
 
-# Compensation
+## Compensation
 
 Some failures cannot be resolved through rollback.
 
@@ -1570,7 +1584,7 @@ Compensation logic should represent domain behavior rather than generic exceptio
 
 ---
 
-# Error Handling Must Not Hide Bugs
+## Error Handling Must Not Hide Bugs
 
 Avoid patterns such as:
 
@@ -1601,7 +1615,7 @@ Otherwise, allow the error to propagate to the appropriate owner.
 
 ---
 
-# Avoid Catch-All Business Logic
+## Avoid Catch-All Business Logic
 
 Do not convert every error into a generic expected error.
 
@@ -1627,7 +1641,7 @@ Error translation must preserve semantics.
 
 ---
 
-# Error Enrichment
+## Error Enrichment
 
 A boundary may add useful context without changing error identity.
 
@@ -1647,7 +1661,7 @@ The exact implementation depends on language and runtime.
 
 ---
 
-# Assertions and Invariants
+## Assertions and Invariants
 
 Assertions may be used to detect states that should be impossible.
 
@@ -1671,7 +1685,7 @@ may justify an invariant assertion.
 
 ---
 
-# Public Error Compatibility
+## Public Error Compatibility
 
 Once a public error code is consumed externally, it becomes part of the compatibility surface.
 
@@ -1690,7 +1704,7 @@ If behavior changes, compatibility impact must be evaluated.
 
 ---
 
-# Error Code Reuse
+## Error Code Reuse
 
 An existing error code should not be reused for a different semantic condition merely because the user-facing message is similar.
 
@@ -1712,7 +1726,7 @@ Those conditions require different consumer behavior.
 
 ---
 
-# Error Documentation
+## Error Documentation
 
 Stable public errors should eventually be documented automatically where possible.
 
@@ -1733,7 +1747,7 @@ Authored documentation may explain complex semantics that cannot be derived auto
 
 ---
 
-# Testing Errors
+## Testing Errors
 
 Important error behavior requires tests.
 
@@ -1754,7 +1768,7 @@ Unexpected error handling should also be tested at important application boundar
 
 ---
 
-# Regression Tests
+## Regression Tests
 
 When a production bug involves incorrect error handling, the fix should include a regression test whenever practical.
 
@@ -1774,7 +1788,7 @@ The regression test should protect the intended behavior.
 
 ---
 
-# Observability Tests
+## Observability Tests
 
 Critical telemetry behavior may require tests.
 
@@ -1792,13 +1806,13 @@ Observability is part of production behavior and may require verification.
 
 ---
 
-# Error Handling Anti-Patterns
+## Error Handling Anti-Patterns
 
 The following patterns should be avoided.
 
 ---
 
-## String-Based Error Logic
+### String-Based Error Logic
 
 Avoid:
 
@@ -1810,43 +1824,43 @@ Prefer typed or coded errors.
 
 ---
 
-## Raw Provider Errors
+### Raw Provider Errors
 
 Avoid returning provider exceptions directly to consumers.
 
 ---
 
-## Raw Database Errors
+### Raw Database Errors
 
 Avoid exposing database error messages or codes as the public API contract.
 
 ---
 
-## Silent Catching
+### Silent Catching
 
 Avoid catching an error without intentionally handling, translating, or reporting it.
 
 ---
 
-## Duplicate Reporting
+### Duplicate Reporting
 
 Avoid reporting the same error independently at every architectural layer.
 
 ---
 
-## Generic Success After Failure
+### Generic Success After Failure
 
 Avoid returning successful responses after required side effects failed.
 
 ---
 
-## User Messages as Contracts
+### User Messages as Contracts
 
 Avoid making clients depend on human-readable message text.
 
 ---
 
-## Sensitive Diagnostic Responses
+### Sensitive Diagnostic Responses
 
 Avoid returning:
 
@@ -1863,7 +1877,7 @@ to untrusted clients.
 
 ---
 
-## Excessively Generic Errors
+### Excessively Generic Errors
 
 Avoid collapsing all expected behavior into:
 
@@ -1875,7 +1889,7 @@ when meaningful consumer distinctions exist.
 
 ---
 
-## Excessively Specific Public Errors
+### Excessively Specific Public Errors
 
 Avoid exposing every technical failure as a permanent public error code.
 
@@ -1883,7 +1897,7 @@ Public error semantics should correspond to meaningful consumer behavior.
 
 ---
 
-# Responsibility by Layer
+## Responsibility by Layer
 
 A conceptual responsibility model is:
 
@@ -1913,7 +1927,7 @@ The important principle is that each layer should expose errors appropriate to i
 
 ---
 
-# Example: Order Cancellation
+## Example: Order Cancellation
 
 Consider:
 
@@ -1955,7 +1969,7 @@ No infrastructure details are exposed.
 
 ---
 
-# Example: Duplicate Email
+## Example: Duplicate Email
 
 Database behavior:
 
@@ -1985,7 +1999,7 @@ The client does not need to know that uniqueness is enforced through a database 
 
 ---
 
-# Example: Database Outage
+## Example: Database Outage
 
 Database driver:
 
@@ -2027,7 +2041,7 @@ Operational alerting may trigger if the failure rate becomes significant.
 
 ---
 
-# Example: Payment Provider Timeout
+## Example: Payment Provider Timeout
 
 Provider:
 
@@ -2059,7 +2073,7 @@ The system must not assume failure means the provider performed no side effect.
 
 ---
 
-# Example: Unauthorized Access
+## Example: Unauthorized Access
 
 Client requests:
 
@@ -2090,7 +2104,7 @@ The response should not expose sensitive administrative implementation details.
 
 ---
 
-# Example: Unknown Resource
+## Example: Unknown Resource
 
 For a normal public resource:
 
@@ -2106,7 +2120,7 @@ Security policy determines the behavior.
 
 ---
 
-# Error Handling and AI Agents
+## Error Handling and AI Agents
 
 The error model should make system behavior understandable to AI agents.
 
@@ -2132,7 +2146,7 @@ This allows AI-assisted investigation to operate from evidence rather than specu
 
 ---
 
-# Actionable Development Errors
+## Actionable Development Errors
 
 Development-time failures should provide guidance when possible.
 
@@ -2154,7 +2168,7 @@ Tooling errors are part of developer experience.
 
 ---
 
-# Canonical Error Registry
+## Canonical Error Registry
 
 As Orion evolves, stable cross-boundary error codes should have a canonical machine-readable registry.
 
@@ -2187,7 +2201,7 @@ The registry should become the canonical source for generated error documentatio
 
 ---
 
-# Future Mechanical Enforcement
+## Future Mechanical Enforcement
 
 Potential future validation includes:
 
@@ -2213,7 +2227,7 @@ These rules should become automated when practical.
 
 ---
 
-# Initial Error Model
+## Initial Error Model
 
 Until stack-specific implementation is defined, Orion adopts the following foundational rules:
 
@@ -2235,25 +2249,23 @@ Until stack-specific implementation is defined, Orion adopts the following found
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 As the architecture evolves, this document may be complemented by:
 
-```text
-docs/api/error-contract.md
-docs/reliability/logging.md
-docs/reliability/tracing.md
-docs/reliability/error-reporting.md
-docs/reliability/alerting.md
-docs/security/data-classification.md
-docs/security/telemetry-redaction.md
-```
+- [docs/api/error-contract.md](../api/error-contract.md)
+- [docs/reliability/logging.md](../reliability/logging.md)
+- [docs/reliability/tracing.md](../reliability/tracing.md)
+- [docs/reliability/error-reporting.md](../reliability/error-reporting.md)
+- [docs/reliability/alerting.md](../reliability/alerting.md)
+- [docs/security/data-classification.md](../security/data-classification.md)
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md)
 
 These documents should define implementation-specific policies without duplicating the architectural principles established here.
 
 ---
 
-# Summary
+## Summary
 
 Errors are part of application architecture.
 

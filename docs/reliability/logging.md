@@ -1,5 +1,19 @@
 # Logging
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0004](../adr/0004-select-fastify-as-the-backend-http-framework.md), [ADR-0010](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Structured Logging](#structured-logging)
+- [Field Naming](#field-naming)
+- [Correlation Identifiers](#correlation-identifiers)
+- [Redaction Tests](#redaction-tests)
+- [New Log Event Checklist](#new-log-event-checklist)
+
+Related policy: [telemetry redaction](../security/telemetry-redaction.md), [data retention](../security/data-retention.md).
+
 ## Purpose
 
 This document defines the logging principles used by Orion.
@@ -21,7 +35,7 @@ Logs are operational evidence.
 
 They should help answer:
 
-```text id="v8i30n"
+```text
 What happened?
 
 Where did it happen?
@@ -39,15 +53,15 @@ Logs must not become uncontrolled dumps of application state.
 
 This document is technology-agnostic.
 
-Specific logging libraries, transport formats, collectors, storage providers, and retention systems will be selected later through explicit architectural decisions.
+ADR-0010 selects Pino, production JSON output, and correlation fields. Collection/storage providers and retention remain deployment-specific; logging infrastructure is not implemented.
 
 This document complements:
 
-- `docs/reliability/observability.md`;
-- `docs/security/telemetry-redaction.md`;
-- `docs/security/data-classification.md`;
-- `docs/architecture/error-handling.md`;
-- `docs/api/error-contract.md`.
+- [docs/reliability/observability.md](observability.md);
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md);
+- [docs/security/data-classification.md](../security/data-classification.md);
+- [docs/architecture/error-handling.md](../architecture/error-handling.md);
+- [docs/api/error-contract.md](../api/error-contract.md).
 
 ---
 
@@ -57,7 +71,7 @@ Logs should record meaningful operational events as structured data.
 
 The desired model is:
 
-```text id="9m0u9f"
+```text
 runtime event
     ↓
 semantic log event
@@ -71,25 +85,25 @@ search / correlation / investigation
 
 Prefer:
 
-```text id="x25egx"
+```text
 event + context
 ```
 
 over:
 
-```text id="hjwhp1"
+```text
 arbitrary text dump
 ```
 
 ---
 
-# Logs Are Evidence
+## Logs Are Evidence
 
 Logs exist to support investigation.
 
 They are not:
 
-```text id="fawj7w"
+```text
 business database
 audit ledger
 analytics warehouse
@@ -102,28 +116,28 @@ A log event should have a clear operational purpose.
 
 ---
 
-# Structured Logging
+## Structured Logging
 
 Production logs should be structured.
 
 Conceptually:
 
-```json id="32qx3n"
+```json
 {
   "level": "info",
   "event": "order.cancelled",
-  "requestId": "req_...",
-  "traceId": "trace_...",
+  "request_id": "req_...",
+  "trace_id": "trace_...",
   "orderId": "ord_...",
   "durationMs": 24
 }
 ```
 
-The exact serialization format is deferred.
+Production-oriented Pino logs use structured JSON under ADR-0010; local development may use pretty output.
 
 Structured logs enable:
 
-```text id="m6zgnr"
+```text
 search
 filtering
 aggregation
@@ -135,13 +149,13 @@ without parsing arbitrary sentence formats.
 
 ---
 
-# Human-Readable Messages
+## Human-Readable Messages
 
 Structured logs may include a concise human-readable message.
 
 Example:
 
-```text id="8kdsa6"
+```text
 message: "Order cancellation completed."
 ```
 
@@ -151,13 +165,13 @@ Operational queries should rely primarily on stable structured fields.
 
 ---
 
-# Event Name
+## Event Name
 
 Important log entries should use a stable semantic event name.
 
 Examples:
 
-```text id="m5d5od"
+```text
 http.request.completed
 order.cancelled
 payment.provider.failed
@@ -169,19 +183,19 @@ Event names should describe what happened.
 
 ---
 
-# Event Naming
+## Event Naming
 
 Event names should follow one consistent convention.
 
 A conceptual format is:
 
-```text id="h44z6k"
+```text
 <area>.<subject>.<event>
 ```
 
 Examples:
 
-```text id="71bqyz"
+```text
 auth.session.revoked
 orders.cancellation.failed
 worker.job.completed
@@ -193,19 +207,19 @@ Consistency matters more than the specific separator.
 
 ---
 
-# Event Names Are Semantic
+## Event Names Are Semantic
 
 Avoid event names tied to implementation details.
 
 Bad:
 
-```text id="uk4lyj"
+```text
 OrderServiceMethod3Finished
 ```
 
 Better:
 
-```text id="2x4pdw"
+```text
 order.cancelled
 ```
 
@@ -213,7 +227,7 @@ The event should survive ordinary refactoring.
 
 ---
 
-# Stable Event Names
+## Stable Event Names
 
 If dashboards, alerts, searches, or runbooks depend on an event name, changing it becomes an operational compatibility concern.
 
@@ -221,13 +235,13 @@ Do not rename established event names casually.
 
 ---
 
-# Log Fields
+## Log Fields
 
 Log fields should carry structured context.
 
 Potential common fields include:
 
-```text id="ctoz4u"
+```text
 timestamp
 level
 event
@@ -235,9 +249,9 @@ message
 service
 environment
 release
-requestId
-traceId
-spanId
+request_id
+trace_id
+span_id
 errorId
 actorId
 tenantId
@@ -250,13 +264,13 @@ Not every field belongs on every event.
 
 ---
 
-# Field Naming
+## Field Naming
 
 Field names should be consistent across applications.
 
 Avoid:
 
-```text id="l2zy0t"
+```text
 request_id
 requestId
 reqId
@@ -265,29 +279,29 @@ request
 
 all representing the same concept.
 
-A canonical field convention should eventually be defined in logging infrastructure.
+ADR-0010 selects `request_id`, `trace_id`, and `span_id`, with `trace_flags` when useful. These are logging/telemetry fields; public API field names remain a separate contract.
 
 ---
 
-# Stable Field Semantics
+## Stable Field Semantics
 
 A field name must preserve one meaning.
 
 For example:
 
-```text id="ezw80r"
+```text
 userId
 ```
 
 should not mean:
 
-```text id="b6d46v"
+```text
 authenticated actor
 ```
 
 in one service and:
 
-```text id="54goes"
+```text
 resource owner
 ```
 
@@ -297,16 +311,16 @@ Use semantically precise names.
 
 ---
 
-# Correlation Identifiers
+## Correlation Identifiers
 
 Logs should use correlation identifiers defined by Orion observability.
 
 Potential identifiers include:
 
-```text id="4jsa7t"
-requestId
-traceId
-spanId
+```text
+request_id
+trace_id
+span_id
 errorId
 jobId
 eventId
@@ -317,13 +331,13 @@ These identifiers help connect evidence across systems.
 
 ---
 
-# Request ID
+## Request ID
 
-`requestId` identifies one incoming request boundary.
+`request_id` identifies one incoming request boundary.
 
 It can correlate:
 
-```text id="soi1df"
+```text
 request start
 application operation
 dependency call
@@ -335,9 +349,9 @@ where tracing is unavailable or supplementary.
 
 ---
 
-# Trace ID
+## Trace ID
 
-`traceId` identifies a distributed trace.
+`trace_id` identifies a distributed trace.
 
 Logs emitted inside traced operations should include it automatically where practical.
 
@@ -345,15 +359,15 @@ Do not require developers to manually pass trace IDs through every function.
 
 ---
 
-# Span ID
+## Span ID
 
-`spanId` may identify the active trace span.
+`span_id` may identify the active trace span.
 
 It is useful for precise correlation but may not be necessary in every log storage system.
 
 ---
 
-# Error ID
+## Error ID
 
 Unexpected errors may have an `errorId` linking logs with centralized error-reporting records.
 
@@ -361,13 +375,13 @@ The identifier must remain opaque and safe.
 
 ---
 
-# Job ID
+## Job ID
 
 Background work should include a stable job identifier when available.
 
 This helps correlate:
 
-```text id="0hl8fa"
+```text
 claim
 attempt
 retry
@@ -377,7 +391,7 @@ failure
 
 ---
 
-# Event ID
+## Event ID
 
 Asynchronous event processing may include a stable event or message identifier.
 
@@ -385,13 +399,13 @@ This is useful for diagnosing duplicate delivery and processing.
 
 ---
 
-# Release Metadata
+## Release Metadata
 
 Logs should make it possible to determine which deployed release produced an event.
 
 Useful metadata may include:
 
-```text id="z8qr5c"
+```text
 service
 release
 deployment
@@ -402,13 +416,13 @@ Exact fields depend on deployment architecture.
 
 ---
 
-# Environment
+## Environment
 
 Logs should identify the environment.
 
 Examples may include:
 
-```text id="nnpbxu"
+```text
 development
 test
 staging
@@ -419,13 +433,13 @@ Environment names must not become arbitrary business behavior switches.
 
 ---
 
-# Service or Application Name
+## Service or Application Name
 
 Every log event should be attributable to a producing runtime.
 
 Potential examples:
 
-```text id="jjnl5l"
+```text
 api
 worker
 web-server
@@ -435,13 +449,13 @@ The exact service naming convention will depend on actual applications.
 
 ---
 
-# Operation
+## Operation
 
 Where useful, logs should identify the semantic operation.
 
 Examples:
 
-```text id="0zid9y"
+```text
 orders.cancel
 users.register
 reports.generate
@@ -451,13 +465,13 @@ This can correlate logs, traces, errors, and metrics.
 
 ---
 
-# Result
+## Result
 
 A bounded result field may classify operation outcome.
 
 Potential values:
 
-```text id="pp0v19"
+```text
 success
 failure
 denied
@@ -471,11 +485,11 @@ Avoid arbitrary result strings.
 
 ---
 
-# Duration
+## Duration
 
 Operations with meaningful latency may include:
 
-```text id="8fgjtn"
+```text
 durationMs
 ```
 
@@ -485,14 +499,14 @@ Units must be explicit in field names or schema.
 
 ---
 
-# High-Cardinality Fields
+## High-Cardinality Fields
 
 Logs may contain high-cardinality identifiers when operationally useful.
 
 Unlike metric labels, logs are naturally suited to identifiers such as:
 
-```text id="z91pkf"
-requestId
+```text
+request_id
 orderId
 jobId
 ```
@@ -501,13 +515,13 @@ Data classification still applies.
 
 ---
 
-# Sensitive Identifiers
+## Sensitive Identifiers
 
 Even identifiers may be sensitive.
 
 For example:
 
-```text id="8lnxk4"
+```text
 email
 phone
 IP address
@@ -520,27 +534,25 @@ Prefer opaque internal identifiers where possible.
 
 ---
 
-# Data Classification Applies to Logs
+## Data Classification Applies to Logs
 
 Logs are data stores.
 
 Every logged value remains subject to:
 
-```text id="zujksf"
-docs/security/data-classification.md
-```
+- [docs/security/data-classification.md](../security/data-classification.md)
 
 Logging a value does not lower its classification.
 
 ---
 
-# Restricted Data
+## Restricted Data
 
 `RESTRICTED` data must never be intentionally logged.
 
 Examples include:
 
-```text id="n5tziu"
+```text
 password
 password hash
 session token
@@ -556,7 +568,7 @@ This prohibition applies across all environments.
 
 ---
 
-# Confidential Data
+## Confidential Data
 
 `CONFIDENTIAL` data should not be logged by default.
 
@@ -566,13 +578,13 @@ Prefer opaque internal identifiers.
 
 ---
 
-# User Content
+## User Content
 
 Free-form user content must not be logged by default.
 
 Examples:
 
-```text id="43h7lg"
+```text
 message body
 document content
 uploaded file content
@@ -583,7 +595,7 @@ User content may contain arbitrary secrets or personal information.
 
 ---
 
-# Request Bodies
+## Request Bodies
 
 Complete request bodies must not be logged by default.
 
@@ -591,7 +603,7 @@ This applies even in development unless a safe explicit diagnostic workflow exis
 
 Request bodies may contain:
 
-```text id="64opxq"
+```text
 credentials
 personal data
 financial data
@@ -600,7 +612,7 @@ user content
 
 ---
 
-# Response Bodies
+## Response Bodies
 
 Complete API responses must not be logged by default.
 
@@ -608,13 +620,13 @@ Responses may contain confidential information even when requests do not.
 
 ---
 
-# Headers
+## Headers
 
 HTTP headers must use an allowlist if logged.
 
 Never log sensitive headers such as:
 
-```text id="yqw1aj"
+```text
 Authorization
 Cookie
 Set-Cookie
@@ -623,13 +635,13 @@ Proxy-Authorization
 
 ---
 
-# Query Strings
+## Query Strings
 
 Complete URLs or query strings should not be logged by default.
 
 Query parameters may contain:
 
-```text id="c5w2if"
+```text
 tokens
 emails
 search terms
@@ -640,17 +652,17 @@ Prefer route templates and explicit safe query metadata.
 
 ---
 
-# Route Templates
+## Route Templates
 
 For HTTP requests, log:
 
-```text id="6h2abf"
+```text
 /orders/{orderId}
 ```
 
 rather than:
 
-```text id="apm2t7"
+```text
 /orders/ord_123
 ```
 
@@ -660,7 +672,7 @@ This also improves aggregation.
 
 ---
 
-# Database Parameters
+## Database Parameters
 
 Raw SQL bind parameters must not be logged by default.
 
@@ -668,7 +680,7 @@ They may contain sensitive values.
 
 Database observability should prefer:
 
-```text id="yq8w61"
+```text
 operation
 table
 normalized statement
@@ -679,7 +691,7 @@ where safe.
 
 ---
 
-# SQL Statements
+## SQL Statements
 
 Even SQL text may reveal schema details or embedded literals.
 
@@ -689,13 +701,13 @@ Raw SQL logging should not be globally enabled in production casually.
 
 ---
 
-# Configuration Logging
+## Configuration Logging
 
 Applications must never log complete configuration objects.
 
 A safe startup summary may include:
 
-```text id="z5fwki"
+```text
 environment
 feature mode
 safe provider selection
@@ -705,7 +717,7 @@ through explicit allowlisted fields.
 
 ---
 
-# Environment Variables
+## Environment Variables
 
 Never dump complete environment variables to logs.
 
@@ -713,13 +725,13 @@ Environment variables frequently contain credentials and infrastructure secrets.
 
 ---
 
-# Exceptions
+## Exceptions
 
 Exception logging requires care.
 
 An exception object may contain:
 
-```text id="pxqbrf"
+```text
 request input
 provider response
 SQL
@@ -732,7 +744,7 @@ Error serialization should use centralized safe handling.
 
 ---
 
-# Stack Traces
+## Stack Traces
 
 Stack traces are appropriate for trusted internal diagnostics of unexpected failures.
 
@@ -742,11 +754,11 @@ They should be captured by the authoritative error-reporting boundary rather tha
 
 ---
 
-# Automatic Object Serialization
+## Automatic Object Serialization
 
 Avoid:
 
-```text id="98jr15"
+```text
 logger.info({ user })
 logger.error({ request })
 logger.debug({ config })
@@ -758,11 +770,11 @@ Prefer explicit safe projections.
 
 ---
 
-# Explicit Projections
+## Explicit Projections
 
 Prefer:
 
-```text id="rhq5rc"
+```text
 logger.info({
     event: "order.cancelled",
     orderId: order.id,
@@ -774,7 +786,7 @@ over logging the complete `order` or `actor`.
 
 ---
 
-# Default-Deny Telemetry
+## Default-Deny Telemetry
 
 When uncertain whether a field is safe to log, omit it.
 
@@ -782,25 +794,23 @@ Telemetry usefulness does not override confidentiality.
 
 ---
 
-# Redaction
+## Redaction
 
 Logging infrastructure should apply centralized redaction as defense in depth.
 
 This policy is defined in:
 
-```text id="ptr45u"
-docs/security/telemetry-redaction.md
-```
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md)
 
 Application code should still avoid creating unsafe events in the first place.
 
 ---
 
-# Redaction Is Not Permission to Log Everything
+## Redaction Is Not Permission to Log Everything
 
 Do not intentionally log complete sensitive payloads because:
 
-```text id="pj9do9"
+```text
 the logger will redact them
 ```
 
@@ -810,13 +820,13 @@ Safe event design comes first.
 
 ---
 
-# Logging Levels
+## Logging Levels
 
 Logging levels should have consistent semantics.
 
 A conceptual set is:
 
-```text id="0nhynm"
+```text
 trace
 debug
 info
@@ -829,13 +839,13 @@ The selected logging framework may use different names.
 
 ---
 
-# Trace Level
+## Trace Level
 
 `trace` is for highly detailed diagnostic information.
 
 It should be:
 
-```text id="mv7vyk"
+```text
 rare
 disabled in normal production operation
 safe even when enabled
@@ -845,13 +855,13 @@ Trace-level logging must still follow data-classification rules.
 
 ---
 
-# Debug Level
+## Debug Level
 
 `debug` is for diagnostic context useful during investigation but too verbose for routine production use.
 
 Examples may include:
 
-```text id="9t2zwx"
+```text
 safe decision path
 cache decision
 bounded internal state category
@@ -861,13 +871,13 @@ Debug logs must not contain secrets.
 
 ---
 
-# Info Level
+## Info Level
 
 `info` represents meaningful normal operational events.
 
 Examples:
 
-```text id="8i7uuv"
+```text
 application started
 deployment activated
 background job completed
@@ -878,13 +888,13 @@ Not every successful function call deserves an `info` log.
 
 ---
 
-# Warn Level
+## Warn Level
 
 `warn` represents unexpected or degraded behavior that does not necessarily mean the operation failed.
 
 Examples:
 
-```text id="h9v6uz"
+```text
 deprecated configuration used
 retry required
 fallback path used
@@ -895,13 +905,13 @@ Warnings should be actionable or meaningful.
 
 ---
 
-# Error Level
+## Error Level
 
 `error` represents failed operations or unexpected conditions requiring investigation.
 
 Examples:
 
-```text id="1kr32z"
+```text
 required dependency failed
 unexpected application error
 job permanently failed
@@ -911,13 +921,13 @@ Expected user mistakes should not automatically use `error`.
 
 ---
 
-# Fatal Level
+## Fatal Level
 
 `fatal` represents failure that prevents the process from continuing safely.
 
 Examples:
 
-```text id="5bdv68"
+```text
 invalid critical startup configuration
 corrupted mandatory runtime state
 ```
@@ -926,7 +936,7 @@ After a fatal event, process termination is generally expected.
 
 ---
 
-# Level Is Not HTTP Status
+## Level Is Not HTTP Status
 
 A `404` response is not automatically a warning.
 
@@ -938,7 +948,7 @@ Log level should reflect operational significance, not transport code mechanical
 
 ---
 
-# Level Is Not Business Importance
+## Level Is Not Business Importance
 
 A large financial transaction succeeding is not necessarily an `error` or `warn`.
 
@@ -946,17 +956,17 @@ Level reflects operational condition, not monetary or business value.
 
 ---
 
-# Avoid Level Inflation
+## Avoid Level Inflation
 
 If everything is:
 
-```text id="5j5mz3"
+```text
 warn
 ```
 
 or:
 
-```text id="7jdo1a"
+```text
 error
 ```
 
@@ -966,13 +976,13 @@ Routine expected conditions should use appropriate lower levels or no log at all
 
 ---
 
-# Expected Failures
+## Expected Failures
 
 Expected failures often do not require individual warning or error logs.
 
 Examples:
 
-```text id="2t4gkc"
+```text
 validation rejected
 login credentials invalid
 authorization denied
@@ -981,7 +991,7 @@ resource not found
 
 They may instead contribute to:
 
-```text id="5fcusv"
+```text
 metrics
 security monitoring
 audit
@@ -991,13 +1001,13 @@ depending on context.
 
 ---
 
-# Unexpected Failures
+## Unexpected Failures
 
 Unexpected failures should reach the authoritative error boundary.
 
 The boundary should:
 
-```text id="0nkz1c"
+```text
 capture error
 attach safe context
 assign correlation/error identifiers
@@ -1008,13 +1018,13 @@ Duplicate logs should be avoided.
 
 ---
 
-# Report Once
+## Report Once
 
 A failure should normally be logged or reported at one authoritative layer.
 
 Avoid:
 
-```text id="fhmfbp"
+```text
 database layer logs
     ↓
 repository logs
@@ -1032,7 +1042,7 @@ This produces noise without new information.
 
 ---
 
-# Add Context Without Duplicate Failure Logging
+## Add Context Without Duplicate Failure Logging
 
 Intermediate layers may enrich errors before rethrowing or translating them.
 
@@ -1040,11 +1050,11 @@ They should not log the same failure merely because they saw it.
 
 ---
 
-# Boundary Logging
+## Boundary Logging
 
 Good logging boundaries include:
 
-```text id="f9qwq5"
+```text
 incoming request completion
 background job completion
 external dependency interaction
@@ -1056,27 +1066,27 @@ Avoid logging every internal method transition.
 
 ---
 
-# Request Logging
+## Request Logging
 
 An API runtime may log request completion.
 
 A useful event may include:
 
-```text id="ocqfeh"
+```text
 event: http.request.completed
 method
 route
 status
 durationMs
-requestId
-traceId
+request_id
+trace_id
 ```
 
 and safe bounded context.
 
 ---
 
-# Request Start Logging
+## Request Start Logging
 
 Logging both request start and request completion doubles volume.
 
@@ -1086,11 +1096,11 @@ Completion logs are usually more useful because they include result and duration
 
 ---
 
-# Successful Request Logging
+## Successful Request Logging
 
 Whether every successful request is logged depends on:
 
-```text id="w2yflx"
+```text
 traffic volume
 cost
 diagnostic needs
@@ -1101,7 +1111,7 @@ High-volume systems may sample or rely more heavily on traces/metrics.
 
 ---
 
-# Failed Request Logging
+## Failed Request Logging
 
 Expected client errors should not produce noisy stack traces.
 
@@ -1109,13 +1119,13 @@ Unexpected request failures should correlate with centralized error reporting.
 
 ---
 
-# Background Job Logging
+## Background Job Logging
 
 Jobs should log meaningful lifecycle transitions.
 
 Potential events:
 
-```text id="1qqv8k"
+```text
 job.started
 job.retry.scheduled
 job.completed
@@ -1124,7 +1134,7 @@ job.failed
 
 Include:
 
-```text id="xni03f"
+```text
 jobId
 jobType
 attempt
@@ -1135,11 +1145,11 @@ where safe.
 
 ---
 
-# Worker Lifecycle
+## Worker Lifecycle
 
 Workers may log:
 
-```text id="bke9sx"
+```text
 worker.started
 worker.stopping
 worker.stopped
@@ -1149,7 +1159,7 @@ Process lifecycle logging helps diagnose deployment and shutdown issues.
 
 ---
 
-# Job Payloads
+## Job Payloads
 
 Do not log complete job payloads.
 
@@ -1157,11 +1167,11 @@ Log safe identifiers and operation metadata.
 
 ---
 
-# Event Consumer Logging
+## Event Consumer Logging
 
 Message consumers may log:
 
-```text id="3lfl3n"
+```text
 eventId
 eventType
 consumer
@@ -1174,7 +1184,7 @@ Avoid logging full event bodies.
 
 ---
 
-# Duplicate Messages
+## Duplicate Messages
 
 Expected duplicate detection should not necessarily produce warnings.
 
@@ -1182,11 +1192,11 @@ If duplicates are normal under at-least-once delivery, treat them as expected op
 
 ---
 
-# Dependency Logging
+## Dependency Logging
 
 Outbound dependency calls may log or trace:
 
-```text id="r54l0w"
+```text
 provider
 operation
 duration
@@ -1198,13 +1208,13 @@ Do not log credentials or full payloads.
 
 ---
 
-# Provider Naming
+## Provider Naming
 
 Provider names may be useful operational dimensions if the set is bounded.
 
 For example:
 
-```text id="npry8r"
+```text
 provider: payment_primary
 ```
 
@@ -1214,7 +1224,7 @@ Internal telemetry may remain provider-aware.
 
 ---
 
-# Dependency Failures
+## Dependency Failures
 
 Dependency errors should be logged at the boundary that owns the integration or captured through tracing/error reporting.
 
@@ -1222,11 +1232,11 @@ Avoid both adapter and caller logging identical failures.
 
 ---
 
-# Database Logging
+## Database Logging
 
 Database telemetry should prioritize:
 
-```text id="39pgcu"
+```text
 duration
 operation type
 safe table/resource context
@@ -1237,11 +1247,11 @@ rather than row content.
 
 ---
 
-# Migration Logging
+## Migration Logging
 
 Migration logs should include:
 
-```text id="rq9o99"
+```text
 migrationId
 release
 start
@@ -1252,19 +1262,17 @@ result
 
 following:
 
-```text id="7a0f7b"
-docs/database/migrations.md
-```
+- [docs/database/migrations.md](../database/migrations.md)
 
 ---
 
-# Startup Logging
+## Startup Logging
 
 Application startup should provide concise safe evidence.
 
 Potential events:
 
-```text id="ajq1w0"
+```text
 application.starting
 application.started
 application.startup_failed
@@ -1272,7 +1280,7 @@ application.startup_failed
 
 Safe metadata may include:
 
-```text id="5l4u86"
+```text
 service
 release
 environment
@@ -1280,11 +1288,11 @@ environment
 
 ---
 
-# Startup Configuration
+## Startup Configuration
 
 Startup logs may indicate:
 
-```text id="pycc0b"
+```text
 configuration valid
 database connectivity initialized
 provider adapter selected
@@ -1294,20 +1302,20 @@ but must not include raw credentials or complete configuration.
 
 ---
 
-# Shutdown Logging
+## Shutdown Logging
 
 Graceful shutdown should be visible.
 
 Potential events:
 
-```text id="rj1zba"
+```text
 application.shutdown_started
 application.shutdown_completed
 ```
 
 This helps diagnose:
 
-```text id="7azjhz"
+```text
 deployment termination
 stuck workers
 incomplete draining
@@ -1315,7 +1323,7 @@ incomplete draining
 
 ---
 
-# Health Check Logging
+## Health Check Logging
 
 Successful health checks should not normally generate one log per request.
 
@@ -1325,7 +1333,7 @@ Failures or state changes may be logged where operationally useful.
 
 ---
 
-# Polling Endpoints
+## Polling Endpoints
 
 Other high-frequency polling endpoints may require reduced or sampled logging.
 
@@ -1333,13 +1341,13 @@ Logging policy should consider signal-to-noise ratio.
 
 ---
 
-# Audit Logs
+## Audit Logs
 
 Audit logs are distinct from diagnostic logs.
 
 Audit logs answer questions such as:
 
-```text id="a7zemh"
+```text
 Who changed this privileged setting?
 
 Who exported this confidential data?
@@ -1351,17 +1359,17 @@ They may have stronger integrity and retention requirements.
 
 ---
 
-# Diagnostic Logs vs Audit Logs
+## Diagnostic Logs vs Audit Logs
 
 Diagnostic log:
 
-```text id="6sw3kf"
+```text
 provider call timed out
 ```
 
 Audit log:
 
-```text id="kfa9oi"
+```text
 administrator granted billing-admin role to user
 ```
 
@@ -1369,7 +1377,7 @@ These should not be treated as the same data stream by default.
 
 ---
 
-# Audit Logs Must Also Be Safe
+## Audit Logs Must Also Be Safe
 
 Audit requirements do not permit secret exposure.
 
@@ -1377,19 +1385,19 @@ Audit records must still follow classification and redaction policy.
 
 ---
 
-# Business Events
+## Business Events
 
 Business/domain events are not diagnostic logs.
 
 For example:
 
-```text id="10knsa"
+```text
 OrderCancelled
 ```
 
 may be a durable business event.
 
-```text id="wlz77x"
+```text
 order.cancelled
 ```
 
@@ -1399,13 +1407,13 @@ Their purpose and guarantees differ.
 
 ---
 
-# Metrics
+## Metrics
 
 Metrics are for numeric aggregation over time.
 
 Examples:
 
-```text id="7h3kmm"
+```text
 request count
 latency distribution
 error count
@@ -1416,17 +1424,17 @@ Do not rely on logs as the only source for important operational metrics when de
 
 ---
 
-# Logs vs Metrics
+## Logs vs Metrics
 
 Logs answer:
 
-```text id="629atf"
+```text
 What happened to this specific operation?
 ```
 
 Metrics answer:
 
-```text id="hoyx76"
+```text
 How often is this happening?
 ```
 
@@ -1436,7 +1444,7 @@ They serve different investigative modes.
 
 ---
 
-# Traces
+## Traces
 
 Traces describe causal execution across boundaries.
 
@@ -1446,11 +1454,11 @@ Avoid duplicating every trace span as a log entry.
 
 ---
 
-# Logs vs Traces
+## Logs vs Traces
 
 Trace:
 
-```text id="2tmwy9"
+```text
 HTTP request
     → database
     → payment provider
@@ -1458,7 +1466,7 @@ HTTP request
 
 Log:
 
-```text id="cxy3bc"
+```text
 payment retry exhausted
 ```
 
@@ -1468,11 +1476,11 @@ Logs provide selected semantic evidence.
 
 ---
 
-# Error Reporting
+## Error Reporting
 
 Centralized error reporting captures unexpected failures with:
 
-```text id="hexe4r"
+```text
 stack trace
 cause chain
 release
@@ -1484,11 +1492,11 @@ This differs from ordinary logs.
 
 ---
 
-# Logs vs Error Reporting
+## Logs vs Error Reporting
 
 Do not rely solely on:
 
-```text id="eqeck7"
+```text
 logger.error(exception)
 ```
 
@@ -1498,7 +1506,7 @@ Likewise, not every error log belongs in the error tracker.
 
 ---
 
-# Logging and Alerting
+## Logging and Alerting
 
 Alerts should not generally be triggered from arbitrary textual log searches when stronger structured metrics or error signals exist.
 
@@ -1506,15 +1514,15 @@ Log-based alerts may be appropriate for specific discrete events.
 
 ---
 
-# Log Searchability
+## Log Searchability
 
 Important operational fields should be indexed or otherwise searchable in the selected logging system where practical.
 
 Typical searches may include:
 
-```text id="z0j27v"
-requestId = ...
-traceId = ...
+```text
+request_id = ...
+trace_id = ...
 errorId = ...
 jobId = ...
 operation = ...
@@ -1522,7 +1530,7 @@ operation = ...
 
 ---
 
-# Cardinality and Cost
+## Cardinality and Cost
 
 Logs have storage and indexing cost.
 
@@ -1532,13 +1540,13 @@ Avoid logging repeated low-value events merely because it is easy.
 
 ---
 
-# Sampling
+## Sampling
 
 High-volume successful events may be sampled.
 
 Sampling should not apply blindly to:
 
-```text id="v5ur67"
+```text
 errors
 security events
 rare failures
@@ -1549,7 +1557,7 @@ where complete visibility may matter.
 
 ---
 
-# Deterministic Sampling
+## Deterministic Sampling
 
 Where sampling is used, deterministic sampling based on trace or request ID may improve correlation across systems.
 
@@ -1557,7 +1565,7 @@ The exact implementation is deferred.
 
 ---
 
-# Dynamic Log Levels
+## Dynamic Log Levels
 
 Runtime log-level changes may be useful during incidents.
 
@@ -1565,7 +1573,7 @@ This capability introduces risk.
 
 Any dynamic mechanism should be:
 
-```text id="3dtp8l"
+```text
 authorized
 auditable where appropriate
 time-limited
@@ -1576,11 +1584,11 @@ It must not enable secret logging.
 
 ---
 
-# Debug Mode
+## Debug Mode
 
 A production debug mode must not:
 
-```text id="fd43gy"
+```text
 disable redaction
 dump request bodies
 dump environment variables
@@ -1591,13 +1599,13 @@ More verbosity does not weaken security policy.
 
 ---
 
-# Emergency Diagnostics
+## Emergency Diagnostics
 
 Incident response may require additional diagnostic telemetry.
 
 Even during incidents:
 
-```text id="7ziiyo"
+```text
 RESTRICTED data must not be intentionally logged
 ```
 
@@ -1605,7 +1613,7 @@ Safe temporary diagnostics should have explicit scope and removal.
 
 ---
 
-# Local Development
+## Local Development
 
 Development logs may be more human-readable.
 
@@ -1615,7 +1623,7 @@ This helps avoid production-only logging defects.
 
 ---
 
-# Production-Like Logging in Tests
+## Production-Like Logging in Tests
 
 Integration tests may validate structured logs and redaction.
 
@@ -1623,7 +1631,7 @@ Test infrastructure should be able to inspect emitted events without depending o
 
 ---
 
-# Test Logging
+## Test Logging
 
 Automated tests should avoid noisy logs during successful execution.
 
@@ -1633,13 +1641,13 @@ Do not make CI output unreadable with routine application logging.
 
 ---
 
-# Redaction Tests
+## Redaction Tests
 
 Logging infrastructure should include tests proving that sensitive values are removed or blocked.
 
 Examples should include:
 
-```text id="u3nkd7"
+```text
 Authorization header
 password
 session token
@@ -1651,11 +1659,11 @@ with synthetic values.
 
 ---
 
-# Semantic Logging Tests
+## Semantic Logging Tests
 
 Important logging behavior may have tests when it protects:
 
-```text id="u2xq9b"
+```text
 correlation
 security
 incident diagnosis
@@ -1666,13 +1674,13 @@ Do not test every ordinary log message.
 
 ---
 
-# Log Schema
+## Log Schema
 
 Orion should eventually define a common structured log schema.
 
 Possible required fields may include:
 
-```text id="ms21yb"
+```text
 timestamp
 level
 event
@@ -1687,7 +1695,7 @@ The exact schema is deferred until logging infrastructure exists.
 
 ---
 
-# Schema Evolution
+## Schema Evolution
 
 Log schema may evolve.
 
@@ -1697,15 +1705,15 @@ Avoid silent field-name changes that break investigations.
 
 ---
 
-# Reserved Fields
+## Reserved Fields
 
 Common platform fields should eventually be reserved.
 
 Applications should not redefine fields such as:
 
-```text id="y5cj6p"
-traceId
-requestId
+```text
+trace_id
+request_id
 level
 service
 event
@@ -1715,7 +1723,7 @@ with different semantics.
 
 ---
 
-# Custom Fields
+## Custom Fields
 
 Domain-specific logs may add custom fields.
 
@@ -1723,13 +1731,13 @@ Names should be explicit and avoid collision with common observability fields.
 
 ---
 
-# Typed Logging
+## Typed Logging
 
 If the selected language supports it effectively, critical event shapes may use typed helpers or schemas.
 
 For example:
 
-```text id="06if61"
+```text
 logOrderCancelled({
     orderId,
     actorId,
@@ -1743,11 +1751,11 @@ Do not create a rigid custom type for every trivial log event unless it provides
 
 ---
 
-# Logging Abstraction
+## Logging Abstraction
 
 Shared logging infrastructure should provide:
 
-```text id="trzayv"
+```text
 structured emission
 context enrichment
 redaction
@@ -1759,7 +1767,7 @@ Domain code should not depend on a specific logging vendor.
 
 ---
 
-# Vendor Isolation
+## Vendor Isolation
 
 Vendor-specific logging APIs should remain near observability infrastructure where practical.
 
@@ -1767,7 +1775,7 @@ Application code should emit Orion semantic logging concepts.
 
 ---
 
-# Logger Injection
+## Logger Injection
 
 A logger may be injected or made available through safe runtime context.
 
@@ -1777,27 +1785,27 @@ Avoid unrestricted global mutable logging context.
 
 ---
 
-# Context Enrichment
+## Context Enrichment
 
 Infrastructure may enrich log events automatically with:
 
-```text id="jx5hc3"
+```text
 service
 environment
 release
-requestId
-traceId
+request_id
+trace_id
 ```
 
 Application code should not manually repeat these fields everywhere.
 
 ---
 
-# Child Loggers
+## Child Loggers
 
 Scoped or child loggers may attach stable context such as:
 
-```text id="nf5vl5"
+```text
 jobId
 operation
 ```
@@ -1808,13 +1816,13 @@ Context must remain safe.
 
 ---
 
-# Context Lifetime
+## Context Lifetime
 
 Context from one request or job must never leak into another.
 
 This is particularly important with:
 
-```text id="z4yp46"
+```text
 async-local storage
 thread-local storage
 worker reuse
@@ -1824,7 +1832,7 @@ Testing should detect context leakage when such mechanisms are used.
 
 ---
 
-# Logging Libraries
+## Logging Libraries
 
 Use mature structured logging infrastructure.
 
@@ -1832,11 +1840,11 @@ Do not build a custom logging system unless a real requirement cannot be satisfi
 
 ---
 
-# Console Logging
+## Console Logging
 
 Direct arbitrary console output such as:
 
-```text id="j4ttfg"
+```text
 console.log(...)
 ```
 
@@ -1846,7 +1854,7 @@ Tooling scripts may have different requirements.
 
 ---
 
-# Standard Output
+## Standard Output
 
 Containerized or cloud runtimes may emit structured logs through standard output.
 
@@ -1854,7 +1862,7 @@ The transport mechanism does not change the semantic logging policy.
 
 ---
 
-# Multi-Line Logs
+## Multi-Line Logs
 
 Structured logs should avoid uncontrolled multi-line output.
 
@@ -1864,13 +1872,13 @@ Multi-line arbitrary strings are difficult to parse and search.
 
 ---
 
-# Logging Collections
+## Logging Collections
 
 Avoid logging entire arrays or collections.
 
 Prefer bounded metadata such as:
 
-```text id="25t026"
+```text
 itemCount: 47
 ```
 
@@ -1878,13 +1886,13 @@ and safe identifiers only when necessary.
 
 ---
 
-# Large Objects
+## Large Objects
 
 Logging systems should enforce reasonable event-size limits.
 
 Oversized events may:
 
-```text id="iugv77"
+```text
 increase cost
 be truncated
 cause exporter failure
@@ -1893,7 +1901,7 @@ expose excessive data
 
 ---
 
-# Truncation
+## Truncation
 
 If strings may be logged, safe length limits should apply.
 
@@ -1903,13 +1911,13 @@ Restricted values should be removed entirely, not truncated.
 
 ---
 
-# Hashing
+## Hashing
 
 Hashing sensitive data is not automatically safe.
 
 A hash of:
 
-```text id="9zo0ot"
+```text
 email
 phone
 small-domain identifier
@@ -1921,31 +1929,31 @@ Use hashing only when the privacy model explicitly permits it.
 
 ---
 
-# Pseudonymous Identifiers
+## Pseudonymous Identifiers
 
 Opaque internal identifiers are generally preferable to personal identifiers for correlation.
 
 For example:
 
-```text id="902axm"
+```text
 userId: usr_...
 ```
 
 may be preferable to:
 
-```text id="cqi28r"
+```text
 email: person@example.com
 ```
 
 ---
 
-# IP Addresses
+## IP Addresses
 
 IP addresses may be personal data.
 
 Logging them should be justified by:
 
-```text id="42ns68"
+```text
 security
 fraud prevention
 operations
@@ -1955,7 +1963,7 @@ and subject to retention and minimization policies.
 
 ---
 
-# User Agent
+## User Agent
 
 User-agent strings may be useful for diagnostics.
 
@@ -1965,7 +1973,7 @@ Collect only when useful.
 
 ---
 
-# Device Information
+## Device Information
 
 Device model, OS, application version, and similar fields may help client diagnostics.
 
@@ -1973,7 +1981,7 @@ They should be bounded and minimized.
 
 ---
 
-# Geographic Data
+## Geographic Data
 
 Precise location data should not be logged by default.
 
@@ -1981,7 +1989,7 @@ If coarse location is operationally required, classification and minimization st
 
 ---
 
-# Logging Business State
+## Logging Business State
 
 Avoid logging business state merely for analytics.
 
@@ -1991,13 +1999,13 @@ Business analytics belongs in dedicated data systems when needed.
 
 ---
 
-# State Transition Logs
+## State Transition Logs
 
 Important lifecycle transitions may justify semantic logs.
 
 Example:
 
-```text id="457t9e"
+```text
 event: order.state_changed
 fromState: pending
 toState: cancelled
@@ -2007,11 +2015,11 @@ only if the event is operationally useful and does not duplicate a canonical aud
 
 ---
 
-# Error Codes in Logs
+## Error Codes in Logs
 
 When an operation fails with a stable application error, logs may include:
 
-```text id="aqavl9"
+```text
 errorCode
 ```
 
@@ -2019,7 +2027,7 @@ This is preferable to using the human-readable error message as a query dimensio
 
 ---
 
-# Provider Error Codes
+## Provider Error Codes
 
 Safe provider reason codes may be captured internally when useful.
 
@@ -2027,14 +2035,14 @@ They should remain distinct from Orion public error codes.
 
 Example:
 
-```text id="czmm3b"
+```text
 providerCode
 errorCode
 ```
 
 ---
 
-# Log Message Stability
+## Log Message Stability
 
 Human-readable log messages are not stable contracts.
 
@@ -2042,7 +2050,7 @@ Dashboards and alerts should depend on structured fields or event names rather t
 
 ---
 
-# Localization
+## Localization
 
 Operational logs should use English.
 
@@ -2050,11 +2058,11 @@ Logs are repository/runtime engineering artifacts, not localized product content
 
 ---
 
-# Logging Ownership
+## Logging Ownership
 
 Cross-cutting logging infrastructure owns:
 
-```text id="zz6jtz"
+```text
 schema
 transport
 redaction
@@ -2064,14 +2072,14 @@ provider integration
 
 Domain/application code owns:
 
-```text id="jf8lpu"
+```text
 which meaningful events should be logged
 which domain-safe fields provide diagnostic value
 ```
 
 ---
 
-# Missing Logs
+## Missing Logs
 
 A production failure that cannot be diagnosed because required context is absent may indicate an observability defect.
 
@@ -2079,13 +2087,13 @@ The solution should be to add targeted evidence, not indiscriminate logging.
 
 ---
 
-# Excessive Logs
+## Excessive Logs
 
 Too much logging is also a defect.
 
 It can cause:
 
-```text id="bdo7ga"
+```text
 higher cost
 slower investigation
 sensitive-data exposure
@@ -2096,13 +2104,13 @@ Logging should optimize signal.
 
 ---
 
-# Logging During Incident Review
+## Logging During Incident Review
 
 When an incident reveals missing evidence, add the smallest reliable telemetry that would make the failure diagnosable next time.
 
 This may be:
 
-```text id="mqclg9"
+```text
 log
 metric
 trace attribute
@@ -2113,29 +2121,29 @@ depending on the question.
 
 ---
 
-# Runbook Integration
+## Runbook Integration
 
 Runbooks may reference known log events or fields.
 
 Example:
 
-```text id="a5jvd3"
+```text
 Search:
 event = payment.provider.failed
-traceId = <trace>
+trace_id = <trace>
 ```
 
 Stable structured fields improve runbook reliability.
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 AI agents should treat logging as a deliberate observability interface.
 
 Before adding a log, an agent should ask:
 
-```text id="8pgtd2"
+```text
 What operational question does this answer?
 
 Is this already observable through a trace, metric, or error report?
@@ -2147,7 +2155,7 @@ Is the event likely to create noise?
 
 ---
 
-# AI and Sensitive Data
+## AI and Sensitive Data
 
 An AI agent must not log complete objects merely for debugging.
 
@@ -2155,11 +2163,11 @@ It should construct an explicit safe projection.
 
 ---
 
-# AI and Error Logging
+## AI and Error Logging
 
 An AI agent should inspect existing error boundaries before adding:
 
-```text id="6uxmat"
+```text
 logger.error(...)
 ```
 
@@ -2167,7 +2175,7 @@ to avoid duplicate reporting.
 
 ---
 
-# AI and Levels
+## AI and Levels
 
 An AI agent should not use `warn` or `error` merely because an operation returned an expected negative outcome.
 
@@ -2175,11 +2183,11 @@ Operational severity must be considered.
 
 ---
 
-# AI and Correlation
+## AI and Correlation
 
 When adding runtime boundaries such as:
 
-```text id="dn84xt"
+```text
 request handler
 worker
 event consumer
@@ -2189,7 +2197,7 @@ an AI agent should ensure safe correlation context is propagated where architect
 
 ---
 
-# AI and Logging Tests
+## AI and Logging Tests
 
 Changes to redaction, correlation, or security-sensitive logging should include tests.
 
@@ -2197,7 +2205,7 @@ Ordinary message wording changes usually do not require dedicated tests.
 
 ---
 
-# AI and Console Statements
+## AI and Console Statements
 
 Once canonical logging exists, AI agents should not introduce ad hoc console statements into runtime application code.
 
@@ -2205,7 +2213,7 @@ Temporary debugging output must not survive completed changes.
 
 ---
 
-# New Log Event Checklist
+## New Log Event Checklist
 
 Before adding a production log event, answer:
 
@@ -2222,7 +2230,7 @@ Before adding a production log event, answer:
 
 ---
 
-# New Log Field Checklist
+## New Log Field Checklist
 
 Before adding a log field, answer:
 
@@ -2239,7 +2247,7 @@ Before adding a log field, answer:
 
 ---
 
-# Error Logging Checklist
+## Error Logging Checklist
 
 Before logging an error, answer:
 
@@ -2255,127 +2263,127 @@ Before logging an error, answer:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Logging Complete Request Bodies
+### Logging Complete Request Bodies
 
 Prohibited by default.
 
 ---
 
-## Logging Complete Response Bodies
+### Logging Complete Response Bodies
 
 Prohibited by default.
 
 ---
 
-## Logging Authorization Headers or Cookies
+### Logging Authorization Headers or Cookies
 
 Prohibited.
 
 ---
 
-## Logging Secrets
+### Logging Secrets
 
 Prohibited.
 
 ---
 
-## Logging Full Configuration
+### Logging Full Configuration
 
 Prohibited.
 
 ---
 
-## Logging Full Environment
+### Logging Full Environment
 
 Prohibited.
 
 ---
 
-## Logging Complete Domain Objects
+### Logging Complete Domain Objects
 
 Avoid.
 
 ---
 
-## Logging Complete ORM Records
+### Logging Complete ORM Records
 
 Avoid.
 
 ---
 
-## Error Logged at Every Layer
+### Error Logged at Every Layer
 
 Avoid.
 
 ---
 
-## Every 4xx Logged as Warning
+### Every 4xx Logged as Warning
 
 Avoid.
 
 ---
 
-## Every Exception Logged as Error Without Classification
+### Every Exception Logged as Error Without Classification
 
 Avoid.
 
 ---
 
-## Alerts Based on Message Text
+### Alerts Based on Message Text
 
 Avoid when structured event fields exist.
 
 ---
 
-## Metrics Derived Only From Text Parsing
+### Metrics Derived Only From Text Parsing
 
 Avoid.
 
 ---
 
-## Business Analytics Implemented Through Diagnostic Logs
+### Business Analytics Implemented Through Diagnostic Logs
 
 Avoid.
 
 ---
 
-## Health-Check Success Logged Per Request
+### Health-Check Success Logged Per Request
 
 Avoid.
 
 ---
 
-## Debug Mode Disables Redaction
+### Debug Mode Disables Redaction
 
 Prohibited.
 
 ---
 
-## Arbitrary Console Logging in Runtime Code
+### Arbitrary Console Logging in Runtime Code
 
 Avoid once canonical logging infrastructure exists.
 
 ---
 
-## Unbounded Objects or Collections in Logs
+### Unbounded Objects or Collections in Logs
 
 Avoid.
 
 ---
 
-## Personal Data Used as Correlation Key
+### Personal Data Used as Correlation Key
 
 Avoid when opaque identifiers exist.
 
 ---
 
-# Initial Logging Policy
+## Initial Logging Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2402,14 +2410,12 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Remaining Implementation Decisions
 
-The following decisions are intentionally deferred:
+The accepted choices are linked above. These remaining details are intentionally deferred:
 
-```text id="b6mt7w"
-logging library
-structured serialization format
-common field names
+```text
+additional common field names beyond ADR-0010 correlation fields
 event naming convention
 log collector
 storage provider
@@ -2426,32 +2432,29 @@ Significant choices should be captured through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should be complemented by:
 
-```text id="9b93ji"
-docs/reliability/tracing.md
-docs/reliability/metrics.md
-docs/reliability/error-reporting.md
-docs/reliability/health-checks.md
-docs/reliability/alerting.md
-
-docs/security/production-access.md
-docs/security/data-retention.md
-```
+- [docs/reliability/tracing.md](tracing.md)
+- [docs/reliability/metrics.md](metrics.md)
+- [docs/reliability/error-reporting.md](error-reporting.md)
+- [docs/reliability/health-checks.md](health-checks.md)
+- [docs/reliability/alerting.md](alerting.md)
+- [docs/security/production-access.md](../security/production-access.md)
+- [docs/security/data-retention.md](../security/data-retention.md)
 
 Provider-specific logging configuration should be documented only after the observability stack is selected.
 
 ---
 
-# Summary
+## Summary
 
 Logs are structured operational evidence.
 
 The intended model is:
 
-```text id="mq6tau"
+```text
 meaningful runtime event
         ↓
 safe semantic fields
@@ -2465,7 +2468,7 @@ investigation
 
 Orion prefers:
 
-```text id="cmmvps"
+```text
 structured events over arbitrary text
 
 stable event names over message parsing

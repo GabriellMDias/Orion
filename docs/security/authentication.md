@@ -1,5 +1,15 @@
 # Authentication
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+## Read for this change
+
+- [Authentication Boundary](#authentication-boundary)
+- [Password Storage](#password-storage)
+- [Sessions](#sessions)
+- [Authentication Integration Tests](#authentication-integration-tests)
+- [New Authentication Mechanism Checklist](#new-authentication-mechanism-checklist)
+
 ## Purpose
 
 This document defines the authentication architecture and security principles used by Orion.
@@ -23,12 +33,12 @@ Specific identity providers, authentication libraries, token formats, session st
 
 This document complements:
 
-- `docs/security/secrets-management.md`;
-- `docs/security/data-classification.md`;
-- `docs/security/telemetry-redaction.md`;
-- `docs/architecture/application-boundaries.md`;
-- `docs/architecture/error-handling.md`;
-- `docs/architecture/configuration.md`.
+- [docs/security/secrets-management.md](secrets-management.md);
+- [docs/security/data-classification.md](data-classification.md);
+- [docs/security/telemetry-redaction.md](telemetry-redaction.md);
+- [docs/architecture/application-boundaries.md](../architecture/application-boundaries.md);
+- [docs/architecture/error-handling.md](../architecture/error-handling.md);
+- [docs/architecture/configuration.md](../architecture/configuration.md).
 
 ---
 
@@ -68,7 +78,7 @@ A client claiming an identity is not equivalent to a trusted backend verifying t
 
 ---
 
-# Actors
+## Actors
 
 An actor is an entity that may perform an operation.
 
@@ -92,7 +102,7 @@ The resulting identity model should remain explicit.
 
 ---
 
-# Human Identities
+## Human Identities
 
 Human identities represent real users.
 
@@ -113,7 +123,7 @@ The mechanism must provide sufficient assurance for the risk of the protected ca
 
 ---
 
-# Machine Identities
+## Machine Identities
 
 Machine-to-machine operations should use machine identities.
 
@@ -133,7 +143,7 @@ Prefer distinct identities with explicit capabilities.
 
 ---
 
-# AI Agent Identity
+## AI Agent Identity
 
 If an AI agent performs operations on behalf of a user or system, the system should preserve the relevant identity relationships.
 
@@ -152,7 +162,7 @@ Delegated actions should remain attributable where practical.
 
 ---
 
-# Principal
+## Principal
 
 A principal is the authenticated identity used by trusted application code.
 
@@ -174,7 +184,7 @@ It must not include arbitrary unverified client claims.
 
 ---
 
-# Authentication Boundary
+## Authentication Boundary
 
 Authentication must occur at a trusted boundary.
 
@@ -202,7 +212,7 @@ The application must not treat externally supplied identity fields as authoritat
 
 ---
 
-# Client Applications Are Untrusted
+## Client Applications Are Untrusted
 
 Web, mobile, and desktop applications should be treated as untrusted clients from the backend perspective.
 
@@ -222,7 +232,7 @@ Identity must derive from verified authentication state.
 
 ---
 
-# Identity Claims
+## Identity Claims
 
 Authentication systems may produce claims.
 
@@ -240,7 +250,7 @@ The source and validation of important claims must be explicit.
 
 ---
 
-# Subject Identifier
+## Subject Identifier
 
 Each authenticated identity should have a stable subject identifier.
 
@@ -265,7 +275,7 @@ according to product requirements.
 
 ---
 
-# Public Identity vs Authentication Identity
+## Public Identity vs Authentication Identity
 
 A user-facing profile identifier may differ from the authentication subject.
 
@@ -283,7 +293,7 @@ Authentication should not depend unnecessarily on mutable presentation fields.
 
 ---
 
-# Email Addresses
+## Email Addresses
 
 An email address may be used as an authentication identifier.
 
@@ -293,7 +303,7 @@ The system should avoid using email addresses as internal identity keys where st
 
 ---
 
-# Authentication Factors
+## Authentication Factors
 
 Authentication factors may include:
 
@@ -311,7 +321,7 @@ It should preserve an architecture capable of supporting stronger authentication
 
 ---
 
-# Password Authentication
+## Password Authentication
 
 If passwords are supported, they must never be stored in plaintext.
 
@@ -331,7 +341,7 @@ The exact password-hashing algorithm and parameters should be selected with the 
 
 ---
 
-# Password Storage
+## Password Storage
 
 Password hashes are classified as `RESTRICTED`.
 
@@ -350,7 +360,7 @@ Access should be limited to authentication infrastructure that requires them.
 
 ---
 
-# Password Comparison
+## Password Comparison
 
 Password verification should be performed only through the approved password-hashing implementation.
 
@@ -358,7 +368,7 @@ Application code should never attempt plaintext comparison.
 
 ---
 
-# Password Reset
+## Password Reset
 
 Password reset is an authentication-sensitive workflow.
 
@@ -378,7 +388,7 @@ They must not appear in telemetry.
 
 ---
 
-# Password Reset Responses
+## Password Reset Responses
 
 Password-reset initiation should avoid unnecessary account enumeration.
 
@@ -388,7 +398,7 @@ Exact behavior depends on product requirements and threat model.
 
 ---
 
-# Password Change
+## Password Change
 
 Sensitive credential changes should require sufficient identity assurance.
 
@@ -405,7 +415,7 @@ The mechanism should match the risk.
 
 ---
 
-# Credential Enumeration
+## Credential Enumeration
 
 Authentication interfaces should avoid revealing whether an account exists when that information provides attackers with unnecessary value.
 
@@ -424,7 +434,7 @@ It should be intentional.
 
 ---
 
-# Rate Limiting
+## Rate Limiting
 
 Authentication endpoints are common abuse targets.
 
@@ -444,7 +454,7 @@ Exact anti-abuse strategy should be defined later if required.
 
 ---
 
-# Brute-Force Protection
+## Brute-Force Protection
 
 Repeated credential failures should become detectable.
 
@@ -462,7 +472,7 @@ Permanent lockout based solely on attacker-controlled attempts may be dangerous.
 
 ---
 
-# Multi-Factor Authentication
+## Multi-Factor Authentication
 
 If MFA is introduced, the system should distinguish:
 
@@ -482,7 +492,7 @@ Authentication assurance should remain explicit where relevant.
 
 ---
 
-# Step-Up Authentication
+## Step-Up Authentication
 
 Sensitive operations may require recent or stronger authentication.
 
@@ -502,7 +512,7 @@ Authorization alone may not be sufficient when the current session is old or low
 
 ---
 
-# Recent Authentication
+## Recent Authentication
 
 Some security-sensitive actions may require proof that authentication occurred recently.
 
@@ -512,7 +522,7 @@ The exact definition of "recent" should be based on risk.
 
 ---
 
-# Passkeys and Passwordless Authentication
+## Passkeys and Passwordless Authentication
 
 Future Orion applications may support passwordless mechanisms such as passkeys.
 
@@ -522,7 +532,7 @@ Authentication code should depend on identity semantics rather than password-spe
 
 ---
 
-# External Identity Providers
+## External Identity Providers
 
 Orion may delegate authentication to external identity providers.
 
@@ -541,7 +551,7 @@ The application must validate provider assertions according to the chosen protoc
 
 ---
 
-# External Claims
+## External Claims
 
 Claims received from an identity provider must not automatically become internal authorization data.
 
@@ -557,7 +567,7 @@ should be mapped deliberately before affecting application permissions.
 
 ---
 
-# Identity Linking
+## Identity Linking
 
 If multiple authentication methods may refer to the same user, identity linking requires careful design.
 
@@ -567,7 +577,7 @@ Incorrect account linking can become an account takeover vulnerability.
 
 ---
 
-# Identity Provider Availability
+## Identity Provider Availability
 
 External identity providers create runtime dependencies.
 
@@ -585,7 +595,7 @@ Where possible, verification should avoid unnecessary synchronous dependency on 
 
 ---
 
-# Sessions
+## Sessions
 
 A session represents authenticated continuity across requests or application interactions.
 
@@ -605,7 +615,7 @@ assurance level
 
 ---
 
-# Session Identifier
+## Session Identifier
 
 Session identifiers are credentials when possession grants access.
 
@@ -622,7 +632,7 @@ redacted from telemetry
 
 ---
 
-# Session Storage
+## Session Storage
 
 Session architecture may be:
 
@@ -646,7 +656,7 @@ operational needs
 
 ---
 
-# Session Expiration
+## Session Expiration
 
 Sessions should have explicit expiration semantics.
 
@@ -665,7 +675,7 @@ Unlimited sessions should not emerge accidentally.
 
 ---
 
-# Session Revocation
+## Session Revocation
 
 Important sessions should be revocable when product requirements demand it.
 
@@ -684,7 +694,7 @@ The architecture must define what revocation means for the chosen session model.
 
 ---
 
-# Global Logout
+## Global Logout
 
 If product requirements include "log out everywhere", the session architecture must support invalidating all relevant sessions.
 
@@ -692,7 +702,7 @@ This requirement should not be assumed possible after choosing a session mechani
 
 ---
 
-# Logout
+## Logout
 
 Logout should invalidate or remove the relevant authentication capability according to the session model.
 
@@ -700,7 +710,7 @@ Deleting a client-side UI state alone is not sufficient when server-side session
 
 ---
 
-# Session Fixation
+## Session Fixation
 
 Authentication workflows must prevent attackers from forcing users to authenticate into attacker-controlled session identities.
 
@@ -708,7 +718,7 @@ Where session identifiers exist before authentication, they may need regeneratio
 
 ---
 
-# Session Rotation
+## Session Rotation
 
 Session identifiers may need rotation after:
 
@@ -722,7 +732,7 @@ The exact mechanism depends on session architecture.
 
 ---
 
-# Cookies
+## Cookies
 
 If browser authentication uses cookies, security-sensitive cookies should use appropriate platform protections.
 
@@ -739,7 +749,7 @@ Exact configuration should be determined from application architecture.
 
 ---
 
-# Cookie Scope
+## Cookie Scope
 
 Authentication cookies should be scoped as narrowly as practical.
 
@@ -755,7 +765,7 @@ without need.
 
 ---
 
-# Cross-Site Request Forgery
+## Cross-Site Request Forgery
 
 Cookie-based authentication may introduce CSRF considerations because browsers attach cookies automatically.
 
@@ -765,7 +775,7 @@ The exact mechanism depends on client architecture and browser behavior.
 
 ---
 
-# Cross-Site Scripting
+## Cross-Site Scripting
 
 XSS can compromise browser authentication state and user actions.
 
@@ -775,7 +785,7 @@ Client-side security and Content Security Policy may become relevant in web-spec
 
 ---
 
-# Tokens
+## Tokens
 
 Tokens may represent authentication, authorization, session state, or delegated capability.
 
@@ -785,7 +795,7 @@ Every token type should have a clear purpose and owner.
 
 ---
 
-# Access Tokens
+## Access Tokens
 
 Access tokens authorize access to protected resources after authentication or delegation.
 
@@ -802,7 +812,7 @@ where the token format supports these concepts.
 
 ---
 
-# Refresh Tokens
+## Refresh Tokens
 
 Refresh tokens are high-value credentials.
 
@@ -814,7 +824,7 @@ They must never appear in telemetry.
 
 ---
 
-# Token Lifetime
+## Token Lifetime
 
 Token lifetime should match risk and operational requirements.
 
@@ -826,7 +836,7 @@ The chosen strategy should be explicit.
 
 ---
 
-# Token Rotation
+## Token Rotation
 
 Long-lived or refresh credentials may require rotation.
 
@@ -836,7 +846,7 @@ Do not add rotation complexity without understanding the selected token model.
 
 ---
 
-# Token Revocation
+## Token Revocation
 
 Stateless verification mechanisms may make immediate revocation harder.
 
@@ -844,7 +854,7 @@ If revocation is a product requirement, that requirement must influence token ar
 
 ---
 
-# Token Audience
+## Token Audience
 
 A credential intended for one service must not automatically be accepted by another.
 
@@ -852,7 +862,7 @@ Audience validation reduces credential reuse across unintended boundaries.
 
 ---
 
-# Token Issuer
+## Token Issuer
 
 Trusted token issuers should be explicit.
 
@@ -860,7 +870,7 @@ Applications must reject tokens from unexpected issuers.
 
 ---
 
-# Token Signature Validation
+## Token Signature Validation
 
 Signed tokens must be cryptographically verified before claims are trusted.
 
@@ -870,7 +880,7 @@ Never treat a token as authenticated merely because its payload can be parsed.
 
 ---
 
-# Token Algorithm Validation
+## Token Algorithm Validation
 
 Token verification must not blindly trust attacker-controlled algorithm selection.
 
@@ -880,7 +890,7 @@ Exact implementation depends on the selected protocol and library.
 
 ---
 
-# Token Claims
+## Token Claims
 
 Important claims may include:
 
@@ -899,7 +909,7 @@ Unknown or unverified claims should not silently become trusted application stat
 
 ---
 
-# Token Contents
+## Token Contents
 
 Signed does not mean encrypted.
 
@@ -909,7 +919,7 @@ Prefer minimal claims.
 
 ---
 
-# Personally Identifiable Token Claims
+## Personally Identifiable Token Claims
 
 Avoid embedding extensive personal data in credentials.
 
@@ -932,7 +942,7 @@ unless there is a concrete protocol requirement.
 
 ---
 
-# Bearer Credentials
+## Bearer Credentials
 
 Bearer credentials grant access to whoever possesses them.
 
@@ -958,7 +968,7 @@ documentation
 
 ---
 
-# Credentials in URLs
+## Credentials in URLs
 
 Authentication credentials should not be transmitted through URL query parameters unless a protocol explicitly requires a short-lived one-time value and risks are understood.
 
@@ -976,7 +986,7 @@ Prefer safer transport mechanisms.
 
 ---
 
-# One-Time Credentials
+## One-Time Credentials
 
 Some authentication workflows may use one-time credentials.
 
@@ -1001,7 +1011,7 @@ They remain `RESTRICTED`.
 
 ---
 
-# Email Verification
+## Email Verification
 
 Email verification proves access to an email address.
 
@@ -1011,7 +1021,7 @@ The application should not infer more assurance than the verification provides.
 
 ---
 
-# Account Recovery
+## Account Recovery
 
 Account recovery is effectively an alternative authentication mechanism.
 
@@ -1021,7 +1031,7 @@ A weak recovery flow can bypass a strong authentication system.
 
 ---
 
-# Recovery Codes
+## Recovery Codes
 
 Recovery codes are authentication credentials.
 
@@ -1039,7 +1049,7 @@ and should not be recoverable in plaintext after initial display where practical
 
 ---
 
-# Service-to-Service Authentication
+## Service-to-Service Authentication
 
 Trusted backend services should authenticate to each other when a meaningful trust boundary exists.
 
@@ -1056,7 +1066,7 @@ The exact mechanism depends on deployment infrastructure.
 
 ---
 
-# Shared Service Secrets
+## Shared Service Secrets
 
 Long-lived shared secrets between services should not be the default when stronger identity mechanisms are available.
 
@@ -1064,7 +1074,7 @@ Shared credentials weaken attribution and rotation.
 
 ---
 
-# Webhook Authentication
+## Webhook Authentication
 
 Inbound webhooks must be authenticated according to provider capabilities.
 
@@ -1087,7 +1097,7 @@ replay where relevant
 
 ---
 
-# Webhook Replay Protection
+## Webhook Replay Protection
 
 If the provider protocol supports timestamps, nonces, or unique event identifiers, webhook validation should consider replay attacks.
 
@@ -1095,7 +1105,7 @@ A valid signature does not always prove that a message is fresh.
 
 ---
 
-# API Keys
+## API Keys
 
 API keys may authenticate machines or external consumers.
 
@@ -1114,7 +1124,7 @@ usage attribution
 
 ---
 
-# API Key Storage
+## API Key Storage
 
 Where API keys are issued to consumers, the system should avoid storing recoverable plaintext credentials when verification can be performed using a secure derived representation.
 
@@ -1122,7 +1132,7 @@ Exact design depends on key format and product requirements.
 
 ---
 
-# API Key Prefixes
+## API Key Prefixes
 
 If API keys are introduced, non-secret prefixes may be useful for:
 
@@ -1137,7 +1147,7 @@ The secret portion must remain protected.
 
 ---
 
-# Authentication Context
+## Authentication Context
 
 Trusted application code should receive authentication context through an explicit mechanism.
 
@@ -1153,7 +1163,7 @@ The exact pattern depends on the selected stack.
 
 ---
 
-# Principal Propagation
+## Principal Propagation
 
 Once authenticated, the principal may need to propagate through:
 
@@ -1172,7 +1182,7 @@ Do not copy complete authentication objects everywhere.
 
 ---
 
-# Async Context
+## Async Context
 
 Background processing may continue after the original user request ends.
 
@@ -1182,7 +1192,7 @@ Do not depend on process-local request state surviving across asynchronous bound
 
 ---
 
-# Delegated Identity
+## Delegated Identity
 
 An asynchronous operation may run:
 
@@ -1202,7 +1212,7 @@ Audit behavior may depend on the difference.
 
 ---
 
-# Impersonation
+## Impersonation
 
 Administrative impersonation, if ever introduced, is security-sensitive.
 
@@ -1219,7 +1229,7 @@ Impersonation must not erase the real actor from audit context.
 
 ---
 
-# Authentication and Authorization
+## Authentication and Authorization
 
 Authentication should produce identity.
 
@@ -1243,7 +1253,7 @@ Authorization policy is defined separately.
 
 ---
 
-# Roles in Authentication Tokens
+## Roles in Authentication Tokens
 
 Roles may appear in authentication claims.
 
@@ -1263,7 +1273,7 @@ before using them for authorization.
 
 ---
 
-# Authentication Errors
+## Authentication Errors
 
 Authentication failures should use stable error semantics.
 
@@ -1281,7 +1291,7 @@ Exact public error codes will be defined with the canonical error registry.
 
 ---
 
-# Authentication Error Privacy
+## Authentication Error Privacy
 
 Authentication errors should avoid revealing unnecessary details.
 
@@ -1298,7 +1308,7 @@ Internal telemetry may retain a safe classification where useful.
 
 ---
 
-# Authentication Logging
+## Authentication Logging
 
 Authentication telemetry may include safe metadata such as:
 
@@ -1323,7 +1333,7 @@ authorization header
 
 ---
 
-# Failed Authentication Telemetry
+## Failed Authentication Telemetry
 
 Failed authentication attempts may be important security signals.
 
@@ -1339,7 +1349,7 @@ Do not indiscriminately log raw usernames, credentials, or request payloads.
 
 ---
 
-# Authentication Metrics
+## Authentication Metrics
 
 Useful metrics may include:
 
@@ -1356,7 +1366,7 @@ Metric labels should remain low-cardinality and must not contain credentials or 
 
 ---
 
-# Audit Events
+## Audit Events
 
 Security-sensitive authentication events may require audit logging.
 
@@ -1377,7 +1387,7 @@ Audit logs must not contain secret values.
 
 ---
 
-# Session Visibility
+## Session Visibility
 
 Product requirements may eventually include user-visible active-session management.
 
@@ -1396,7 +1406,7 @@ Avoid over-collecting device information solely for display.
 
 ---
 
-# Device Information
+## Device Information
 
 Authentication systems may use device metadata for security or user experience.
 
@@ -1406,7 +1416,7 @@ Collection must be justified and follow data-classification policy.
 
 ---
 
-# IP Addresses
+## IP Addresses
 
 IP information may be relevant to security monitoring.
 
@@ -1418,7 +1428,7 @@ Authentication implementation should not capture IP addresses merely because a f
 
 ---
 
-# Risk-Based Authentication
+## Risk-Based Authentication
 
 Future applications may use contextual risk signals.
 
@@ -1437,7 +1447,7 @@ They should not be introduced without concrete requirements.
 
 ---
 
-# CAPTCHA and Bot Challenges
+## CAPTCHA and Bot Challenges
 
 Bot-detection mechanisms may be added to public authentication workflows if abuse requires them.
 
@@ -1447,7 +1457,7 @@ Third-party bot providers create additional data-processing boundaries.
 
 ---
 
-# Authentication State in Clients
+## Authentication State in Clients
 
 Client applications may maintain a representation of authentication state.
 
@@ -1466,7 +1476,7 @@ The backend remains authoritative for trusted authentication decisions.
 
 ---
 
-# Client-Side Identity Claims
+## Client-Side Identity Claims
 
 A client may cache user profile or role information for rendering.
 
@@ -1476,7 +1486,7 @@ The server must independently verify identity and authorization where required.
 
 ---
 
-# Offline Clients
+## Offline Clients
 
 Mobile or desktop applications may support offline behavior.
 
@@ -1486,7 +1496,7 @@ Actions requiring trusted backend authorization may need reevaluation when conne
 
 ---
 
-# Authentication and Local Storage
+## Authentication and Local Storage
 
 Credential storage in client applications must follow platform-appropriate security practices.
 
@@ -1504,7 +1514,7 @@ No generic storage mechanism should be assumed safe across platforms.
 
 ---
 
-# Browser Token Storage
+## Browser Token Storage
 
 If browser tokens are used, the storage strategy must be selected explicitly.
 
@@ -1522,7 +1532,7 @@ Do not choose a browser storage location solely for developer convenience.
 
 ---
 
-# Mobile Credential Storage
+## Mobile Credential Storage
 
 Sensitive mobile credentials should use appropriate platform-protected storage when local persistence is required.
 
@@ -1530,7 +1540,7 @@ Application-level plain storage should not be the default.
 
 ---
 
-# Desktop Credential Storage
+## Desktop Credential Storage
 
 Desktop applications should use operating-system credential-storage capabilities where appropriate.
 
@@ -1538,7 +1548,7 @@ Plain configuration files are not an acceptable default for authentication secre
 
 ---
 
-# Authentication Across Applications
+## Authentication Across Applications
 
 Different Orion applications may authenticate the same user.
 
@@ -1556,7 +1566,7 @@ The canonical identity model should remain consistent.
 
 ---
 
-# Shared Authentication Package
+## Shared Authentication Package
 
 A future shared authentication package may provide:
 
@@ -1573,7 +1583,7 @@ Application-specific authentication behavior should remain local where appropria
 
 ---
 
-# Provider-Specific Code
+## Provider-Specific Code
 
 Identity-provider SDKs should remain near authentication integration boundaries.
 
@@ -1593,7 +1603,7 @@ when a meaningful boundary exists.
 
 ---
 
-# Vendor Lock-In
+## Vendor Lock-In
 
 Authentication providers often become foundational infrastructure.
 
@@ -1616,7 +1626,7 @@ The decision should be documented through an ADR.
 
 ---
 
-# Standards
+## Standards
 
 Where mature authentication standards exist, Orion should prefer them over custom protocols.
 
@@ -1632,7 +1642,7 @@ Custom authentication protocols should require strong justification.
 
 ---
 
-# Cryptography
+## Cryptography
 
 Do not implement custom cryptographic authentication primitives.
 
@@ -1642,7 +1652,7 @@ Cryptographic implementation details must be reviewed carefully.
 
 ---
 
-# Time
+## Time
 
 Authentication protocols often rely on time-sensitive values.
 
@@ -1659,7 +1669,7 @@ Clock behavior may become a dependency.
 
 ---
 
-# Authentication Initialization
+## Authentication Initialization
 
 Applications should validate authentication configuration during startup.
 
@@ -1676,7 +1686,7 @@ Invalid authentication configuration should fail safely.
 
 ---
 
-# Dependency Failure
+## Dependency Failure
 
 Authentication may depend on external systems.
 
@@ -1706,7 +1716,7 @@ These have different operational meanings.
 
 ---
 
-# Degraded Authentication
+## Degraded Authentication
 
 Running without required authentication because the identity provider is unavailable is normally unsafe.
 
@@ -1714,7 +1724,7 @@ Authentication infrastructure failures should fail closed unless a specific docu
 
 ---
 
-# Fail Closed
+## Fail Closed
 
 Security-sensitive authentication checks should default to denial when trusted verification cannot be completed.
 
@@ -1738,7 +1748,7 @@ unless an explicitly documented offline security model requires otherwise.
 
 ---
 
-# Authentication Bypass
+## Authentication Bypass
 
 Development or test authentication bypasses may exist only when strongly isolated.
 
@@ -1762,7 +1772,7 @@ production-safe
 
 ---
 
-# Development Authentication
+## Development Authentication
 
 Local development should not require production user credentials.
 
@@ -1779,7 +1789,7 @@ The exact mechanism will be chosen with the stack.
 
 ---
 
-# Test Authentication
+## Test Authentication
 
 Automated tests should use synthetic identities.
 
@@ -1789,7 +1799,7 @@ Test helpers may create authenticated principals directly for unit-level testing
 
 ---
 
-# Authentication Integration Tests
+## Authentication Integration Tests
 
 Integration tests should verify important authentication boundaries such as:
 
@@ -1806,7 +1816,7 @@ without using production credentials.
 
 ---
 
-# Authentication End-to-End Tests
+## Authentication End-to-End Tests
 
 Critical end-to-end authentication flows may eventually verify:
 
@@ -1823,7 +1833,7 @@ depending on implemented capabilities.
 
 ---
 
-# Security Regression Tests
+## Security Regression Tests
 
 Authentication security bugs should result in regression tests whenever practical.
 
@@ -1839,7 +1849,7 @@ token leaked to logs
 
 ---
 
-# Source Code Boundaries
+## Source Code Boundaries
 
 Domain modules should not directly parse authentication tokens or access authentication cookies.
 
@@ -1857,7 +1867,7 @@ This keeps security protocol logic out of business behavior.
 
 ---
 
-# Authentication Context Dependency
+## Authentication Context Dependency
 
 Application operations that require identity should declare that dependency explicitly.
 
@@ -1876,7 +1886,7 @@ Avoid hidden global identity state.
 
 ---
 
-# Anonymous Operations
+## Anonymous Operations
 
 Not every operation requires authentication.
 
@@ -1886,7 +1896,7 @@ Do not create fake authenticated identities to represent anonymous users.
 
 ---
 
-# Optional Authentication
+## Optional Authentication
 
 Some routes may support richer behavior when authenticated but remain publicly accessible.
 
@@ -1901,7 +1911,7 @@ without requiring every request to fail when credentials are absent.
 
 ---
 
-# System Principal
+## System Principal
 
 System-initiated operations may use an explicit system principal when actor semantics matter.
 
@@ -1916,7 +1926,7 @@ This should remain distinguishable from human actions.
 
 ---
 
-# Audit Actor
+## Audit Actor
 
 Audit records should preserve the effective actor responsible for sensitive actions.
 
@@ -1935,7 +1945,7 @@ Audit identity must not depend solely on user-provided values.
 
 ---
 
-# Tenant Context
+## Tenant Context
 
 In multi-tenant systems, authentication and tenant membership are related but distinct.
 
@@ -1951,7 +1961,7 @@ Tenant isolation is primarily an authorization concern.
 
 ---
 
-# Account Status
+## Account Status
 
 Authentication success does not necessarily imply the account may use the application.
 
@@ -1970,7 +1980,7 @@ Avoid scattering account-status checks across unrelated modules.
 
 ---
 
-# Disabled Accounts
+## Disabled Accounts
 
 If an account becomes disabled, existing session behavior must be defined.
 
@@ -1986,7 +1996,7 @@ The correct behavior depends on risk.
 
 ---
 
-# Deleted Accounts
+## Deleted Accounts
 
 Authentication semantics for deleted accounts must be explicit.
 
@@ -1994,7 +2004,7 @@ Soft-deleted records should not accidentally remain authenticatable.
 
 ---
 
-# Authentication Data Ownership
+## Authentication Data Ownership
 
 Authentication-related data should have clear ownership.
 
@@ -2013,14 +2023,12 @@ Ownership should determine who may modify and expose this data.
 
 ---
 
-# Authentication Database Tables
+## Authentication Database Tables
 
 If authentication data is stored in the application database, its tables and fields must follow:
 
-```text
-docs/security/data-classification.md
-docs/database/schema-documentation.md
-```
+- [docs/security/data-classification.md](data-classification.md)
+- [docs/database/schema-documentation.md](../database/schema-documentation.md)
 
 when that documentation exists.
 
@@ -2028,7 +2036,7 @@ Secret-bearing fields must be identified explicitly.
 
 ---
 
-# Session Tables
+## Session Tables
 
 Session persistence may contain:
 
@@ -2046,7 +2054,7 @@ Where possible, avoid storing raw bearer credentials if a secure derived represe
 
 ---
 
-# Authentication Events
+## Authentication Events
 
 Authentication changes may produce domain, security, or audit events.
 
@@ -2065,7 +2073,7 @@ Do not conflate the categories.
 
 ---
 
-# Authentication and Email Delivery
+## Authentication and Email Delivery
 
 Authentication workflows such as:
 
@@ -2090,7 +2098,7 @@ These workflows should remain safe under retry.
 
 ---
 
-# Magic Links
+## Magic Links
 
 If magic links are implemented, the link itself contains or references an authentication capability.
 
@@ -2106,7 +2114,7 @@ and must not be exposed in telemetry.
 
 ---
 
-# Deep Links
+## Deep Links
 
 Mobile or desktop authentication flows may use deep links.
 
@@ -2116,7 +2124,7 @@ The design must minimize credential exposure and validate callback ownership.
 
 ---
 
-# Redirect URIs
+## Redirect URIs
 
 Federated authentication often depends on redirect URIs.
 
@@ -2126,7 +2134,7 @@ Open redirect behavior can become an authentication vulnerability.
 
 ---
 
-# OAuth State and Similar Correlation Values
+## OAuth State and Similar Correlation Values
 
 Authentication protocols may require state or correlation values to prevent request forgery or session confusion.
 
@@ -2136,7 +2144,7 @@ Do not invent simplified substitutes.
 
 ---
 
-# Authentication and Caching
+## Authentication and Caching
 
 Authentication results may sometimes be cached.
 
@@ -2146,7 +2154,7 @@ Cache behavior should match the security semantics of the authentication mechani
 
 ---
 
-# Authentication and Clock Skew
+## Authentication and Clock Skew
 
 Expiration-based authentication must account for small clock differences where protocols require it.
 
@@ -2156,7 +2164,7 @@ Large tolerances weaken expiration guarantees.
 
 ---
 
-# Authentication and Key Rotation
+## Authentication and Key Rotation
 
 If signed credentials are used, verification key rotation must be supported safely.
 
@@ -2173,7 +2181,7 @@ Key identifiers and verification behavior should be explicit.
 
 ---
 
-# Authentication and Deployment
+## Authentication and Deployment
 
 Authentication changes are often compatibility-sensitive.
 
@@ -2200,7 +2208,7 @@ must consider deployment compatibility.
 
 ---
 
-# Authentication Migration
+## Authentication Migration
 
 Major authentication changes should use an explicit migration plan.
 
@@ -2216,7 +2224,7 @@ Migration may require supporting old and new mechanisms temporarily.
 
 ---
 
-# Authentication Versioning
+## Authentication Versioning
 
 Authentication protocols should not be versioned casually.
 
@@ -2226,13 +2234,11 @@ Internal implementation changes should not automatically create new authenticati
 
 ---
 
-# Error Handling
+## Error Handling
 
 Authentication failures should follow:
 
-```text
-docs/architecture/error-handling.md
-```
+- [docs/architecture/error-handling.md](../architecture/error-handling.md)
 
 Expected authentication failures should not automatically become internal incidents.
 
@@ -2240,7 +2246,7 @@ Unexpected authentication infrastructure failures should be observable.
 
 ---
 
-# Observability
+## Observability
 
 Authentication systems should make it possible to understand:
 
@@ -2256,7 +2262,7 @@ without collecting credentials.
 
 ---
 
-# Sensitive Authentication Telemetry
+## Sensitive Authentication Telemetry
 
 Never capture:
 
@@ -2274,13 +2280,11 @@ authentication cookies
 
 Authentication telemetry must follow:
 
-```text
-docs/security/telemetry-redaction.md
-```
+- [docs/security/telemetry-redaction.md](telemetry-redaction.md)
 
 ---
 
-# Alerting
+## Alerting
 
 Potential authentication alerts may include:
 
@@ -2296,7 +2300,7 @@ Alerting should avoid treating ordinary invalid credentials as incidents by defa
 
 ---
 
-# Authentication Security Incidents
+## Authentication Security Incidents
 
 Potential incidents include:
 
@@ -2325,7 +2329,7 @@ depending on scope.
 
 ---
 
-# Account Takeover
+## Account Takeover
 
 Authentication architecture should minimize account takeover risk.
 
@@ -2344,7 +2348,7 @@ The exact set depends on product risk.
 
 ---
 
-# Session Hijacking
+## Session Hijacking
 
 Protecting session credentials is as important as protecting login credentials.
 
@@ -2362,19 +2366,17 @@ XSS/CSRF depending on client
 
 ---
 
-# Authentication Secret Exposure
+## Authentication Secret Exposure
 
 If authentication credentials or signing secrets appear in source control or telemetry, follow:
 
-```text
-docs/security/secrets-management.md
-```
+- [docs/security/secrets-management.md](secrets-management.md)
 
 Exposure must be treated according to the capability compromised.
 
 ---
 
-# Data Minimization
+## Data Minimization
 
 Authentication systems should collect only identity information required for product and security needs.
 
@@ -2394,7 +2396,7 @@ Additional identity attributes create additional security and privacy obligation
 
 ---
 
-# Profile vs Identity
+## Profile vs Identity
 
 User profile data and authentication identity data should remain conceptually distinct.
 
@@ -2412,7 +2414,7 @@ may belong to a profile domain rather than authentication.
 
 ---
 
-# Provider Profile Data
+## Provider Profile Data
 
 When external identity providers supply extensive profile data, ingest only what the application actually requires.
 
@@ -2420,7 +2422,7 @@ Do not persist entire provider payloads by default.
 
 ---
 
-# Authentication Documentation
+## Authentication Documentation
 
 When authentication implementation is introduced, documentation should explain:
 
@@ -2439,7 +2441,7 @@ without exposing secret values.
 
 ---
 
-# Machine-Readable Authentication Model
+## Machine-Readable Authentication Model
 
 As Orion evolves, authentication-related contracts may become machine-readable.
 
@@ -2456,7 +2458,7 @@ Generated documentation should derive from canonical schemas where practical.
 
 ---
 
-# Authentication Package Boundaries
+## Authentication Package Boundaries
 
 Potential future responsibilities may include:
 
@@ -2473,7 +2475,7 @@ Do not create a generic authentication package before shared responsibilities ar
 
 ---
 
-# Mechanical Enforcement
+## Mechanical Enforcement
 
 Future tooling may enforce rules such as:
 
@@ -2495,7 +2497,7 @@ The exact mechanism depends on the selected stack.
 
 ---
 
-# Security Review Triggers
+## Security Review Triggers
 
 Additional review should be considered when introducing:
 
@@ -2515,7 +2517,7 @@ These changes affect foundational security boundaries.
 
 ---
 
-# New Authentication Mechanism Checklist
+## New Authentication Mechanism Checklist
 
 Before introducing a new authentication mechanism, answer:
 
@@ -2540,7 +2542,7 @@ If these questions cannot be answered, the authentication design is incomplete.
 
 ---
 
-# New Session Mechanism Checklist
+## New Session Mechanism Checklist
 
 Before choosing a session mechanism, answer:
 
@@ -2560,13 +2562,13 @@ Before choosing a session mechanism, answer:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Trusting Client User IDs
+### Trusting Client User IDs
 
 ```text
 request.body.userId
@@ -2578,7 +2580,7 @@ Prohibited.
 
 ---
 
-## Client-Side Authorization as Authentication
+### Client-Side Authorization as Authentication
 
 ```text
 button hidden
@@ -2590,43 +2592,43 @@ Prohibited.
 
 ---
 
-## Raw Token Decode Without Verification
+### Raw Token Decode Without Verification
 
 Prohibited.
 
 ---
 
-## Password Logging
+### Password Logging
 
 Prohibited.
 
 ---
 
-## Session Token Logging
+### Session Token Logging
 
 Prohibited.
 
 ---
 
-## Token in URL
+### Token in URL
 
 Strongly discouraged except where an explicit short-lived protocol requires it.
 
 ---
 
-## Permanent Authentication Bypass
+### Permanent Authentication Bypass
 
 Prohibited.
 
 ---
 
-## Production Credential Reuse in Development
+### Production Credential Reuse in Development
 
 Prohibited.
 
 ---
 
-## Shared Human Account
+### Shared Human Account
 
 Strongly discouraged.
 
@@ -2634,7 +2636,7 @@ Prefer individually attributable identities.
 
 ---
 
-## Human Credentials for Services
+### Human Credentials for Services
 
 Avoid.
 
@@ -2642,7 +2644,7 @@ Use machine identities.
 
 ---
 
-## Service Credentials for Humans
+### Service Credentials for Humans
 
 Avoid.
 
@@ -2650,7 +2652,7 @@ Human access should be individually attributable.
 
 ---
 
-## Authentication Provider Claims as Automatic Authorization
+### Authentication Provider Claims as Automatic Authorization
 
 Avoid.
 
@@ -2658,19 +2660,19 @@ Map them deliberately.
 
 ---
 
-## Global Mutable Current User
+### Global Mutable Current User
 
 Avoid when explicit authentication context is practical.
 
 ---
 
-## Authentication Logic in Domain Entities
+### Authentication Logic in Domain Entities
 
 Avoid protocol-specific authentication behavior inside domain logic.
 
 ---
 
-## Full Provider Payload Persistence
+### Full Provider Payload Persistence
 
 Avoid.
 
@@ -2678,7 +2680,7 @@ Persist only required identity data.
 
 ---
 
-## Infinite Sessions by Accident
+### Infinite Sessions by Accident
 
 Avoid.
 
@@ -2686,7 +2688,7 @@ Session lifetime must be explicit.
 
 ---
 
-## Recovery Weaker Than Login
+### Recovery Weaker Than Login
 
 Avoid.
 
@@ -2694,7 +2696,7 @@ Account recovery is an authentication mechanism and must be protected accordingl
 
 ---
 
-# Initial Authentication Policy
+## Initial Authentication Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2721,7 +2723,7 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Future Implementation Decisions
 
 The following decisions are intentionally deferred:
 
@@ -2750,27 +2752,23 @@ Significant choices should be documented through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should eventually be complemented by:
 
-```text
-docs/security/authorization.md
-docs/security/production-access.md
-docs/security/incident-response.md
-
-docs/api/principles.md
-docs/api/error-contract.md
-
-docs/reliability/logging.md
-docs/reliability/error-reporting.md
-```
+- [docs/security/authorization.md](authorization.md)
+- [docs/security/production-access.md](production-access.md)
+- [docs/security/incident-response.md](incident-response.md)
+- [docs/api/principles.md](../api/principles.md)
+- [docs/api/error-contract.md](../api/error-contract.md)
+- [docs/reliability/logging.md](../reliability/logging.md)
+- [docs/reliability/error-reporting.md](../reliability/error-reporting.md)
 
 Implementation-specific authentication documentation should reference this policy rather than redefine authentication principles independently.
 
 ---
 
-# Summary
+## Summary
 
 Authentication establishes trusted identity.
 

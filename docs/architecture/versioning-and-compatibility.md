@@ -1,5 +1,18 @@
 # Versioning and Compatibility
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0003](../adr/0003-establish-repository-validation-and-architecture-enforcement.md), [ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Compatibility Boundary](#compatibility-boundary)
+- [Released vs Unreleased Behavior](#released-vs-unreleased-behavior)
+- [Expand–Migrate–Contract](#expandmigratecontract)
+- [Persisted Data Compatibility](#persisted-data-compatibility)
+- [Compatibility Testing](#compatibility-testing)
+- [Breaking Change Checklist](#breaking-change-checklist)
+
 ## Purpose
 
 This document defines the versioning and compatibility principles used by Orion.
@@ -27,12 +40,12 @@ Specific package-versioning schemes, release tooling, compatibility-checking sys
 
 This document complements:
 
-- `docs/architecture/application-boundaries.md`;
-- `docs/architecture/dependency-rules.md`;
-- `docs/architecture/configuration.md`;
-- `docs/api/versioning.md`;
-- `docs/database/migrations.md`;
-- `docs/architecture/testing-strategy.md`.
+- [docs/architecture/application-boundaries.md](application-boundaries.md);
+- [docs/architecture/dependency-rules.md](dependency-rules.md);
+- [docs/architecture/configuration.md](configuration.md);
+- [docs/api/versioning.md](../api/versioning.md);
+- [docs/database/migrations.md](../database/migrations.md);
+- [docs/architecture/testing-strategy.md](testing-strategy.md).
 
 ---
 
@@ -66,7 +79,7 @@ Compatibility should be preserved where its value exceeds its complexity.
 
 ---
 
-# Compatibility Is About Consumers
+## Compatibility Is About Consumers
 
 A change becomes compatibility-sensitive when another consumer depends on the current behavior.
 
@@ -91,7 +104,7 @@ The existence of a code boundary alone does not automatically require long-term 
 
 ---
 
-# Independent Evolution
+## Independent Evolution
 
 Compatibility matters most when components can evolve independently.
 
@@ -113,7 +126,7 @@ When both sides always change atomically, compatibility requirements may be much
 
 ---
 
-# Compatibility Boundary
+## Compatibility Boundary
 
 A compatibility boundary exists when one side may continue operating while another side changes.
 
@@ -137,7 +150,7 @@ Each boundary should have explicit compatibility expectations.
 
 ---
 
-# Internal Does Not Mean Compatible Forever
+## Internal Does Not Mean Compatible Forever
 
 Internal code does not automatically require backward compatibility.
 
@@ -154,7 +167,7 @@ Compatibility should reflect actual deployment independence.
 
 ---
 
-# Monorepo Compatibility
+## Monorepo Compatibility
 
 A monorepo reduces some compatibility requirements because many dependencies can evolve atomically.
 
@@ -172,7 +185,7 @@ Do not preserve obsolete internal APIs solely because they existed historically.
 
 ---
 
-# Monorepo Does Not Eliminate Compatibility
+## Monorepo Does Not Eliminate Compatibility
 
 Some monorepo artifacts still evolve independently at runtime.
 
@@ -194,7 +207,7 @@ Runtime history creates compatibility boundaries even inside one repository.
 
 ---
 
-# Released vs Unreleased Behavior
+## Released vs Unreleased Behavior
 
 Orion distinguishes between:
 
@@ -212,7 +225,7 @@ Compatibility requirements are strongest after consumers can depend on behavior.
 
 ---
 
-# Unreleased Changes
+## Unreleased Changes
 
 Before release, contracts and internal structures may be refined freely when no durable consumer depends on them.
 
@@ -232,7 +245,7 @@ Git already preserves the development history.
 
 ---
 
-# Released Changes
+## Released Changes
 
 Once behavior is part of a released compatibility boundary, future evolution must consider dependent consumers.
 
@@ -251,7 +264,7 @@ consumed independently
 
 ---
 
-# Compatibility Is Not Immutability
+## Compatibility Is Not Immutability
 
 A released contract may still evolve.
 
@@ -270,7 +283,7 @@ The requirement is to preserve supported consumer behavior, not freeze all evolu
 
 ---
 
-# Development History vs Compatibility History
+## Development History vs Compatibility History
 
 Orion separates:
 
@@ -295,13 +308,13 @@ Do not overload one mechanism to represent all forms of history.
 
 ---
 
-# Types of Compatibility
+## Types of Compatibility
 
 Compatibility may involve several directions.
 
 ---
 
-# Backward Compatibility
+## Backward Compatibility
 
 A newer provider remains compatible with an older consumer.
 
@@ -317,7 +330,7 @@ This is one of the most common requirements.
 
 ---
 
-# Forward Compatibility
+## Forward Compatibility
 
 An older consumer tolerates a newer provider representation.
 
@@ -331,7 +344,7 @@ Forward-compatible consumers reduce migration pressure.
 
 ---
 
-# Bidirectional Compatibility
+## Bidirectional Compatibility
 
 During rolling deployment, both combinations may need to work:
 
@@ -345,7 +358,7 @@ This is common when components deploy independently.
 
 ---
 
-# Data Compatibility
+## Data Compatibility
 
 Persisted data often outlives the application version that created it.
 
@@ -355,7 +368,7 @@ Likewise, old application instances may temporarily encounter data written by a 
 
 ---
 
-# Wire Compatibility
+## Wire Compatibility
 
 Wire compatibility concerns serialized communication.
 
@@ -373,7 +386,7 @@ A structurally valid serialized message may still be semantically incompatible.
 
 ---
 
-# Binary Compatibility
+## Binary Compatibility
 
 If Orion later publishes compiled libraries or native artifacts, binary compatibility may become relevant.
 
@@ -381,7 +394,7 @@ This is not currently assumed.
 
 ---
 
-# Source Compatibility
+## Source Compatibility
 
 Source compatibility matters when downstream code recompiles against an interface.
 
@@ -397,7 +410,7 @@ A change may preserve runtime behavior while breaking compilation.
 
 ---
 
-# Semantic Compatibility
+## Semantic Compatibility
 
 The most important compatibility is semantic.
 
@@ -415,7 +428,7 @@ Compatibility review must consider behavior, not only types.
 
 ---
 
-# Operational Compatibility
+## Operational Compatibility
 
 A technically valid change may still be operationally incompatible.
 
@@ -435,7 +448,7 @@ Operational compatibility is part of system design.
 
 ---
 
-# Security Compatibility
+## Security Compatibility
 
 Security may override ordinary compatibility.
 
@@ -455,7 +468,7 @@ The breaking impact should still be identified and managed.
 
 ---
 
-# Application Compatibility
+## Application Compatibility
 
 Applications may depend on:
 
@@ -472,7 +485,7 @@ A deployment must consider the compatibility of all required dependencies.
 
 ---
 
-# Rolling Deployments
+## Rolling Deployments
 
 Rolling deployment means old and new application versions may run simultaneously.
 
@@ -490,7 +503,7 @@ before contract cleanup.
 
 ---
 
-# Deployment Order
+## Deployment Order
 
 Some changes require:
 
@@ -510,7 +523,7 @@ The ordering should be explicit.
 
 ---
 
-# Expand–Migrate–Contract
+## Expand–Migrate–Contract
 
 Orion uses the general pattern:
 
@@ -528,7 +541,7 @@ This pattern applies beyond databases.
 
 ---
 
-# Expand
+## Expand
 
 Introduce compatible capability.
 
@@ -545,7 +558,7 @@ Existing consumers should continue functioning.
 
 ---
 
-# Migrate
+## Migrate
 
 Move producers and consumers to the new behavior.
 
@@ -560,7 +573,7 @@ move consumers to new event
 
 ---
 
-# Contract
+## Contract
 
 Remove the obsolete compatibility path only after dependent consumers have migrated.
 
@@ -575,7 +588,7 @@ remove deprecated configuration key
 
 ---
 
-# Compatibility Code Is Temporary
+## Compatibility Code Is Temporary
 
 Code introduced only for transition should have a removal condition.
 
@@ -595,7 +608,7 @@ Without removal discipline, compatibility becomes permanent complexity.
 
 ---
 
-# Package Compatibility
+## Package Compatibility
 
 Shared packages inside the monorepo should normally evolve atomically with internal consumers.
 
@@ -603,7 +616,7 @@ Do not introduce semantic versioning between every internal package by default.
 
 ---
 
-# Published Packages
+## Published Packages
 
 If a package is distributed outside the monorepo or consumed independently, package compatibility becomes significant.
 
@@ -613,7 +626,7 @@ The exact strategy will be selected only when such distribution exists.
 
 ---
 
-# Package Public Surface
+## Package Public Surface
 
 A package should have an intentional public API.
 
@@ -623,7 +636,7 @@ Use explicit exports and avoid deep imports where practical.
 
 ---
 
-# Deep Imports
+## Deep Imports
 
 A consumer importing:
 
@@ -639,7 +652,7 @@ Compatibility promises apply primarily to approved public surfaces.
 
 ---
 
-# Package Breaking Change
+## Package Breaking Change
 
 Examples may include:
 
@@ -657,7 +670,7 @@ If the package is independently distributed, versioning may be required.
 
 ---
 
-# SDK Compatibility
+## SDK Compatibility
 
 Generated SDKs are independently usable artifacts.
 
@@ -673,7 +686,7 @@ These must not be conflated.
 
 ---
 
-# SDK Package Version
+## SDK Package Version
 
 A breaking SDK programming-interface change may require a package major version.
 
@@ -681,13 +694,11 @@ This does not necessarily imply a server API version change.
 
 ---
 
-# API Compatibility
+## API Compatibility
 
 API-specific policy is defined in:
 
-```text
-docs/api/versioning.md
-```
+- [docs/api/versioning.md](../api/versioning.md)
 
 The core rule remains:
 
@@ -697,7 +708,7 @@ prefer compatible evolution before introducing a new API version
 
 ---
 
-# Database Compatibility
+## Database Compatibility
 
 Database compatibility is defined through release-aware migration policy.
 
@@ -712,7 +723,7 @@ Released migration history itself is immutable.
 
 ---
 
-# Database Schema Is a Runtime Contract
+## Database Schema Is a Runtime Contract
 
 An application deployment depends on a database schema shape.
 
@@ -720,7 +731,7 @@ Therefore a schema change must consider currently running and rollback applicati
 
 ---
 
-# Database Compatibility Window
+## Database Compatibility Window
 
 During an expand–migrate–contract deployment:
 
@@ -734,7 +745,7 @@ The compatibility window should end only after old versions are no longer expect
 
 ---
 
-# Database Rollback Compatibility
+## Database Rollback Compatibility
 
 If application rollback is supported, the current schema must remain usable by the rollback version.
 
@@ -742,7 +753,7 @@ Destructive contraction should not occur before rollback requirements expire.
 
 ---
 
-# Persisted Data Compatibility
+## Persisted Data Compatibility
 
 Application code should consider persisted representations created by older versions.
 
@@ -760,7 +771,7 @@ Persisted serialization is a compatibility boundary.
 
 ---
 
-# Persisted JSON
+## Persisted JSON
 
 JSON stored in a database is not exempt from schema evolution.
 
@@ -768,7 +779,7 @@ If application versions persist structured JSON, they must define how old and ne
 
 ---
 
-# Event Compatibility
+## Event Compatibility
 
 Events may remain in:
 
@@ -785,7 +796,7 @@ Consumers may therefore need to understand historical event shapes.
 
 ---
 
-# Event Contracts
+## Event Contracts
 
 An event contract should define:
 
@@ -801,7 +812,7 @@ where event-driven architecture exists.
 
 ---
 
-# Event Evolution
+## Event Evolution
 
 Prefer additive event evolution when practical.
 
@@ -816,7 +827,7 @@ depending on consumer behavior.
 
 ---
 
-# Event Breaking Changes
+## Event Breaking Changes
 
 Potential breaking event changes include:
 
@@ -832,7 +843,7 @@ A new event type or schema version may be required.
 
 ---
 
-# Event Versioning
+## Event Versioning
 
 Do not version events automatically.
 
@@ -840,7 +851,7 @@ If existing consumers and queued historical messages can tolerate compatible evo
 
 ---
 
-# New Event Type vs New Version
+## New Event Type vs New Version
 
 A semantically different fact should often become a new event type rather than another version of the old meaning.
 
@@ -862,7 +873,7 @@ Use semantic names.
 
 ---
 
-# Event Consumers Must Be Tolerant Where Intended
+## Event Consumers Must Be Tolerant Where Intended
 
 Consumers may ignore unknown additive fields when the contract allows it.
 
@@ -870,7 +881,7 @@ They must not silently ignore changes that affect required business semantics.
 
 ---
 
-# Event Replay
+## Event Replay
 
 If event replay is supported, current consumers may receive historical messages.
 
@@ -880,7 +891,7 @@ Replay capability must influence event-schema evolution.
 
 ---
 
-# Job Payload Compatibility
+## Job Payload Compatibility
 
 Queued background jobs are persisted contracts.
 
@@ -890,7 +901,7 @@ Therefore job payload evolution should consider deployment overlap and queue ret
 
 ---
 
-# Job Schema Evolution
+## Job Schema Evolution
 
 Potential strategies include:
 
@@ -906,7 +917,7 @@ The appropriate strategy depends on job lifetime.
 
 ---
 
-# Long-Lived Jobs
+## Long-Lived Jobs
 
 The longer jobs can remain pending or retrying, the stronger compatibility requirements become.
 
@@ -914,7 +925,7 @@ A job retrying for several days may outlive multiple deployments.
 
 ---
 
-# Dead-Letter Queue Compatibility
+## Dead-Letter Queue Compatibility
 
 Dead-lettered messages may be retried after the original code is gone.
 
@@ -922,7 +933,7 @@ Operational recovery must account for historical message schemas.
 
 ---
 
-# Configuration Compatibility
+## Configuration Compatibility
 
 Configuration is another contract between:
 
@@ -934,13 +945,11 @@ application version
 
 Configuration changes must follow:
 
-```text
-docs/architecture/configuration.md
-```
+- [docs/architecture/configuration.md](configuration.md)
 
 ---
 
-# Required Configuration Changes
+## Required Configuration Changes
 
 Adding a new required configuration key may break deployment of the new application unless the environment is updated first.
 
@@ -954,7 +963,7 @@ deploy application
 
 ---
 
-# Removing Configuration
+## Removing Configuration
 
 Removing an old configuration key must consider rollback.
 
@@ -964,7 +973,7 @@ Do not remove deployment configuration before the rollback window ends.
 
 ---
 
-# Configuration Rename
+## Configuration Rename
 
 A compatibility sequence may support:
 
@@ -979,7 +988,7 @@ The application may accept both while deployment environments migrate.
 
 ---
 
-# Configuration Precedence During Migration
+## Configuration Precedence During Migration
 
 When old and new configuration names coexist, precedence must be deterministic.
 
@@ -994,7 +1003,7 @@ with warnings for legacy use.
 
 ---
 
-# Secret Compatibility
+## Secret Compatibility
 
 Secret rotation may require multiple credential versions to coexist temporarily.
 
@@ -1011,7 +1020,7 @@ Secret compatibility must follow security requirements, not convenience.
 
 ---
 
-# Cryptographic Key Rotation
+## Cryptographic Key Rotation
 
 Key rotation often requires a compatibility window.
 
@@ -1029,7 +1038,7 @@ This should be explicitly designed when cryptographic systems are introduced.
 
 ---
 
-# Authentication Compatibility
+## Authentication Compatibility
 
 Authentication format changes can affect:
 
@@ -1044,7 +1053,7 @@ A deployment must determine whether existing credentials remain valid.
 
 ---
 
-# Session Compatibility
+## Session Compatibility
 
 Changing session serialization or storage may invalidate active sessions.
 
@@ -1054,7 +1063,7 @@ Do not make mass logout an accidental side effect.
 
 ---
 
-# Token Compatibility
+## Token Compatibility
 
 Changes to:
 
@@ -1072,7 +1081,7 @@ Migration should consider token lifetime.
 
 ---
 
-# Authorization Compatibility
+## Authorization Compatibility
 
 Authorization policy may change over time.
 
@@ -1084,7 +1093,7 @@ Authorization changes require explicit review regardless of version labels.
 
 ---
 
-# Permission Identifier Compatibility
+## Permission Identifier Compatibility
 
 Persisted or externally referenced permission identifiers should remain stable where consumers depend on them.
 
@@ -1092,7 +1101,7 @@ Renaming a permission may require migration.
 
 ---
 
-# Data Classification Compatibility
+## Data Classification Compatibility
 
 A field's classification may change.
 
@@ -1118,7 +1127,7 @@ Security controls must follow the stricter current classification.
 
 ---
 
-# Serialization Compatibility
+## Serialization Compatibility
 
 Serialization formats can become durable contracts.
 
@@ -1140,7 +1149,7 @@ Their evolution must be intentional.
 
 ---
 
-# Custom Binary Serialization
+## Custom Binary Serialization
 
 Custom binary formats create strong compatibility obligations.
 
@@ -1150,7 +1159,7 @@ Mature standard formats should generally be preferred.
 
 ---
 
-# Cache Compatibility
+## Cache Compatibility
 
 Caches may temporarily contain values created by a previous application version.
 
@@ -1166,7 +1175,7 @@ depending on semantics.
 
 ---
 
-# Cache Key Versioning
+## Cache Key Versioning
 
 Versioning a cache key can be a simple migration mechanism.
 
@@ -1182,7 +1191,7 @@ This is local implementation versioning, not necessarily public contract version
 
 ---
 
-# Cache Version Proliferation
+## Cache Version Proliferation
 
 Old cache versions should expire or be removed.
 
@@ -1190,7 +1199,7 @@ Do not retain permanent legacy cache namespaces without need.
 
 ---
 
-# Search Index Compatibility
+## Search Index Compatibility
 
 Search indexes are derived state.
 
@@ -1208,7 +1217,7 @@ Because search is derived, rebuildability should reduce long-term compatibility 
 
 ---
 
-# Generated Artifacts
+## Generated Artifacts
 
 Generated outputs should be reproducible from canonical sources.
 
@@ -1216,7 +1225,7 @@ Compatibility promises normally apply to the canonical contract, not incidental 
 
 ---
 
-# Generated SDKs
+## Generated SDKs
 
 Generated SDK public interfaces may nevertheless become compatibility commitments to SDK users.
 
@@ -1224,7 +1233,7 @@ Their package versioning should account for this.
 
 ---
 
-# Generated Documentation
+## Generated Documentation
 
 Documentation generation format itself should not become a compatibility burden unless external automation depends on it.
 
@@ -1232,7 +1241,7 @@ Machine-readable artifacts intended for automation should have explicit schemas.
 
 ---
 
-# CLI Compatibility
+## CLI Compatibility
 
 If Orion later provides user-facing CLI commands, command names, arguments, output, and exit codes may become contracts.
 
@@ -1240,7 +1249,7 @@ Do not assume CLI changes are harmless merely because they are not APIs.
 
 ---
 
-# Script Compatibility
+## Script Compatibility
 
 Internal scripts used only within one repository revision may change freely.
 
@@ -1248,7 +1257,7 @@ Scripts used by external CI or operational systems may require compatibility.
 
 ---
 
-# Infrastructure Compatibility
+## Infrastructure Compatibility
 
 Infrastructure definitions and application releases also form compatibility boundaries.
 
@@ -1266,7 +1275,7 @@ Infrastructure rollout must be coordinated with application rollout.
 
 ---
 
-# Infrastructure Expand–Contract
+## Infrastructure Expand–Contract
 
 A safe infrastructure change may follow:
 
@@ -1284,7 +1293,7 @@ This mirrors other compatibility transitions.
 
 ---
 
-# Provider Compatibility
+## Provider Compatibility
 
 Third-party providers may change their APIs or behavior.
 
@@ -1292,7 +1301,7 @@ Adapters should isolate provider-specific compatibility from domain logic where 
 
 ---
 
-# Provider API Versions
+## Provider API Versions
 
 Some external providers require explicit API-version selection.
 
@@ -1302,7 +1311,7 @@ Their upgrade should be deliberate and tested.
 
 ---
 
-# Provider Deprecation
+## Provider Deprecation
 
 External provider deprecations may impose migration deadlines.
 
@@ -1310,7 +1319,7 @@ These should become visible operational work rather than surprise runtime failur
 
 ---
 
-# Language Runtime Compatibility
+## Language Runtime Compatibility
 
 Changes to language runtime or compiler version may affect:
 
@@ -1324,7 +1333,7 @@ Such upgrades should be treated as infrastructure/toolchain compatibility change
 
 ---
 
-# Dependency Compatibility
+## Dependency Compatibility
 
 Dependency upgrades may contain breaking changes.
 
@@ -1334,7 +1343,7 @@ Major dependency upgrades should be reviewed based on actual impact.
 
 ---
 
-# Dependency Version Ranges
+## Dependency Version Ranges
 
 Version ranges should not allow uncontrolled breaking dependency upgrades.
 
@@ -1344,7 +1353,7 @@ Reproducibility takes priority over speculative freshness.
 
 ---
 
-# Schema Version Numbers
+## Schema Version Numbers
 
 Do not introduce global schema version numbers merely because compatibility exists.
 
@@ -1362,7 +1371,7 @@ Version identifiers should serve a concrete compatibility need.
 
 ---
 
-# Global System Version
+## Global System Version
 
 Orion does not require one global version number that represents every:
 
@@ -1380,7 +1389,7 @@ A release identifier may still identify a deployed build.
 
 ---
 
-# Release Version
+## Release Version
 
 A product or repository release may identify a set of compatible artifacts.
 
@@ -1388,7 +1397,7 @@ It does not imply all underlying contracts changed versions.
 
 ---
 
-# Release Metadata
+## Release Metadata
 
 Runtime systems should eventually expose safe release metadata for observability.
 
@@ -1402,7 +1411,7 @@ without conflating it with API or database versions.
 
 ---
 
-# Compatibility Matrix
+## Compatibility Matrix
 
 For complex releases, explicitly writing a compatibility matrix may be useful.
 
@@ -1419,7 +1428,7 @@ Such matrices should be used when they clarify deployment safety.
 
 ---
 
-# Compatibility Windows
+## Compatibility Windows
 
 A compatibility window is the period during which old and new forms must coexist.
 
@@ -1437,7 +1446,7 @@ The window should influence how long transitional support remains.
 
 ---
 
-# Rollback Window
+## Rollback Window
 
 Rollback requirements create backward compatibility obligations.
 
@@ -1445,7 +1454,7 @@ If application version N may be restored for 24 hours, schema and configuration 
 
 ---
 
-# Roll Forward vs Rollback
+## Roll Forward vs Rollback
 
 Not every system change should support rollback.
 
@@ -1467,7 +1476,7 @@ for each significant change.
 
 ---
 
-# Compatibility and Data Loss
+## Compatibility and Data Loss
 
 Compatibility must never be used to justify silent data loss.
 
@@ -1475,7 +1484,7 @@ If old and new versions interpret data differently, migration must ensure durabl
 
 ---
 
-# Data Migration Compatibility
+## Data Migration Compatibility
 
 Changing representation may require supporting both forms temporarily.
 
@@ -1491,7 +1500,7 @@ The migration should define which representation is canonical during transition.
 
 ---
 
-# Dual Writes
+## Dual Writes
 
 Dual writes may be used temporarily.
 
@@ -1508,7 +1517,7 @@ They should not become permanent without architectural justification.
 
 ---
 
-# Dual Reads
+## Dual Reads
 
 Fallback reads may support migration:
 
@@ -1522,7 +1531,7 @@ Fallback should not hide incomplete migration indefinitely.
 
 ---
 
-# Compatibility Markers
+## Compatibility Markers
 
 Temporary compatibility code should be easy to find.
 
@@ -1539,7 +1548,7 @@ Do not create permanent anonymous compatibility branches.
 
 ---
 
-# Compatibility Debt
+## Compatibility Debt
 
 Compatibility support is technical debt when its consumer no longer exists.
 
@@ -1557,7 +1566,7 @@ Such debt should be removed deliberately.
 
 ---
 
-# Compatibility Ownership
+## Compatibility Ownership
 
 Every compatibility layer should have an owner.
 
@@ -1571,7 +1580,7 @@ when it can be removed
 
 ---
 
-# Deprecation
+## Deprecation
 
 Deprecation signals that a supported contract should no longer receive new usage.
 
@@ -1587,7 +1596,7 @@ where practical.
 
 ---
 
-# Deprecation Is a Lifecycle
+## Deprecation Is a Lifecycle
 
 Conceptually:
 
@@ -1607,7 +1616,7 @@ Deprecation should not mean permanent support.
 
 ---
 
-# Removal Requires Evidence
+## Removal Requires Evidence
 
 Before removing compatibility behavior, determine:
 
@@ -1622,7 +1631,7 @@ Code search alone may be insufficient.
 
 ---
 
-# Runtime Usage Evidence
+## Runtime Usage Evidence
 
 Observability may help identify:
 
@@ -1637,7 +1646,7 @@ where this can be collected safely.
 
 ---
 
-# Compatibility Metrics
+## Compatibility Metrics
 
 Compatibility telemetry must remain low-cardinality.
 
@@ -1653,7 +1662,7 @@ Use bounded known categories.
 
 ---
 
-# Feature Flags and Compatibility
+## Feature Flags and Compatibility
 
 Feature flags may assist migration by controlling activation separately from deployment.
 
@@ -1669,13 +1678,13 @@ Feature flags do not eliminate compatibility requirements between old and new da
 
 ---
 
-# Feature Flag Removal
+## Feature Flag Removal
 
 A completed compatibility migration should remove temporary feature flags when no longer needed.
 
 ---
 
-# Canary Deployment
+## Canary Deployment
 
 Canary deployment may expose a new version to limited traffic while old and new versions coexist.
 
@@ -1683,7 +1692,7 @@ This increases the importance of shared database and message compatibility durin
 
 ---
 
-# Blue-Green Deployment
+## Blue-Green Deployment
 
 Blue-green deployment may shorten mixed-version time but still requires compatibility during:
 
@@ -1697,7 +1706,7 @@ Deployment strategy changes the window, not necessarily the requirement.
 
 ---
 
-# Backward-Compatible Reads
+## Backward-Compatible Reads
 
 Readers should often tolerate data written by previous supported versions.
 
@@ -1713,7 +1722,7 @@ Avoid guessing semantics when old data is ambiguous.
 
 ---
 
-# Backward-Compatible Writes
+## Backward-Compatible Writes
 
 During mixed-version deployment, new writes may need to remain understandable by old readers.
 
@@ -1723,7 +1732,7 @@ It may require delaying new representation use until old readers are gone.
 
 ---
 
-# Write Compatibility Before Read Compatibility
+## Write Compatibility Before Read Compatibility
 
 When old readers cannot understand new data, deploying a new writer too early can be dangerous.
 
@@ -1737,7 +1746,7 @@ not only the reverse.
 
 ---
 
-# Data Version Fields
+## Data Version Fields
 
 Persisted payloads may include explicit version metadata when multiple shapes must coexist.
 
@@ -1753,7 +1762,7 @@ Use them when parsing genuinely requires explicit shape identification.
 
 ---
 
-# Version Detection by Shape
+## Version Detection by Shape
 
 Inferring version solely from optional fields may work for simple migrations.
 
@@ -1763,7 +1772,7 @@ The decision depends on complexity.
 
 ---
 
-# Compatibility Testing
+## Compatibility Testing
 
 Compatibility should be tested at the boundary where it matters.
 
@@ -1783,7 +1792,7 @@ rollback app against current schema
 
 ---
 
-# Compatibility Tests Should Reflect Reality
+## Compatibility Tests Should Reflect Reality
 
 Do not maintain arbitrary historical combinations.
 
@@ -1791,7 +1800,7 @@ Test only combinations supported by actual release policy.
 
 ---
 
-# Released Baselines
+## Released Baselines
 
 Important compatibility boundaries may retain released baselines.
 
@@ -1808,7 +1817,7 @@ These support automated comparison.
 
 ---
 
-# Golden Fixtures
+## Golden Fixtures
 
 Historical payload fixtures may be useful to test deserialization compatibility.
 
@@ -1823,7 +1832,7 @@ These fixtures should represent real released shapes.
 
 ---
 
-# Compatibility Fixtures Are Immutable Evidence
+## Compatibility Fixtures Are Immutable Evidence
 
 A fixture representing a released historical contract should not be silently updated to make tests pass.
 
@@ -1831,7 +1840,7 @@ If the old contract changed historically, create the appropriate additional fixt
 
 ---
 
-# Property-Based Compatibility Testing
+## Property-Based Compatibility Testing
 
 For complex serializers, property-based testing may provide useful compatibility evidence.
 
@@ -1839,7 +1848,7 @@ This should be introduced only where risk justifies it.
 
 ---
 
-# Migration Tests
+## Migration Tests
 
 Compatibility between application and schema should follow database migration testing policy.
 
@@ -1847,25 +1856,23 @@ A fresh database alone is not sufficient evidence.
 
 ---
 
-# API Compatibility Tests
+## API Compatibility Tests
 
 API compatibility should follow:
 
-```text
-docs/api/versioning.md
-```
+- [docs/api/versioning.md](../api/versioning.md)
 
 and should use machine-readable contract baselines where practical.
 
 ---
 
-# Event Compatibility Tests
+## Event Compatibility Tests
 
 If event-driven architecture is introduced, producers and consumers should validate supported event shapes.
 
 ---
 
-# Configuration Compatibility Tests
+## Configuration Compatibility Tests
 
 Applications may test startup against:
 
@@ -1881,7 +1888,7 @@ during migration windows.
 
 ---
 
-# Rollback Compatibility Tests
+## Rollback Compatibility Tests
 
 Critical release pipelines may verify that the previous application version can operate against the post-expand schema.
 
@@ -1889,7 +1896,7 @@ This is particularly valuable for high-risk deployments.
 
 ---
 
-# Compatibility Failure
+## Compatibility Failure
 
 A compatibility failure should be explicit and diagnosable.
 
@@ -1905,7 +1912,7 @@ over silently interpreting incompatible data incorrectly.
 
 ---
 
-# Fail Fast on Incompatibility
+## Fail Fast on Incompatibility
 
 When a component cannot safely operate with a dependency version, fail before performing unsafe work where practical.
 
@@ -1921,7 +1928,7 @@ not ready
 
 ---
 
-# Capability Detection
+## Capability Detection
 
 Sometimes compatibility is better represented by capability detection than numeric versions.
 
@@ -1941,7 +1948,7 @@ Use capability checks when the actual dependency is a capability.
 
 ---
 
-# Version Checks
+## Version Checks
 
 Numeric version checks can be appropriate when the external system defines precise version semantics.
 
@@ -1949,7 +1956,7 @@ Avoid arbitrary internal version comparisons when feature detection expresses th
 
 ---
 
-# Compatibility and Defaults
+## Compatibility and Defaults
 
 Defaults can assist compatible evolution.
 
@@ -1969,7 +1976,7 @@ Do not invent defaults merely to make deserialization succeed.
 
 ---
 
-# Compatibility and Unknown Values
+## Compatibility and Unknown Values
 
 Forward-compatible consumers may preserve unknown values.
 
@@ -1977,7 +1984,7 @@ This is preferable to mapping unknown values silently to an incorrect known valu
 
 ---
 
-# Unknown Is Better Than Wrong
+## Unknown Is Better Than Wrong
 
 If a consumer does not understand:
 
@@ -2001,7 +2008,7 @@ Semantic correctness takes priority over convenient fallback.
 
 ---
 
-# Compatibility and Validation
+## Compatibility and Validation
 
 Validation should allow supported old forms during deprecation windows.
 
@@ -2009,7 +2016,7 @@ After removal, validation should reject them explicitly.
 
 ---
 
-# Compatibility and Errors
+## Compatibility and Errors
 
 Errors caused by unsupported versions or shapes should have stable diagnostics.
 
@@ -2025,7 +2032,7 @@ when the boundary can detect it earlier.
 
 ---
 
-# Compatibility and Observability
+## Compatibility and Observability
 
 Runtime telemetry should help identify compatibility-related failures.
 
@@ -2042,7 +2049,7 @@ where bounded and useful.
 
 ---
 
-# Release Correlation
+## Release Correlation
 
 When a compatibility failure appears after deployment, telemetry should make it possible to correlate the failure with:
 
@@ -2054,7 +2061,7 @@ configuration change
 
 ---
 
-# Compatibility Alerts
+## Compatibility Alerts
 
 Repeated unsupported-contract failures may indicate:
 
@@ -2070,7 +2077,7 @@ Alerting should reflect actual operational impact.
 
 ---
 
-# Documentation
+## Documentation
 
 Compatibility-sensitive contracts should document:
 
@@ -2086,7 +2093,7 @@ Do not add speculative compatibility matrices to simple components.
 
 ---
 
-# ADRs
+## ADRs
 
 Significant compatibility strategy decisions should be captured through ADRs.
 
@@ -2106,7 +2113,7 @@ Ordinary compatible changes do not require ADRs.
 
 ---
 
-# Compatibility Review
+## Compatibility Review
 
 Changes should receive compatibility review when they affect an independently evolving boundary.
 
@@ -2128,7 +2135,7 @@ Can the change be additive?
 
 ---
 
-# New Compatibility Boundary Checklist
+## New Compatibility Boundary Checklist
 
 Before introducing a versioned compatibility boundary, answer:
 
@@ -2147,7 +2154,7 @@ If these questions cannot be answered, explicit versioning may be premature.
 
 ---
 
-# Breaking Change Checklist
+## Breaking Change Checklist
 
 Before making a compatibility-sensitive change, answer:
 
@@ -2166,7 +2173,7 @@ Before making a compatibility-sensitive change, answer:
 
 ---
 
-# Deployment Compatibility Checklist
+## Deployment Compatibility Checklist
 
 Before deploying a change spanning multiple components, answer:
 
@@ -2183,7 +2190,7 @@ Before deploying a change spanning multiple components, answer:
 
 ---
 
-# Persisted Payload Checklist
+## Persisted Payload Checklist
 
 Before changing a persisted serialized payload, answer:
 
@@ -2199,7 +2206,7 @@ Before changing a persisted serialized payload, answer:
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 Before changing a compatibility-sensitive boundary, an AI agent should identify:
 
@@ -2215,7 +2222,7 @@ existing compatibility tests
 
 ---
 
-# AI Must Not Version Reflexively
+## AI Must Not Version Reflexively
 
 An AI agent must not add:
 
@@ -2232,7 +2239,7 @@ It should first evaluate compatible evolution.
 
 ---
 
-# AI and Monorepo Changes
+## AI and Monorepo Changes
 
 An AI agent should understand that internal monorepo consumers may often be updated atomically.
 
@@ -2240,7 +2247,7 @@ It should not preserve unnecessary internal backward compatibility where no runt
 
 ---
 
-# AI and Runtime Boundaries
+## AI and Runtime Boundaries
 
 An AI agent must recognize that:
 
@@ -2258,7 +2265,7 @@ These require compatibility analysis even inside a monorepo.
 
 ---
 
-# AI and Persisted Data
+## AI and Persisted Data
 
 Before changing serialized persisted data, an AI agent must determine whether old representations already exist.
 
@@ -2266,7 +2273,7 @@ It must not assume current code shape represents all stored data.
 
 ---
 
-# AI and Rollback
+## AI and Rollback
 
 An AI agent should evaluate whether a change makes the previous application release unable to run.
 
@@ -2274,7 +2281,7 @@ If so, it should identify the impact on rollback explicitly.
 
 ---
 
-# AI and Compatibility Code Removal
+## AI and Compatibility Code Removal
 
 An AI agent should not delete compatibility code merely because new code no longer uses it.
 
@@ -2282,19 +2289,19 @@ It must determine whether old consumers, persisted data, or rollback still requi
 
 ---
 
-# AI and Security
+## AI and Security
 
 If compatibility conflicts with a required security correction, the AI agent should prioritize security and identify the migration impact clearly.
 
 ---
 
-# AI and Tests
+## AI and Tests
 
 Compatibility-sensitive changes should add or update tests against the relevant supported old/new combinations where practical.
 
 ---
 
-# Mechanical Enforcement
+## Mechanical Enforcement
 
 Future tooling may enforce rules such as:
 
@@ -2320,7 +2327,7 @@ Semantic review remains necessary.
 
 ---
 
-# Compatibility Metadata
+## Compatibility Metadata
 
 Where useful, canonical contracts may eventually include metadata such as:
 
@@ -2335,7 +2342,7 @@ This metadata should be added only when tooling or consumers benefit from it.
 
 ---
 
-# Compatibility Manifest
+## Compatibility Manifest
 
 Orion may eventually maintain machine-readable information about supported compatibility boundaries.
 
@@ -2343,97 +2350,97 @@ This should not become a manually maintained duplicate of information already av
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Version Everything
+### Version Everything
 
 Avoid.
 
 ---
 
-## Preserve Every Internal Interface Forever
+### Preserve Every Internal Interface Forever
 
 Avoid.
 
 ---
 
-## Assume Monorepo Means No Compatibility Problems
+### Assume Monorepo Means No Compatibility Problems
 
 Avoid.
 
 ---
 
-## Assume Internal Means No Consumers
+### Assume Internal Means No Consumers
 
 Avoid.
 
 ---
 
-## Assume Additive Means Compatible
+### Assume Additive Means Compatible
 
 Avoid.
 
 ---
 
-## Structural Diff as Only Compatibility Review
+### Structural Diff as Only Compatibility Review
 
 Avoid.
 
 ---
 
-## New Writer Produces Data Old Reader Cannot Understand During Rolling Deployment
+### New Writer Produces Data Old Reader Cannot Understand During Rolling Deployment
 
 Avoid.
 
 ---
 
-## Remove Rollback Compatibility Accidentally
+### Remove Rollback Compatibility Accidentally
 
 Avoid.
 
 ---
 
-## Temporary Compatibility Code With No Removal Condition
+### Temporary Compatibility Code With No Removal Condition
 
 Avoid.
 
 ---
 
-## Dual Write Without Canonical Source
+### Dual Write Without Canonical Source
 
 Avoid.
 
 ---
 
-## Silent Interpretation of Unknown Data
+### Silent Interpretation of Unknown Data
 
 Avoid.
 
 ---
 
-## Global System Version for Unrelated Contracts
+### Global System Version for Unrelated Contracts
 
 Avoid.
 
 ---
 
-## API Version Tied to Database Version
+### API Version Tied to Database Version
 
 Avoid.
 
 ---
 
-## Package Version Tied to Product Release
+### Package Version Tied to Product Release
 
 Avoid unless distribution model specifically requires it.
 
 ---
 
-## Keep Legacy Behavior Solely Because It Exists
+### Keep Legacy Behavior Solely Because It Exists
 
 Avoid.
 
@@ -2441,13 +2448,13 @@ Compatibility must protect real consumers, not history for its own sake.
 
 ---
 
-## Preserve Security Vulnerability for Compatibility
+### Preserve Security Vulnerability for Compatibility
 
 Prohibited.
 
 ---
 
-# Initial Versioning and Compatibility Policy
+## Initial Versioning and Compatibility Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2474,7 +2481,7 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Future Implementation Decisions
 
 The following decisions are intentionally deferred:
 
@@ -2498,7 +2505,7 @@ Significant decisions should be documented through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document may later be complemented by:
 
@@ -2514,7 +2521,7 @@ Application- or domain-specific compatibility rules should remain close to the b
 
 ---
 
-# Summary
+## Summary
 
 Compatibility exists because independently evolving components cannot always change atomically.
 

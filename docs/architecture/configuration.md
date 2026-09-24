@@ -1,5 +1,20 @@
 # Configuration
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Canonical Configuration Schema](#canonical-configuration-schema)
+- [Configuration Validation](#configuration-validation)
+- [Configuration Precedence](#configuration-precedence)
+- [Centralized Ingestion](#centralized-ingestion)
+- [Configuration and Secrets](#configuration-and-secrets)
+- [New Configuration Checklist](#new-configuration-checklist)
+
+Related policy: [secrets management](../security/secrets-management.md), [data classification](../security/data-classification.md).
+
 ## Purpose
 
 This document defines the configuration architecture used by Orion.
@@ -23,15 +38,15 @@ Applications should not depend on undocumented environment state.
 
 This document is technology-agnostic.
 
-The concrete configuration library, schema format, and runtime integration mechanisms will be selected later through explicit architectural decisions.
+TypeBox is the accepted bootstrap schema system under ADR-0007. Runtime integration is not implemented; remaining deployment-specific mechanisms are still deferred.
 
 This document complements:
 
-- `docs/security/secrets-management.md`;
-- `docs/security/data-classification.md`;
-- `docs/security/telemetry-redaction.md`;
-- `docs/architecture/dependency-rules.md`;
-- `docs/architecture/application-boundaries.md`.
+- [docs/security/secrets-management.md](../security/secrets-management.md);
+- [docs/security/data-classification.md](../security/data-classification.md);
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md);
+- [docs/architecture/dependency-rules.md](dependency-rules.md);
+- [docs/architecture/application-boundaries.md](application-boundaries.md).
 
 ---
 
@@ -61,7 +76,7 @@ Configuration should not be discovered accidentally during runtime execution.
 
 ---
 
-# What Is Configuration?
+## What Is Configuration?
 
 Configuration controls application behavior without changing application source code.
 
@@ -85,7 +100,7 @@ Configuration should represent intentional operational variability.
 
 ---
 
-# What Is Not Configuration?
+## What Is Not Configuration?
 
 Not every value that changes belongs in configuration.
 
@@ -110,7 +125,7 @@ domain data describes what the application operates on
 
 ---
 
-# Configuration vs Secrets
+## Configuration vs Secrets
 
 Configuration and secrets are related but distinct concepts.
 
@@ -133,9 +148,7 @@ SESSION_SIGNING_KEY
 
 Secrets follow:
 
-```text
-docs/security/secrets-management.md
-```
+- [docs/security/secrets-management.md](../security/secrets-management.md)
 
 A configuration schema may reference a secret requirement.
 
@@ -143,7 +156,7 @@ It must not treat secret handling as ordinary configuration handling.
 
 ---
 
-# Configuration Categories
+## Configuration Categories
 
 Orion distinguishes several configuration categories.
 
@@ -164,7 +177,7 @@ These categories may have different delivery and security requirements.
 
 ---
 
-# Runtime Configuration
+## Runtime Configuration
 
 Runtime configuration is resolved when an application starts or operates.
 
@@ -185,7 +198,7 @@ Whether a restart is required depends on the configuration mechanism.
 
 ---
 
-# Build-Time Configuration
+## Build-Time Configuration
 
 Build-time configuration affects generated application artifacts.
 
@@ -215,7 +228,7 @@ Therefore build-time configuration must never contain server-only secrets.
 
 ---
 
-# Client-Visible Configuration
+## Client-Visible Configuration
 
 Configuration delivered to web, mobile, or desktop applications must be explicitly classified as client-safe.
 
@@ -242,7 +255,7 @@ The presence of a value in an environment variable does not make it safe for cli
 
 ---
 
-# Server-Only Configuration
+## Server-Only Configuration
 
 Trusted backend applications may receive configuration unavailable to clients.
 
@@ -262,7 +275,7 @@ Repository tooling should eventually enforce this distinction.
 
 ---
 
-# Canonical Configuration Schema
+## Canonical Configuration Schema
 
 Each application should have a canonical configuration schema.
 
@@ -297,7 +310,7 @@ The exact schema format will depend on the selected stack.
 
 ---
 
-# Configuration Validation
+## Configuration Validation
 
 Configuration must be validated before it is used.
 
@@ -325,7 +338,7 @@ After validation, application code should be able to assume the configuration sa
 
 ---
 
-# Fail Early
+## Fail Early
 
 Invalid required configuration should normally fail during application initialization.
 
@@ -343,7 +356,7 @@ Failing early reduces partially functional deployments.
 
 ---
 
-# Missing Required Configuration
+## Missing Required Configuration
 
 Missing required configuration should produce a clear diagnostic.
 
@@ -365,7 +378,7 @@ It must never expose a secret value.
 
 ---
 
-# Configuration Types
+## Configuration Types
 
 Configuration should use meaningful types.
 
@@ -402,7 +415,7 @@ Parsing and validation should occur at the configuration boundary.
 
 ---
 
-# Units Must Be Explicit
+## Units Must Be Explicit
 
 Numeric configuration should make units explicit.
 
@@ -426,7 +439,7 @@ This prevents subtle operational errors.
 
 ---
 
-# Enums Over Arbitrary Strings
+## Enums Over Arbitrary Strings
 
 When configuration accepts a bounded set of modes, validate them explicitly.
 
@@ -442,7 +455,7 @@ over accepting arbitrary strings and discovering unsupported values later.
 
 ---
 
-# Defaults
+## Defaults
 
 Defaults may reduce configuration burden.
 
@@ -457,7 +470,7 @@ Defaults must not hide required operational decisions.
 
 ---
 
-# Unsafe Defaults
+## Unsafe Defaults
 
 Security-sensitive or environment-specific values should not silently fall back to unsafe defaults.
 
@@ -481,7 +494,7 @@ Defaults should fail safely.
 
 ---
 
-# Production Defaults
+## Production Defaults
 
 Configuration defaults must be safe if accidentally used in production.
 
@@ -501,7 +514,7 @@ dangerous convenience default
 
 ---
 
-# Development Defaults
+## Development Defaults
 
 Development-only defaults may exist when clearly isolated.
 
@@ -519,7 +532,7 @@ The environment distinction should be explicit.
 
 ---
 
-# Configuration Sources
+## Configuration Sources
 
 Configuration may originate from several sources.
 
@@ -541,7 +554,7 @@ The important requirement is that precedence must be deterministic and documente
 
 ---
 
-# Configuration Precedence
+## Configuration Precedence
 
 If multiple configuration sources exist, their precedence must be explicit.
 
@@ -573,7 +586,7 @@ This example is not yet normative.
 
 ---
 
-# Avoid Excessive Configuration Layers
+## Avoid Excessive Configuration Layers
 
 More configuration sources increase complexity.
 
@@ -598,7 +611,7 @@ Prefer the smallest set of configuration mechanisms that satisfies actual requir
 
 ---
 
-# Environment Variables
+## Environment Variables
 
 Environment variables may be an effective runtime configuration delivery mechanism.
 
@@ -628,7 +641,7 @@ The same principle applies in languages without `process.env`.
 
 ---
 
-# Centralized Ingestion
+## Centralized Ingestion
 
 Raw environment access should be centralized.
 
@@ -647,7 +660,7 @@ It also makes configuration dependencies visible.
 
 ---
 
-# Configuration Objects
+## Configuration Objects
 
 Applications should avoid passing one giant configuration object everywhere.
 
@@ -681,7 +694,7 @@ when the additional values are irrelevant.
 
 ---
 
-# Configuration Dependency Visibility
+## Configuration Dependency Visibility
 
 A component's configuration dependency should be visible.
 
@@ -699,7 +712,7 @@ Avoid modules independently discovering configuration from global state.
 
 ---
 
-# Composition Root
+## Composition Root
 
 Configuration should normally be resolved near application composition.
 
@@ -721,7 +734,7 @@ Domain logic should not normally read environment-specific configuration directl
 
 ---
 
-# Domain Logic
+## Domain Logic
 
 Stable domain behavior should not depend on deployment-specific configuration unnecessarily.
 
@@ -743,7 +756,7 @@ Configuration should not become a mechanism for making every business invariant 
 
 ---
 
-# Configurable Business Behavior
+## Configurable Business Behavior
 
 Some business behavior may legitimately be configurable.
 
@@ -772,7 +785,7 @@ Do not automatically model all mutable business behavior as environment configur
 
 ---
 
-# Configuration Change Frequency
+## Configuration Change Frequency
 
 How often a value changes is an architectural signal.
 
@@ -802,7 +815,7 @@ generally belong in user or domain data.
 
 ---
 
-# Configuration Ownership
+## Configuration Ownership
 
 Every important configuration value should have an identifiable owner.
 
@@ -826,7 +839,7 @@ Configuration without ownership tends to accumulate indefinitely.
 
 ---
 
-# Application-Specific Configuration
+## Application-Specific Configuration
 
 Configuration should normally belong to the application that consumes it.
 
@@ -846,7 +859,7 @@ Shared configuration primitives may exist, but unrelated application settings sh
 
 ---
 
-# Shared Configuration
+## Shared Configuration
 
 Shared configuration is appropriate only when multiple applications genuinely share the same semantic setting.
 
@@ -862,7 +875,7 @@ Even then, consider whether sharing the schema or sharing the actual value is ap
 
 ---
 
-# Naming
+## Naming
 
 Configuration names should clearly describe their purpose.
 
@@ -894,7 +907,7 @@ Names should remain understandable without historical context.
 
 ---
 
-# Namespace Conventions
+## Namespace Conventions
 
 As Orion grows, application-specific configuration may require namespaces.
 
@@ -914,7 +927,7 @@ Consistency is more important than any specific prefix format.
 
 ---
 
-# Boolean Naming
+## Boolean Naming
 
 Boolean configuration should communicate positive semantics.
 
@@ -934,7 +947,7 @@ Double negatives increase operational mistakes.
 
 ---
 
-# Configuration Descriptions
+## Configuration Descriptions
 
 Every non-trivial configuration value should have a description explaining:
 
@@ -949,7 +962,7 @@ Descriptions should explain semantics, not merely repeat the name.
 
 ---
 
-# Configuration Documentation
+## Configuration Documentation
 
 Configuration documentation should be generated from the canonical schema where practical.
 
@@ -964,7 +977,7 @@ The documentation must never expose secret values.
 
 ---
 
-# One Canonical Definition
+## One Canonical Definition
 
 Avoid maintaining configuration independently in:
 
@@ -993,7 +1006,7 @@ where practical.
 
 ---
 
-# Example Configuration Files
+## Example Configuration Files
 
 Example files may be generated or maintained to show required configuration names.
 
@@ -1010,7 +1023,7 @@ Never include production values.
 
 ---
 
-# Configuration Drift
+## Configuration Drift
 
 Configuration drift occurs when environments unintentionally use inconsistent settings.
 
@@ -1029,7 +1042,7 @@ Exact values may remain secret or confidential.
 
 ---
 
-# Configuration Fingerprints
+## Configuration Fingerprints
 
 For troubleshooting, it may be useful to identify a safe fingerprint of configuration state.
 
@@ -1041,7 +1054,7 @@ This should be introduced only if operationally useful.
 
 ---
 
-# Environment Model
+## Environment Model
 
 Orion should use a small, explicit environment model.
 
@@ -1062,7 +1075,7 @@ Avoid uncontrolled aliases for the same environment.
 
 ---
 
-# Environment Is Not a Feature Flag
+## Environment Is Not a Feature Flag
 
 Avoid application behavior such as:
 
@@ -1089,7 +1102,7 @@ They should not become a generic mechanism for controlling unrelated behavior.
 
 ---
 
-# Production-Specific Behavior
+## Production-Specific Behavior
 
 Some behavior legitimately differs in production.
 
@@ -1105,7 +1118,7 @@ The distinction should remain explicit and testable.
 
 ---
 
-# Test Configuration
+## Test Configuration
 
 Tests should be able to construct configuration explicitly.
 
@@ -1125,7 +1138,7 @@ This improves deterministic testing.
 
 ---
 
-# Unit Tests
+## Unit Tests
 
 Unit tests should inject the minimal configuration required by the unit.
 
@@ -1133,7 +1146,7 @@ They should not require parsing the complete production configuration schema unl
 
 ---
 
-# Integration Tests
+## Integration Tests
 
 Integration tests may validate real application configuration boundaries.
 
@@ -1143,7 +1156,7 @@ Production secrets must never be required.
 
 ---
 
-# Configuration Parser Tests
+## Configuration Parser Tests
 
 Configuration validation should have dedicated tests for important behavior.
 
@@ -1160,7 +1173,7 @@ secret metadata preserved
 
 ---
 
-# CI Configuration
+## CI Configuration
 
 CI should explicitly provide the configuration required by each workflow.
 
@@ -1183,7 +1196,7 @@ Configuration and secret scope should align with job responsibility.
 
 ---
 
-# Deployment Configuration
+## Deployment Configuration
 
 Deployment definitions should make required application configuration discoverable.
 
@@ -1193,7 +1206,7 @@ The exact mechanism depends on the deployment platform.
 
 ---
 
-# Configuration Validation in CI
+## Configuration Validation in CI
 
 CI should eventually validate that deployment configuration satisfies application schemas where practical.
 
@@ -1211,7 +1224,7 @@ Secrets may be validated by presence/reference without exposing their values.
 
 ---
 
-# Unknown Configuration Keys
+## Unknown Configuration Keys
 
 Unknown configuration keys may indicate:
 
@@ -1228,7 +1241,7 @@ Whether unknown keys are warnings or errors depends on the configuration mechani
 
 ---
 
-# Deprecated Configuration
+## Deprecated Configuration
 
 Configuration keys should have an explicit deprecation lifecycle when required.
 
@@ -1248,7 +1261,7 @@ Do not leave obsolete configuration indefinitely.
 
 ---
 
-# Renaming Configuration
+## Renaming Configuration
 
 Renaming a configuration key can affect:
 
@@ -1268,7 +1281,7 @@ A safe migration may temporarily support both names.
 
 ---
 
-# Removing Configuration
+## Removing Configuration
 
 Before removing a configuration key:
 
@@ -1282,7 +1295,7 @@ Before removing a configuration key:
 
 ---
 
-# Dynamic Configuration
+## Dynamic Configuration
 
 Some systems support changing configuration without application restart.
 
@@ -1303,7 +1316,7 @@ Static startup configuration is simpler and should generally be preferred initia
 
 ---
 
-# Remote Configuration
+## Remote Configuration
 
 Remote configuration systems may be useful for operational control.
 
@@ -1322,7 +1335,7 @@ Orion should not introduce a remote configuration system by default.
 
 ---
 
-# Feature Flags
+## Feature Flags
 
 Feature flags are related to configuration but have distinct lifecycle and operational characteristics.
 
@@ -1341,7 +1354,7 @@ A separate feature-management policy may be introduced if real requirements emer
 
 ---
 
-# Feature Flag Debt
+## Feature Flag Debt
 
 Temporary feature flags must have removal criteria.
 
@@ -1358,7 +1371,7 @@ Feature flags are temporary complexity unless explicitly designed as permanent p
 
 ---
 
-# Configuration and Secrets
+## Configuration and Secrets
 
 A configuration schema may describe a secret dependency.
 
@@ -1378,7 +1391,7 @@ These responsibilities should remain distinct.
 
 ---
 
-# Secret References
+## Secret References
 
 Where supported, configuration may contain references to secrets rather than secret values.
 
@@ -1398,7 +1411,7 @@ The exact mechanism depends on infrastructure.
 
 ---
 
-# Secret Values in Memory
+## Secret Values in Memory
 
 Once resolved, secret values may exist temporarily in application memory.
 
@@ -1408,7 +1421,7 @@ Configuration diagnostics, serialization, and logging must not expose them.
 
 ---
 
-# Configuration Serialization
+## Configuration Serialization
 
 Configuration objects may contain secrets or confidential values.
 
@@ -1426,7 +1439,7 @@ Use explicit safe projections.
 
 ---
 
-# Safe Configuration Summary
+## Safe Configuration Summary
 
 Applications may expose a safe configuration summary for diagnostics.
 
@@ -1449,7 +1462,7 @@ The summary should be generated from explicit safe fields.
 
 ---
 
-# Health Endpoints
+## Health Endpoints
 
 Health endpoints must not expose raw configuration.
 
@@ -1464,7 +1477,7 @@ without exposing connection strings or credentials.
 
 ---
 
-# Error Messages
+## Error Messages
 
 Configuration errors should identify the configuration key and expected requirement.
 
@@ -1484,7 +1497,7 @@ PAYMENT_PROVIDER_SECRET was expected to equal ...
 
 ---
 
-# Logging
+## Logging
 
 Applications should not log complete configuration at startup.
 
@@ -1500,20 +1513,18 @@ Use explicit safe fields.
 
 ---
 
-# Telemetry
+## Telemetry
 
 Configuration included in telemetry must follow:
 
-```text
-docs/security/data-classification.md
-docs/security/telemetry-redaction.md
-```
+- [docs/security/data-classification.md](../security/data-classification.md)
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md)
 
 Secret or restricted configuration must never be emitted intentionally.
 
 ---
 
-# Configuration and AI Agents
+## Configuration and AI Agents
 
 AI agents should be able to understand configuration requirements from repository definitions without requiring access to actual secret values.
 
@@ -1540,7 +1551,7 @@ This is a core requirement for AI-friendly configuration design.
 
 ---
 
-# AI-Assisted Configuration Changes
+## AI-Assisted Configuration Changes
 
 Before changing configuration behavior, an AI agent should determine:
 
@@ -1558,7 +1569,7 @@ It must not introduce an environment variable casually merely because it is conv
 
 ---
 
-# New Configuration Checklist
+## New Configuration Checklist
 
 Before introducing a new configuration value, answer:
 
@@ -1582,7 +1593,7 @@ If these questions cannot be answered, the configuration design is incomplete.
 
 ---
 
-# New Configuration Should Be Justified
+## New Configuration Should Be Justified
 
 Configuration creates additional system state.
 
@@ -1598,7 +1609,7 @@ Prefer a fixed sensible behavior until real variability is required.
 
 ---
 
-# Configuration Explosion
+## Configuration Explosion
 
 Excessive configuration creates a system that is difficult to understand and test.
 
@@ -1619,7 +1630,7 @@ Configuration should be minimized just like dependencies and abstractions.
 
 ---
 
-# Invalid Configuration Combinations
+## Invalid Configuration Combinations
 
 If configuration options interact, invalid combinations should be prevented.
 
@@ -1637,7 +1648,7 @@ Prefer schemas capable of validating cross-field invariants where necessary.
 
 ---
 
-# Mutually Exclusive Configuration
+## Mutually Exclusive Configuration
 
 Mutually exclusive modes should be represented explicitly.
 
@@ -1658,7 +1669,7 @@ which permits contradictory combinations.
 
 ---
 
-# Conditional Requirements
+## Conditional Requirements
 
 Some configuration may be required only when another capability is enabled.
 
@@ -1674,7 +1685,7 @@ The schema should express such conditions where practical.
 
 ---
 
-# Configuration Groups
+## Configuration Groups
 
 Related settings may be grouped semantically.
 
@@ -1697,7 +1708,7 @@ Semantic grouping should remain clear either way.
 
 ---
 
-# Configuration Boundaries
+## Configuration Boundaries
 
 A shared configuration system should not cause every package to depend on every configuration value.
 
@@ -1715,7 +1726,7 @@ This limits coupling and improves testability.
 
 ---
 
-# Package Configuration
+## Package Configuration
 
 Shared packages should not normally read application environment state directly.
 
@@ -1725,7 +1736,7 @@ This keeps the package reusable and prevents hidden runtime dependencies.
 
 ---
 
-# Library Packages
+## Library Packages
 
 General-purpose shared packages should avoid configuration entirely where simple parameters are sufficient.
 
@@ -1748,7 +1759,7 @@ unless reading environment state is the package's explicit responsibility.
 
 ---
 
-# Configuration and Dependency Direction
+## Configuration and Dependency Direction
 
 Configuration infrastructure belongs near the outer application boundary.
 
@@ -1776,7 +1787,7 @@ environment variables
 
 ---
 
-# Configuration Reload
+## Configuration Reload
 
 If runtime reload is ever supported, configuration values must define whether they are:
 
@@ -1806,7 +1817,7 @@ The reload model must be explicit.
 
 ---
 
-# Configuration Changes and Observability
+## Configuration Changes and Observability
 
 Important operational configuration changes should be discoverable.
 
@@ -1823,7 +1834,7 @@ without exposing secret values.
 
 ---
 
-# Configuration Audit
+## Configuration Audit
 
 High-impact configuration changes may require auditability.
 
@@ -1841,7 +1852,7 @@ The exact audit policy should reflect operational risk.
 
 ---
 
-# Configuration and Releases
+## Configuration and Releases
 
 Application code and configuration may evolve independently.
 
@@ -1851,7 +1862,7 @@ Deployment tooling should detect incompatible configuration where practical.
 
 ---
 
-# Backward Compatibility
+## Backward Compatibility
 
 During rolling deployments, multiple application versions may coexist.
 
@@ -1868,7 +1879,7 @@ This may require temporary compatibility.
 
 ---
 
-# Configuration Schema Versioning
+## Configuration Schema Versioning
 
 A formal configuration schema version should not be introduced unless needed.
 
@@ -1878,7 +1889,7 @@ If separately managed configuration evolves independently, explicit versioning m
 
 ---
 
-# Configuration Drift Between Versions
+## Configuration Drift Between Versions
 
 An old application version may rely on a configuration key removed by a newer version.
 
@@ -1888,7 +1899,7 @@ Therefore configuration removal must consider rollback requirements.
 
 ---
 
-# Configuration and Database Migrations
+## Configuration and Database Migrations
 
 Configuration changes may sometimes coordinate with database evolution.
 
@@ -1908,7 +1919,7 @@ Such changes should follow safe deployment sequencing.
 
 ---
 
-# Configuration and External Providers
+## Configuration and External Providers
 
 Provider-specific configuration should remain close to the integration boundary.
 
@@ -1927,7 +1938,7 @@ belongs with payment-provider integration rather than global business logic.
 
 ---
 
-# Configuration and Portability
+## Configuration and Portability
 
 Avoid unnecessary configuration tied to one deployment platform when a platform-neutral application concept exists.
 
@@ -1937,7 +1948,7 @@ The configuration model should reflect actual architecture.
 
 ---
 
-# Configuration Discovery
+## Configuration Discovery
 
 A contributor should be able to determine all required application configuration without searching arbitrary source files.
 
@@ -1953,7 +1964,7 @@ The canonical schema should remain authoritative.
 
 ---
 
-# Configuration Documentation Location
+## Configuration Documentation Location
 
 Generated configuration documentation should eventually live under:
 
@@ -1973,7 +1984,7 @@ when applications exist.
 
 ---
 
-# Mechanical Enforcement
+## Mechanical Enforcement
 
 Future tooling should enforce configuration rules where practical.
 
@@ -2003,7 +2014,7 @@ The exact implementation depends on the selected stack.
 
 ---
 
-# Client Bundle Enforcement
+## Client Bundle Enforcement
 
 Build tooling should eventually distinguish:
 
@@ -2017,7 +2028,7 @@ Client builds must fail if they attempt to import or embed server-only or restri
 
 ---
 
-# Static Analysis
+## Static Analysis
 
 Static analysis may prohibit direct environment access outside approved modules.
 
@@ -2033,7 +2044,7 @@ This can make hidden configuration dependencies difficult to introduce.
 
 ---
 
-# Generated Configuration Types
+## Generated Configuration Types
 
 Where supported, configuration types should be generated or derived from the canonical schema.
 
@@ -2053,7 +2064,7 @@ independently when one can derive the other.
 
 ---
 
-# Generated Example Files
+## Generated Example Files
 
 Example environment files may eventually be generated from configuration schemas.
 
@@ -2074,7 +2085,7 @@ without storing actual credentials.
 
 ---
 
-# Generated Documentation
+## Generated Documentation
 
 A canonical configuration schema may eventually generate:
 
@@ -2090,13 +2101,13 @@ This reinforces the single-source-of-truth principle.
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns should be avoided.
 
 ---
 
-## Scattered Environment Access
+### Scattered Environment Access
 
 ```text
 module A → environment
@@ -2110,7 +2121,7 @@ Prefer centralized ingestion.
 
 ---
 
-## Stringly Typed Configuration
+### Stringly Typed Configuration
 
 ```text
 "false"
@@ -2124,7 +2135,7 @@ Avoid.
 
 ---
 
-## Giant Global Configuration Object
+### Giant Global Configuration Object
 
 Every component receives every setting.
 
@@ -2132,7 +2143,7 @@ Avoid.
 
 ---
 
-## Configuration as Business Database
+### Configuration as Business Database
 
 Environment variables used for frequently changing business behavior.
 
@@ -2140,7 +2151,7 @@ Avoid when domain data is the correct model.
 
 ---
 
-## Secrets as Ordinary Configuration
+### Secrets as Ordinary Configuration
 
 Secret values treated like safe strings.
 
@@ -2148,25 +2159,25 @@ Prohibited.
 
 ---
 
-## Server Secret in Client Build
+### Server Secret in Client Build
 
 Prohibited.
 
 ---
 
-## Entire Configuration Logged
+### Entire Configuration Logged
 
 Prohibited when configuration may contain sensitive values.
 
 ---
 
-## Hidden Defaults
+### Hidden Defaults
 
 Avoid defaults that materially change behavior without being visible in documentation.
 
 ---
 
-## Environment Name as Generic Switch
+### Environment Name as Generic Switch
 
 ```text
 if production
@@ -2178,13 +2189,13 @@ Avoid.
 
 ---
 
-## Arbitrary Dynamic Configuration
+### Arbitrary Dynamic Configuration
 
 Avoid runtime-mutating settings without ownership, auditability, or consistency model.
 
 ---
 
-## Unused Configuration
+### Unused Configuration
 
 Configuration keys with no consumers should be removed.
 
@@ -2192,7 +2203,7 @@ Stale configuration creates false assumptions.
 
 ---
 
-# Initial Configuration Policy
+## Initial Configuration Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2201,7 +2212,7 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 3. Raw environment access should be centralized.
 4. Components should receive only the configuration they require.
 5. Configuration and secrets are distinct concerns.
-6. Secret configuration follows `docs/security/secrets-management.md`.
+6. Secret configuration follows [docs/security/secrets-management.md](../security/secrets-management.md).
 7. Client-visible and server-only configuration must be distinguishable.
 8. Client applications must never receive server-only secrets.
 9. Invalid required configuration should fail early.
@@ -2219,12 +2230,11 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Remaining Implementation Decisions
 
-The following decisions are intentionally deferred:
+The accepted choices are linked above. These remaining details are intentionally deferred:
 
 ```text
-configuration schema library
 configuration package structure
 environment-variable naming convention
 configuration source precedence
@@ -2242,7 +2252,7 @@ Significant choices should be captured through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document may later be complemented by:
 
@@ -2262,7 +2272,7 @@ Implementation-specific documentation should reference this policy rather than r
 
 ---
 
-# Summary
+## Summary
 
 Configuration is an explicit application dependency.
 

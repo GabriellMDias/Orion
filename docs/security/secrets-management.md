@@ -1,5 +1,17 @@
 # Secrets Management
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md), [ADR-0011](../adr/0011-establish-continuous-integration-dependency-automation-and-supply-chain-security-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Secret Storage](#secret-storage)
+- [Client Applications](#client-applications)
+- [Secret Rotation](#secret-rotation)
+- [Accidental Source-Control Exposure](#accidental-source-control-exposure)
+- [New Secret Checklist](#new-secret-checklist)
+
 ## Purpose
 
 This document defines the secrets-management policy for Orion.
@@ -23,10 +35,10 @@ The specific secret-management platform and runtime integration mechanisms will 
 
 This document complements:
 
-- `docs/security/data-classification.md`;
-- `docs/security/telemetry-redaction.md`;
-- `docs/reliability/observability.md`;
-- `docs/architecture/error-handling.md`.
+- [docs/security/data-classification.md](data-classification.md);
+- [docs/security/telemetry-redaction.md](telemetry-redaction.md);
+- [docs/reliability/observability.md](../reliability/observability.md);
+- [docs/architecture/error-handling.md](../architecture/error-handling.md).
 
 ---
 
@@ -58,7 +70,7 @@ A secret is not merely another configuration value.
 
 ---
 
-# What Is a Secret?
+## What Is a Secret?
 
 A secret is information whose confidentiality is required to preserve a security boundary or privileged capability.
 
@@ -83,7 +95,7 @@ Secrets are classified as `RESTRICTED` unless a more specialized security policy
 
 ---
 
-# What Is Not Necessarily a Secret?
+## What Is Not Necessarily a Secret?
 
 Some values may contain words such as `key`, `token`, or `identifier` without being confidential.
 
@@ -114,7 +126,7 @@ when the value is intentionally non-secret.
 
 ---
 
-# Secrets vs Configuration
+## Secrets vs Configuration
 
 Configuration answers questions such as:
 
@@ -146,7 +158,7 @@ It should not require secrets to behave like ordinary configuration.
 
 ---
 
-# Secret Ownership
+## Secret Ownership
 
 Every secret should have an identifiable owner.
 
@@ -165,7 +177,7 @@ Unowned secrets tend to become permanent unmanaged credentials.
 
 ---
 
-# Secret Scope
+## Secret Scope
 
 Secrets should be scoped as narrowly as practical.
 
@@ -187,7 +199,7 @@ The smaller the capability, the smaller the impact of compromise.
 
 ---
 
-# Environment Isolation
+## Environment Isolation
 
 Secrets should be isolated between environments.
 
@@ -209,7 +221,7 @@ A development compromise must not automatically provide production access.
 
 ---
 
-# Application Isolation
+## Application Isolation
 
 Different applications should not automatically share credentials.
 
@@ -245,7 +257,7 @@ Client applications must never receive server-only secrets.
 
 ---
 
-# Service Identity
+## Service Identity
 
 Where the platform supports identity-based authentication, prefer short-lived service identity over long-lived static secrets.
 
@@ -271,7 +283,7 @@ The exact mechanism depends on deployment infrastructure.
 
 ---
 
-# Least Privilege
+## Least Privilege
 
 Secrets should grant only the minimum required capability.
 
@@ -294,7 +306,7 @@ Provider credentials should follow the same principle.
 
 ---
 
-# Separate Runtime and Administrative Credentials
+## Separate Runtime and Administrative Credentials
 
 Runtime credentials and administrative credentials should remain separate.
 
@@ -320,7 +332,7 @@ Different capabilities should use different identities when the distinction prov
 
 ---
 
-# Human and Machine Credentials
+## Human and Machine Credentials
 
 Human access and application access should be distinguishable.
 
@@ -346,7 +358,7 @@ incident response
 
 ---
 
-# Secret Storage
+## Secret Storage
 
 Secrets must be stored in systems designed to protect confidential credentials.
 
@@ -367,7 +379,7 @@ Plaintext files are not an acceptable long-term production secret store.
 
 ---
 
-# Source Control
+## Source Control
 
 Secrets must never be intentionally committed to Git.
 
@@ -399,7 +411,7 @@ A private repository does not make source control an acceptable secret store.
 
 ---
 
-# Private Repositories
+## Private Repositories
 
 Private repository visibility reduces exposure.
 
@@ -431,7 +443,7 @@ safe place for credentials
 
 ---
 
-# Secret Files
+## Secret Files
 
 Files containing credentials should normally be excluded from source control.
 
@@ -452,7 +464,7 @@ Secret scanning and contributor discipline remain necessary.
 
 ---
 
-# Configuration Templates
+## Configuration Templates
 
 The repository may contain templates showing required secret names.
 
@@ -469,7 +481,7 @@ Examples should use obvious placeholders.
 
 ---
 
-# Local Development
+## Local Development
 
 Local development must not require production credentials for routine work.
 
@@ -489,7 +501,7 @@ Production credentials should never become the easiest way to run the applicatio
 
 ---
 
-# Developer Secrets
+## Developer Secrets
 
 Developers may require local credentials for external development environments.
 
@@ -505,7 +517,7 @@ Local secrets must remain outside source control.
 
 ---
 
-# Shared Development Credentials
+## Shared Development Credentials
 
 Shared development credentials should be avoided when individual or workload identities are practical.
 
@@ -522,7 +534,7 @@ They must never be reused for production.
 
 ---
 
-# Local Secret Injection
+## Local Secret Injection
 
 The exact development mechanism is deferred.
 
@@ -541,7 +553,7 @@ Developers should not need unsafe manual copy-and-paste workflows for routine us
 
 ---
 
-# Environment Variables
+## Environment Variables
 
 Environment variables may be used as a delivery mechanism for secrets.
 
@@ -562,7 +574,7 @@ Therefore environment variables must still follow the complete secrets policy.
 
 ---
 
-# Environment Dumps
+## Environment Dumps
 
 Applications and tooling must never log or expose complete environment-variable collections.
 
@@ -578,7 +590,7 @@ Safe diagnostics should use explicit allowlists of non-secret configuration.
 
 ---
 
-# Command-Line Arguments
+## Command-Line Arguments
 
 Secrets should not normally be passed directly through command-line arguments.
 
@@ -595,7 +607,7 @@ Prefer approved secret-delivery mechanisms.
 
 ---
 
-# Shell History
+## Shell History
 
 Developers and operational tooling should avoid commands such as:
 
@@ -609,7 +621,7 @@ Secret-management workflows should minimize manual handling.
 
 ---
 
-# Clipboard
+## Clipboard
 
 Copying secrets through the clipboard creates additional exposure risk.
 
@@ -619,7 +631,7 @@ Where manual access is necessary, minimize duration and scope.
 
 ---
 
-# Filesystem Storage
+## Filesystem Storage
 
 Plaintext secrets should not be stored permanently in arbitrary local files.
 
@@ -636,7 +648,7 @@ The preferred long-term approach should be a secure credential store where pract
 
 ---
 
-# Client Applications
+## Client Applications
 
 Web, mobile, and desktop applications are not trusted locations for server secrets.
 
@@ -656,7 +668,7 @@ Obfuscation does not create secrecy.
 
 ---
 
-# Browser Applications
+## Browser Applications
 
 Anything included in browser-delivered code or configuration must be treated as public to the user.
 
@@ -673,7 +685,7 @@ in frontend bundles.
 
 ---
 
-# Mobile Applications
+## Mobile Applications
 
 Secrets compiled into mobile binaries must be considered recoverable.
 
@@ -683,7 +695,7 @@ Mobile applications may hold user-specific credentials when required, but storag
 
 ---
 
-# Desktop Applications
+## Desktop Applications
 
 Desktop applications should also be considered user-controlled environments.
 
@@ -693,7 +705,7 @@ Do not embed privileged backend secrets.
 
 ---
 
-# Publishable Credentials
+## Publishable Credentials
 
 Some external providers intentionally support client-visible credentials.
 
@@ -717,7 +729,7 @@ Document the actual security capability.
 
 ---
 
-# CI Secrets
+## CI Secrets
 
 CI systems may require credentials for:
 
@@ -736,7 +748,7 @@ A test job should not automatically receive production deployment credentials.
 
 ---
 
-# Pull Request Security
+## Pull Request Security
 
 Pull requests from untrusted or less-trusted contexts must not automatically receive privileged secrets.
 
@@ -746,7 +758,7 @@ Secret access should depend on workflow trust.
 
 ---
 
-# Forked Contributions
+## Forked Contributions
 
 If external contributions are ever supported, workflows running contributed code must not receive privileged repository or production secrets by default.
 
@@ -754,7 +766,7 @@ The exact policy will depend on repository visibility and contribution model.
 
 ---
 
-# Build Secrets
+## Build Secrets
 
 Build-time secrets require special care.
 
@@ -774,7 +786,7 @@ unless intentionally public.
 
 ---
 
-# Container Images
+## Container Images
 
 Secrets must not be baked into container images.
 
@@ -790,7 +802,7 @@ Secrets should normally be supplied at runtime through approved mechanisms.
 
 ---
 
-# Container Build Context
+## Container Build Context
 
 The build context should avoid including local secret files even if later build steps do not intentionally copy them.
 
@@ -798,7 +810,7 @@ Repository ignore and container-specific ignore files should reduce accidental i
 
 ---
 
-# Infrastructure as Code
+## Infrastructure as Code
 
 Infrastructure definitions may reference secret identifiers.
 
@@ -820,7 +832,7 @@ Infrastructure tooling must avoid printing secrets during plan or deployment out
 
 ---
 
-# Database Credentials
+## Database Credentials
 
 Database credentials should be environment-specific and least-privileged.
 
@@ -838,7 +850,7 @@ These identities should remain distinct where their responsibilities differ.
 
 ---
 
-# Migration Credentials
+## Migration Credentials
 
 Schema migrations may require stronger database privileges than ordinary application runtime.
 
@@ -848,7 +860,7 @@ The normal application should not inherit elevated privileges merely because mig
 
 ---
 
-# External Provider Credentials
+## External Provider Credentials
 
 Each provider credential should ideally be scoped according to:
 
@@ -876,7 +888,7 @@ when the provider supports more restrictive permissions.
 
 ---
 
-# Webhook Secrets
+## Webhook Secrets
 
 Secrets used to authenticate inbound webhooks are `RESTRICTED`.
 
@@ -892,7 +904,7 @@ Webhook request payloads must not include the secret in diagnostic output.
 
 ---
 
-# Cryptographic Keys
+## Cryptographic Keys
 
 Private cryptographic keys are `RESTRICTED`.
 
@@ -913,7 +925,7 @@ One key should not serve unrelated cryptographic responsibilities without explic
 
 ---
 
-# Key Separation
+## Key Separation
 
 Prefer separate keys for:
 
@@ -929,7 +941,7 @@ Key reuse increases the consequences of compromise and complicates rotation.
 
 ---
 
-# Public and Private Keys
+## Public and Private Keys
 
 Public keys may generally be distributed according to their purpose.
 
@@ -939,7 +951,7 @@ The relationship should be explicit in naming and documentation.
 
 ---
 
-# Secret Generation
+## Secret Generation
 
 Secrets should be generated using cryptographically secure mechanisms appropriate to their purpose.
 
@@ -951,7 +963,7 @@ Human-readable convenience must not weaken machine credentials.
 
 ---
 
-# Human Passwords
+## Human Passwords
 
 User passwords are not application-managed secrets in the same sense as infrastructure credentials, but they remain `RESTRICTED`.
 
@@ -961,7 +973,7 @@ Password storage policy will be defined with authentication architecture.
 
 ---
 
-# Secret Rotation
+## Secret Rotation
 
 Important secrets must be rotatable.
 
@@ -981,7 +993,7 @@ The required cadence depends on the secret and platform capabilities.
 
 ---
 
-# Rotation Without Outage
+## Rotation Without Outage
 
 Where practical, secret rotation should not require application downtime.
 
@@ -1002,7 +1014,7 @@ Some systems support multiple active credentials specifically for this purpose.
 
 ---
 
-# Immediate Rotation
+## Immediate Rotation
 
 A secret must be rotated or revoked promptly when:
 
@@ -1019,7 +1031,7 @@ The exact response depends on the secret capability.
 
 ---
 
-# Rotation Ownership
+## Rotation Ownership
 
 Every important secret should have a clear answer to:
 
@@ -1039,7 +1051,7 @@ A secret that nobody knows how to rotate is operational debt.
 
 ---
 
-# Revocation
+## Revocation
 
 Secrets must be revocable where the underlying system supports it.
 
@@ -1049,7 +1061,7 @@ Creating a replacement credential is not sufficient if the compromised credentia
 
 ---
 
-# Expiration
+## Expiration
 
 Short-lived credentials should be preferred where supported.
 
@@ -1061,7 +1073,7 @@ A short-lived credential that regularly causes outages is not a successful desig
 
 ---
 
-# Dynamic Credentials
+## Dynamic Credentials
 
 Dynamic or temporary credentials may be preferred for infrastructure when the platform supports them.
 
@@ -1079,7 +1091,7 @@ The operational complexity must still be justified.
 
 ---
 
-# Secret Versioning
+## Secret Versioning
 
 Secret-management systems may maintain secret versions.
 
@@ -1089,7 +1101,7 @@ Operational tooling should allow identifying which credential generation is acti
 
 ---
 
-# Secret Lifecycle
+## Secret Lifecycle
 
 A secret should conceptually have a lifecycle:
 
@@ -1115,7 +1127,7 @@ Each stage creates security responsibilities.
 
 ---
 
-# Secret Delivery
+## Secret Delivery
 
 Secrets should be delivered only to the runtime that requires them.
 
@@ -1143,7 +1155,7 @@ Fewer copies reduce exposure.
 
 ---
 
-# Just-in-Time Access
+## Just-in-Time Access
 
 Where practical, privileged human access to secrets or production systems should be temporary rather than permanent.
 
@@ -1153,7 +1165,7 @@ Standing access should not be the default merely for convenience.
 
 ---
 
-# Secret Access Control
+## Secret Access Control
 
 Secret access should follow least privilege.
 
@@ -1172,7 +1184,7 @@ A system capable of reading one secret should not automatically receive access t
 
 ---
 
-# Secret Naming
+## Secret Naming
 
 Secret names should clearly communicate ownership and purpose without containing sensitive values.
 
@@ -1194,7 +1206,7 @@ The exact syntax depends on the selected secret platform.
 
 ---
 
-# Secret Names Are Not Secret Values
+## Secret Names Are Not Secret Values
 
 Secret names may still reveal infrastructure information.
 
@@ -1204,7 +1216,7 @@ Do not put actual sensitive data into secret names.
 
 ---
 
-# Application Startup
+## Application Startup
 
 Applications should validate that required secrets are available during startup or initialization.
 
@@ -1226,7 +1238,7 @@ The diagnostic must identify the missing configuration name, not the secret valu
 
 ---
 
-# Secret Validation
+## Secret Validation
 
 Where a secret has a known structural format, applications may validate basic structure without logging its contents.
 
@@ -1243,7 +1255,7 @@ Avoid verification mechanisms that expose the value in error output.
 
 ---
 
-# Startup Logging
+## Startup Logging
 
 Applications may log that secret-dependent systems initialized successfully.
 
@@ -1263,7 +1275,7 @@ Payment provider initialized with key sk_live_...
 
 ---
 
-# Secret Access in Application Code
+## Secret Access in Application Code
 
 Application code should receive only the secrets it requires.
 
@@ -1283,7 +1295,7 @@ Do not make global secret access available throughout the application without ne
 
 ---
 
-# Composition Root
+## Composition Root
 
 Secret acquisition should generally happen near trusted application composition.
 
@@ -1309,7 +1321,7 @@ This keeps secret dependencies visible.
 
 ---
 
-# Domain Logic
+## Domain Logic
 
 Domain logic should not normally depend on secret-management systems.
 
@@ -1323,7 +1335,7 @@ Infrastructure boundaries should own provider credentials.
 
 ---
 
-# Secret Access Helpers
+## Secret Access Helpers
 
 If Orion eventually provides shared secret-access helpers, they should make ownership explicit.
 
@@ -1339,7 +1351,7 @@ Prefer application composition that requests known required secrets deliberately
 
 ---
 
-# Secret Caching
+## Secret Caching
 
 Applications may cache secrets in memory when required for performance or provider integration.
 
@@ -1357,7 +1369,7 @@ A permanently cached secret may prevent rotation from taking effect.
 
 ---
 
-# Secret Refresh
+## Secret Refresh
 
 If secrets may rotate while the application remains running, the runtime should have a defined refresh strategy.
 
@@ -1374,7 +1386,7 @@ The selected strategy should match operational requirements.
 
 ---
 
-# Failure During Secret Retrieval
+## Failure During Secret Retrieval
 
 Failure to retrieve a required secret should normally be treated as a configuration or infrastructure failure.
 
@@ -1390,7 +1402,7 @@ The behavior must be explicit.
 
 ---
 
-# Optional Secrets
+## Optional Secrets
 
 A secret should be optional only when the corresponding capability is truly optional.
 
@@ -1406,7 +1418,7 @@ A required database credential should not silently become optional.
 
 ---
 
-# Secret Defaults
+## Secret Defaults
 
 Secrets must not have insecure fallback defaults.
 
@@ -1422,7 +1434,7 @@ Development defaults should be clearly isolated and incapable of silently becomi
 
 ---
 
-# Placeholder Secrets
+## Placeholder Secrets
 
 Placeholder values such as:
 
@@ -1439,7 +1451,7 @@ Validation should eventually detect known unsafe defaults.
 
 ---
 
-# Logs and Telemetry
+## Logs and Telemetry
 
 Secrets must never be intentionally emitted to:
 
@@ -1455,15 +1467,13 @@ profiling metadata
 
 This rule is defined further in:
 
-```text
-docs/security/telemetry-redaction.md
-```
+- [docs/security/telemetry-redaction.md](telemetry-redaction.md)
 
 Secret-management implementation must integrate with telemetry policy.
 
 ---
 
-# Error Handling
+## Error Handling
 
 Errors involving secret access must not include the secret value.
 
@@ -1483,7 +1493,7 @@ Provider exceptions must be reviewed because they may include credential-bearing
 
 ---
 
-# Secret Serialization
+## Secret Serialization
 
 Secret values should not be included in generic serialization mechanisms.
 
@@ -1501,7 +1511,7 @@ Dedicated secret wrappers may be considered if the selected language can use the
 
 ---
 
-# Secret Types
+## Secret Types
 
 Where supported by the selected language, Orion may eventually use dedicated types to distinguish secrets from ordinary strings.
 
@@ -1517,7 +1527,7 @@ This should be introduced only if it provides practical safety without excessive
 
 ---
 
-# Secret Redaction by Type
+## Secret Redaction by Type
 
 If dedicated secret types are introduced, their default string representation should never expose the underlying value.
 
@@ -1533,7 +1543,7 @@ This can provide defense in depth.
 
 ---
 
-# Error Tracking SDKs
+## Error Tracking SDKs
 
 Automatic error-capture SDKs must be configured so secret values are not captured from:
 
@@ -1550,7 +1560,7 @@ Default SDK configuration must be reviewed before production use.
 
 ---
 
-# Debuggers
+## Debuggers
 
 Debuggers can inspect process memory and secret values.
 
@@ -1560,7 +1570,7 @@ Routine operational investigation should prefer sanitized telemetry instead of u
 
 ---
 
-# Memory Dumps
+## Memory Dumps
 
 Memory dumps may contain secrets.
 
@@ -1570,7 +1580,7 @@ Their collection should be exceptional and access tightly controlled.
 
 ---
 
-# Crash Reports
+## Crash Reports
 
 Crash-report tooling must be reviewed for potential capture of:
 
@@ -1586,7 +1596,7 @@ Crash-report convenience must not bypass the secret policy.
 
 ---
 
-# Support Tools
+## Support Tools
 
 Support tools should never expose application secrets.
 
@@ -1596,7 +1606,7 @@ A support role should not receive provider or database credentials merely becaus
 
 ---
 
-# Administrative Interfaces
+## Administrative Interfaces
 
 Administrative user interfaces must not display secret values unnecessarily.
 
@@ -1612,7 +1622,7 @@ over displaying the credential.
 
 ---
 
-# Secret Creation Interfaces
+## Secret Creation Interfaces
 
 If Orion eventually provides UI or CLI workflows for creating secrets, the secret value should normally be shown only when necessary.
 
@@ -1622,7 +1632,7 @@ Repeated retrieval should be avoided when the system can use replacement or rota
 
 ---
 
-# Backups
+## Backups
 
 Secret-management systems may have their own backup mechanisms.
 
@@ -1634,7 +1644,7 @@ Application backups should not accidentally include secret files.
 
 ---
 
-# Database Backups
+## Database Backups
 
 Database backups may contain credential-like user data such as:
 
@@ -1650,7 +1660,7 @@ Database backup security therefore intersects with secret management.
 
 ---
 
-# Secret Deletion
+## Secret Deletion
 
 Secrets should be deleted when the capability no longer exists.
 
@@ -1668,7 +1678,7 @@ Unused credentials increase attack surface.
 
 ---
 
-# Orphaned Secrets
+## Orphaned Secrets
 
 Secrets with no known consumer should be investigated.
 
@@ -1685,7 +1695,7 @@ Secret inventory should eventually make orphaned secrets detectable.
 
 ---
 
-# Secret Inventory
+## Secret Inventory
 
 Orion should eventually maintain a machine-readable or provider-derived inventory of important secrets.
 
@@ -1708,7 +1718,7 @@ The exact system depends on the selected secret-management platform.
 
 ---
 
-# Secret Documentation
+## Secret Documentation
 
 Documentation should describe:
 
@@ -1739,7 +1749,7 @@ RESTRICTED
 
 ---
 
-# Documentation Generation
+## Documentation Generation
 
 If the configuration schema becomes machine-readable, secret-reference documentation should be generated where practical.
 
@@ -1749,7 +1759,7 @@ It must never attempt to resolve or display secret values.
 
 ---
 
-# Secret Scanning
+## Secret Scanning
 
 The repository should eventually use automated secret scanning.
 
@@ -1768,7 +1778,7 @@ It complements but does not replace proper secret management.
 
 ---
 
-# False Positives
+## False Positives
 
 Secret scanning may produce false positives.
 
@@ -1780,7 +1790,7 @@ Test credentials should be clearly synthetic when possible.
 
 ---
 
-# Secret Scanning History
+## Secret Scanning History
 
 Scanning only the current working tree is insufficient.
 
@@ -1790,7 +1800,7 @@ Repository-hosting secret scanning or historical scanning should be used where p
 
 ---
 
-# Accidental Source-Control Exposure
+## Accidental Source-Control Exposure
 
 If a secret is committed:
 
@@ -1818,7 +1828,7 @@ The original value must be considered potentially compromised.
 
 ---
 
-# History Rewriting
+## History Rewriting
 
 Git history may sometimes be rewritten to remove exposed secret material.
 
@@ -1830,7 +1840,7 @@ Rotation or revocation remains required.
 
 ---
 
-# Telemetry Exposure
+## Telemetry Exposure
 
 If a secret appears in telemetry, the secret must be considered potentially exposed.
 
@@ -1849,7 +1859,7 @@ The procedures will be detailed in incident-response documentation.
 
 ---
 
-# Chat and Collaboration Tools
+## Chat and Collaboration Tools
 
 Secrets must not be pasted into:
 
@@ -1869,7 +1879,7 @@ Ordinary collaboration tools should be treated as inappropriate secret stores.
 
 ---
 
-# AI Agents
+## AI Agents
 
 AI agents must not receive `RESTRICTED` secret values by default.
 
@@ -1890,7 +1900,7 @@ rather than the secret itself.
 
 ---
 
-# AI-Assisted Debugging
+## AI-Assisted Debugging
 
 AI-assisted debugging should use evidence such as:
 
@@ -1915,7 +1925,7 @@ An AI agent generally does not need the secret value to diagnose secret-related 
 
 ---
 
-# Agent Actions Requiring Secrets
+## Agent Actions Requiring Secrets
 
 If future agents can perform operational actions that require privileged credentials, prefer delegated tool access where the credential remains hidden from the agent context.
 
@@ -1941,7 +1951,7 @@ This preserves capability while minimizing credential exposure.
 
 ---
 
-# Secret Rotation by Automation
+## Secret Rotation by Automation
 
 Automation may eventually rotate credentials.
 
@@ -1959,7 +1969,7 @@ Automation should not create unmanaged secret copies.
 
 ---
 
-# Operational Access
+## Operational Access
 
 Humans should not routinely need to retrieve raw production secrets.
 
@@ -1975,7 +1985,7 @@ least privilege
 
 ---
 
-# Break-Glass Access
+## Break-Glass Access
 
 Emergency privileged access may eventually be necessary.
 
@@ -1995,7 +2005,7 @@ Detailed policy belongs in production-access documentation.
 
 ---
 
-# Auditability
+## Auditability
 
 Important secret-management actions should be auditable where supported.
 
@@ -2014,7 +2024,7 @@ Audit records must not contain the secret value.
 
 ---
 
-# Separation of Duties
+## Separation of Duties
 
 For high-risk environments, creation, access, rotation, and approval responsibilities may require separation.
 
@@ -2024,7 +2034,7 @@ Orion should support it without requiring enterprise complexity prematurely.
 
 ---
 
-# Secret Availability
+## Secret Availability
 
 Secret-management infrastructure is a runtime dependency when applications retrieve secrets dynamically.
 
@@ -2043,7 +2053,7 @@ The design should avoid unnecessary runtime dependence on a secret service when 
 
 ---
 
-# Startup Retrieval
+## Startup Retrieval
 
 Retrieving secrets during startup can simplify runtime behavior.
 
@@ -2063,7 +2073,7 @@ If required retrieval fails, the application should normally remain unready.
 
 ---
 
-# Runtime Retrieval
+## Runtime Retrieval
 
 Some credentials may require runtime retrieval or renewal.
 
@@ -2079,7 +2089,7 @@ The added operational complexity must be justified.
 
 ---
 
-# Secret Provider Outage
+## Secret Provider Outage
 
 An outage of the secret provider should have defined behavior.
 
@@ -2095,7 +2105,7 @@ The system should expose this condition through observability without logging se
 
 ---
 
-# Rotation and Deployment
+## Rotation and Deployment
 
 Secret rotation and application deployment are separate operations.
 
@@ -2105,7 +2115,7 @@ Configuration and credentials should remain operational concerns.
 
 ---
 
-# Rollback
+## Rollback
 
 Deployment rollback must consider credential compatibility.
 
@@ -2123,7 +2133,7 @@ Safe rotation should consider rollback windows where relevant.
 
 ---
 
-# Multi-Version Applications
+## Multi-Version Applications
 
 During rolling deployments, multiple application versions may coexist.
 
@@ -2140,7 +2150,7 @@ This is particularly important when changing authentication mechanisms or creden
 
 ---
 
-# Secret Rotation Testing
+## Secret Rotation Testing
 
 Critical credential rotation procedures should be testable before an incident.
 
@@ -2150,7 +2160,7 @@ Where practical, staging or development environments should exercise equivalent 
 
 ---
 
-# Recovery
+## Recovery
 
 Secret-management architecture should consider recovery from:
 
@@ -2167,7 +2177,7 @@ Recovery mechanisms must not create weaker permanent backdoors.
 
 ---
 
-# Secret Manager Administrator Credentials
+## Secret Manager Administrator Credentials
 
 Administrative access to the secret-management system is itself highly sensitive.
 
@@ -2177,7 +2187,7 @@ They require stronger protection than ordinary application credentials.
 
 ---
 
-# Encryption Keys for Secret Storage
+## Encryption Keys for Secret Storage
 
 If Orion operates any encrypted secret storage directly, encryption-key management must not create circular security such as:
 
@@ -2189,7 +2199,7 @@ Dedicated platform mechanisms should be preferred over custom cryptographic stor
 
 ---
 
-# Do Not Build a Custom Secret Manager
+## Do Not Build a Custom Secret Manager
 
 Orion should not implement its own general-purpose secret-management system without an extraordinary requirement.
 
@@ -2201,7 +2211,7 @@ Orion should define policy and integration, not reinvent credential storage.
 
 ---
 
-# Third-Party Secret Management
+## Third-Party Secret Management
 
 Introducing an external secret-management provider creates a critical infrastructure dependency.
 
@@ -2223,7 +2233,7 @@ The selection should be documented through an ADR.
 
 ---
 
-# Secret Management and Configuration
+## Secret Management and Configuration
 
 The future configuration architecture should distinguish:
 
@@ -2248,7 +2258,7 @@ This metadata may drive validation and generated documentation.
 
 ---
 
-# Machine-Readable Secret Metadata
+## Machine-Readable Secret Metadata
 
 As Orion evolves, configuration schemas may include machine-readable metadata such as:
 
@@ -2265,7 +2275,7 @@ The exact format depends on the selected stack.
 
 ---
 
-# Mechanical Enforcement
+## Mechanical Enforcement
 
 Future tooling should enforce secret-management rules where practical.
 
@@ -2286,7 +2296,7 @@ Mechanical enforcement is preferable to relying exclusively on contributor memor
 
 ---
 
-# Client Bundle Validation
+## Client Bundle Validation
 
 Build tooling should eventually detect accidental inclusion of server-only secret configuration in client bundles.
 
@@ -2302,7 +2312,7 @@ must never be bundled into browser or distributed client applications.
 
 ---
 
-# Container Validation
+## Container Validation
 
 CI may eventually inspect production images for:
 
@@ -2319,7 +2329,7 @@ Secret scanning should cover deployment artifacts, not only source code.
 
 ---
 
-# Dependency Review
+## Dependency Review
 
 Third-party libraries handling credentials should receive additional scrutiny.
 
@@ -2336,7 +2346,7 @@ Security-sensitive foundational dependencies should be mature and well maintaine
 
 ---
 
-# Secret Documentation Requirements
+## Secret Documentation Requirements
 
 When introducing a new secret, document at least:
 
@@ -2360,7 +2370,7 @@ A new secret without ownership documentation should be considered incomplete.
 
 ---
 
-# New Secret Checklist
+## New Secret Checklist
 
 Before introducing a new secret, answer:
 
@@ -2383,7 +2393,7 @@ If these questions cannot be answered, the secret-management design is incomplet
 
 ---
 
-# Secret Removal Checklist
+## Secret Removal Checklist
 
 When a secret is no longer required:
 
@@ -2400,7 +2410,7 @@ Removal should eliminate the capability, not merely remove one reference.
 
 ---
 
-# Secret Exposure Response
+## Secret Exposure Response
 
 If a secret may have been exposed:
 
@@ -2419,13 +2429,13 @@ Containment takes priority over preserving the exposed credential for convenienc
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Secrets in Git
+### Secrets in Git
 
 ```text
 .env committed to repository
@@ -2435,7 +2445,7 @@ Prohibited.
 
 ---
 
-## Production Credentials in Development
+### Production Credentials in Development
 
 ```text
 developer uses production database password locally
@@ -2445,7 +2455,7 @@ Prohibited by default.
 
 ---
 
-## Shared Global Credential
+### Shared Global Credential
 
 ```text
 one API key used by development, CI, staging, and production
@@ -2455,7 +2465,7 @@ Avoid.
 
 ---
 
-## Client-Side Private Key
+### Client-Side Private Key
 
 ```text
 web application bundle contains server provider secret
@@ -2465,7 +2475,7 @@ Prohibited.
 
 ---
 
-## Secret in URL
+### Secret in URL
 
 ```text
 https://example.com?action=...&token=secret
@@ -2475,7 +2485,7 @@ Avoid because URLs may appear in many telemetry systems.
 
 ---
 
-## Secret in Logs
+### Secret in Logs
 
 ```text
 logger.info(`Using key ${apiKey}`)
@@ -2485,7 +2495,7 @@ Prohibited.
 
 ---
 
-## Secret in Error
+### Secret in Error
 
 ```text
 throw new Error(`Invalid key: ${apiKey}`)
@@ -2495,7 +2505,7 @@ Prohibited.
 
 ---
 
-## Secret in Documentation
+### Secret in Documentation
 
 ```text
 Example production key: actual-secret
@@ -2505,7 +2515,7 @@ Prohibited.
 
 ---
 
-## Secret in Test Fixture
+### Secret in Test Fixture
 
 ```text
 fixture contains real production token
@@ -2515,7 +2525,7 @@ Prohibited.
 
 ---
 
-## Hardcoded Secret
+### Hardcoded Secret
 
 ```text
 const SECRET = "real-secret";
@@ -2525,7 +2535,7 @@ Prohibited.
 
 ---
 
-## Default Production Secret
+### Default Production Secret
 
 ```text
 env.SECRET ?? "changeme"
@@ -2535,7 +2545,7 @@ Prohibited.
 
 ---
 
-## Shared Administrative Credential
+### Shared Administrative Credential
 
 ```text
 all developers use one production admin password
@@ -2545,7 +2555,7 @@ Strongly discouraged.
 
 ---
 
-## Secret Access Everywhere
+### Secret Access Everywhere
 
 ```text
 any module can read arbitrary environment variables
@@ -2555,7 +2565,7 @@ Avoid when explicit configuration composition is practical.
 
 ---
 
-## Rotation Requires Source Change
+### Rotation Requires Source Change
 
 ```text
 credential hardcoded into source and redeployed to rotate
@@ -2565,7 +2575,7 @@ Prohibited.
 
 ---
 
-# Initial Secrets Policy
+## Initial Secrets Policy
 
 Until implementation-specific mechanisms are selected, Orion adopts the following requirements:
 
@@ -2592,7 +2602,7 @@ Until implementation-specific mechanisms are selected, Orion adopts the followin
 
 ---
 
-# Future Implementation Decisions
+## Future Implementation Decisions
 
 The following decisions are intentionally deferred:
 
@@ -2614,7 +2624,7 @@ Significant decisions should be captured through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should eventually be complemented by:
 
@@ -2634,7 +2644,7 @@ Implementation-specific secret-management documentation should reference this po
 
 ---
 
-# Summary
+## Summary
 
 Secrets are privileged capabilities.
 

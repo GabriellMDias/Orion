@@ -1,5 +1,19 @@
 # API Error Contract
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Error Envelope](#error-envelope)
+- [Error Code Format](#error-code-format)
+- [Validation Errors](#validation-errors)
+- [Unknown Outcome](#unknown-outcome)
+- [Initial API Error Policy](#initial-api-error-policy)
+
+Related policy: [error handling](../architecture/error-handling.md), [error reporting](../reliability/error-reporting.md).
+
 ## Purpose
 
 This document defines the public API error contract used by Orion.
@@ -19,24 +33,22 @@ Its goals are to ensure that API failures are:
 
 This document turns the architectural error model defined in:
 
-```text id="ko1xm3"
-docs/architecture/error-handling.md
-```
+- [docs/architecture/error-handling.md](../architecture/error-handling.md)
 
 into an API-facing contract.
 
 This document is technology-agnostic.
 
-The exact serialization library, schema technology, transport framework, OpenAPI representation, and client SDK behavior will be selected later through explicit architectural decisions.
+The transport/schema/OpenAPI/SDK strategy is selected by ADR-0004 and ADR-0007. The error registry, concrete envelope schema, and remaining error-specific conventions are not yet implemented or fully selected.
 
 This document complements:
 
-- `docs/architecture/error-handling.md`;
-- `docs/api/principles.md`;
-- `docs/security/authentication.md`;
-- `docs/security/authorization.md`;
-- `docs/reliability/observability.md`;
-- `docs/security/telemetry-redaction.md`.
+- [docs/architecture/error-handling.md](../architecture/error-handling.md);
+- [docs/api/principles.md](principles.md);
+- [docs/security/authentication.md](../security/authentication.md);
+- [docs/security/authorization.md](../security/authorization.md);
+- [docs/reliability/observability.md](../reliability/observability.md);
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md).
 
 ---
 
@@ -46,7 +58,7 @@ An API error must communicate only what the consumer needs to respond correctly.
 
 The desired separation is:
 
-```text id="a8s9k3"
+```text
 internal failure
     ↓ classify
 public error semantics
@@ -56,7 +68,7 @@ consumer response
 
 The public contract should answer:
 
-```text id="w8d73x"
+```text
 What happened?
 
 What stable code describes it?
@@ -70,7 +82,7 @@ Which support reference can identify the failure?
 
 It should not expose:
 
-```text id="59nki7"
+```text
 stack trace
 SQL
 provider exception
@@ -82,13 +94,13 @@ raw infrastructure error
 
 ---
 
-# Error Envelope
+## Error Envelope
 
 Orion APIs should use a consistent error envelope.
 
 Conceptually:
 
-```text id="2km60d"
+```text
 {
   "error": {
     "code": "ORDER_ALREADY_SHIPPED",
@@ -106,7 +118,7 @@ The shape should remain stable once adopted.
 
 ---
 
-# Top-Level `error`
+## Top-Level `error`
 
 A failed API response should expose error information under a clearly identifiable root object.
 
@@ -114,7 +126,7 @@ This keeps failure responses structurally distinct from successful response mode
 
 Prefer:
 
-```text id="9c6b2g"
+```text
 {
   "error": { ... }
 }
@@ -122,7 +134,7 @@ Prefer:
 
 over inconsistent forms such as:
 
-```text id="hy84gz"
+```text
 {
   "message": "...",
   "error": "...",
@@ -134,13 +146,13 @@ unless a specific transport standard requires otherwise.
 
 ---
 
-# Error Code
+## Error Code
 
 `code` is the primary machine-readable error identifier.
 
 Example:
 
-```text id="p0cdrl"
+```text
 ORDER_ALREADY_SHIPPED
 ```
 
@@ -150,19 +162,19 @@ Therefore error codes are part of the API compatibility contract.
 
 ---
 
-# Error Code Format
+## Error Code Format
 
 Public error codes should use stable semantic names.
 
 Preferred conceptual format:
 
-```text id="fpjxd8"
+```text
 UPPER_SNAKE_CASE
 ```
 
 Examples:
 
-```text id="b1w5cb"
+```text
 VALIDATION_FAILED
 AUTHENTICATION_REQUIRED
 PERMISSION_DENIED
@@ -176,31 +188,31 @@ The exact convention should remain consistent across the API.
 
 ---
 
-# Error Codes Describe Semantics
+## Error Codes Describe Semantics
 
 A public error code should describe application or API meaning.
 
 Good:
 
-```text id="f3l5d1"
+```text
 EMAIL_ALREADY_IN_USE
 ```
 
 Bad:
 
-```text id="3nbp07"
+```text
 SQLSTATE_23505
 ```
 
 Bad:
 
-```text id="x9a9ae"
+```text
 PRISMA_P2002
 ```
 
 Bad:
 
-```text id="i95wfe"
+```text
 NULL_POINTER_EXCEPTION
 ```
 
@@ -208,13 +220,13 @@ Infrastructure-specific error codes must remain internal.
 
 ---
 
-# Error Code Ownership
+## Error Code Ownership
 
 Stable error codes should have identifiable ownership.
 
 For example:
 
-```text id="k5w7vx"
+```text
 orders
     owns
 ORDER_ALREADY_SHIPPED
@@ -224,7 +236,7 @@ Shared protocol-level codes may belong to cross-cutting infrastructure.
 
 Example:
 
-```text id="f5459g"
+```text
 VALIDATION_FAILED
 AUTHENTICATION_REQUIRED
 PERMISSION_DENIED
@@ -234,13 +246,13 @@ INTERNAL_ERROR
 
 ---
 
-# Error Code Registry
+## Error Code Registry
 
 Orion should eventually maintain a canonical machine-readable error registry.
 
 A conceptual entry may contain:
 
-```text id="4kpya8"
+```text
 code
 owner
 category
@@ -253,7 +265,7 @@ details schema
 
 Example:
 
-```text id="72q4wo"
+```text
 code: ORDER_ALREADY_SHIPPED
 owner: orders
 category: domain
@@ -265,13 +277,13 @@ The exact format is deferred.
 
 ---
 
-# Error Code Uniqueness
+## Error Code Uniqueness
 
 Each public error code should have one stable semantic meaning.
 
 Do not reuse:
 
-```text id="upbvjg"
+```text
 RESOURCE_CONFLICT
 ```
 
@@ -279,7 +291,7 @@ for several unrelated conditions if consumers require distinct handling.
 
 Likewise, do not create unnecessary near-duplicates such as:
 
-```text id="zjw2zz"
+```text
 USER_EMAIL_EXISTS
 EMAIL_ALREADY_EXISTS
 EMAIL_IN_USE
@@ -290,25 +302,25 @@ without semantic distinction.
 
 ---
 
-# Error Code Stability
+## Error Code Stability
 
 Once a public error code has consumers, its meaning should remain stable.
 
 Do not change:
 
-```text id="x1qpxq"
+```text
 ORDER_ALREADY_SHIPPED
 ```
 
 from:
 
-```text id="w53bqd"
+```text
 order cannot be cancelled because shipment occurred
 ```
 
 to:
 
-```text id="ai1kpf"
+```text
 order has any shipping-related state
 ```
 
@@ -316,13 +328,13 @@ without compatibility analysis.
 
 ---
 
-# Human-Readable Message
+## Human-Readable Message
 
 `message` is intended for human understanding.
 
 Example:
 
-```text id="wjibvg"
+```text
 "The order can no longer be cancelled."
 ```
 
@@ -330,11 +342,11 @@ Consumers must not parse this string for application logic.
 
 ---
 
-# Message Is Not a Stable Machine Contract
+## Message Is Not a Stable Machine Contract
 
 The text may change because of:
 
-```text id="49uwxw"
+```text
 wording improvement
 localization
 clarity
@@ -343,7 +355,7 @@ product tone
 
 Machine behavior must use:
 
-```text id="h911hx"
+```text
 code
 ```
 
@@ -351,11 +363,11 @@ and structured details.
 
 ---
 
-# Safe Messages
+## Safe Messages
 
 Public messages must not expose:
 
-```text id="7b505p"
+```text
 credentials
 personal data unnecessarily
 SQL
@@ -370,7 +382,7 @@ Messages should be safe for untrusted consumers.
 
 ---
 
-# Localization
+## Localization
 
 Stable error codes remain language-independent.
 
@@ -378,7 +390,7 @@ Human-readable messages may eventually be localized.
 
 For example:
 
-```text id="u2fr9t"
+```text
 ORDER_ALREADY_SHIPPED
 ```
 
@@ -388,11 +400,11 @@ The localization architecture is deferred.
 
 ---
 
-# Request Identifier
+## Request Identifier
 
 A public error may include:
 
-```text id="qfuw7v"
+```text
 requestId
 ```
 
@@ -400,7 +412,7 @@ to identify the boundary request associated with the failure.
 
 This can be useful for:
 
-```text id="uzy9pd"
+```text
 support
 log correlation
 incident investigation
@@ -408,11 +420,11 @@ incident investigation
 
 ---
 
-# Trace Identifier
+## Trace Identifier
 
 A public error may include:
 
-```text id="gpfl7w"
+```text
 traceId
 ```
 
@@ -424,11 +436,11 @@ It must not encode sensitive information.
 
 ---
 
-# Error Identifier
+## Error Identifier
 
 Unexpected errors may include a dedicated:
 
-```text id="z25zup"
+```text
 errorId
 ```
 
@@ -436,7 +448,7 @@ that points to the captured error occurrence.
 
 Example:
 
-```text id="lnplbs"
+```text
 err_01J...
 ```
 
@@ -444,11 +456,11 @@ This can serve as a user-facing support reference.
 
 ---
 
-# Correlation Identifiers Are Not Secrets
+## Correlation Identifiers Are Not Secrets
 
 Identifiers such as:
 
-```text id="iu5w1m"
+```text
 requestId
 traceId
 errorId
@@ -460,19 +472,19 @@ They should not grant access to underlying telemetry merely by possession.
 
 ---
 
-# Optional Correlation Fields
+## Optional Correlation Fields
 
 Not every error requires every identifier.
 
 For example:
 
-```text id="86pnho"
+```text
 validation error
 ```
 
 may have:
 
-```text id="z8z9vl"
+```text
 requestId
 traceId
 ```
@@ -483,13 +495,13 @@ An unexpected internal failure may include all three.
 
 ---
 
-# Validation Errors
+## Validation Errors
 
 Validation failures require structured details.
 
 Conceptually:
 
-```text id="8lfb9o"
+```text
 {
   "error": {
     "code": "VALIDATION_FAILED",
@@ -511,11 +523,11 @@ The exact schema will be selected with the canonical contract technology.
 
 ---
 
-# Validation Error Code
+## Validation Error Code
 
 The overall validation failure should use a stable top-level code such as:
 
-```text id="l9b92k"
+```text
 VALIDATION_FAILED
 ```
 
@@ -523,19 +535,19 @@ Field-specific details may expose more precise reason codes.
 
 ---
 
-# Field Identifier
+## Field Identifier
 
 Validation details should identify the failing field in a stable form.
 
 Potential representation:
 
-```text id="xwfb36"
+```text
 email
 ```
 
 or:
 
-```text id="dgzx4c"
+```text
 items[2].quantity
 ```
 
@@ -543,13 +555,13 @@ The format should be standardized once schema tooling is selected.
 
 ---
 
-# Field Error Code
+## Field Error Code
 
 Field validation should prefer machine-readable reason codes.
 
 Examples:
 
-```text id="pdu1qh"
+```text
 REQUIRED
 INVALID_FORMAT
 TOO_SHORT
@@ -562,13 +574,13 @@ These codes should remain generic where possible.
 
 ---
 
-# Validation Messages
+## Validation Messages
 
 Field validation messages remain human-readable and non-contractual.
 
 Clients should use:
 
-```text id="o5bkzt"
+```text
 field
 code
 ```
@@ -577,7 +589,7 @@ rather than parsing message text.
 
 ---
 
-# Multiple Validation Failures
+## Multiple Validation Failures
 
 A request may contain multiple validation failures.
 
@@ -589,7 +601,7 @@ Exact behavior may depend on validation tooling.
 
 ---
 
-# Validation Detail Bounds
+## Validation Detail Bounds
 
 Validation details must remain bounded.
 
@@ -599,13 +611,13 @@ Payload-size limits and validation limits should prevent abuse.
 
 ---
 
-# Unknown Fields
+## Unknown Fields
 
 If unknown input fields are rejected, the validation contract may represent that using a stable field-level error.
 
 Example:
 
-```text id="ci34ir"
+```text
 UNKNOWN_FIELD
 ```
 
@@ -613,13 +625,13 @@ The exact semantics should follow the API contract.
 
 ---
 
-# Domain Errors
+## Domain Errors
 
 Expected business failures should use semantic codes.
 
 Examples:
 
-```text id="7y6jo3"
+```text
 ORDER_ALREADY_SHIPPED
 INSUFFICIENT_INVENTORY
 INVITATION_EXPIRED
@@ -632,13 +644,13 @@ They should not normally produce internal incident-level error reporting.
 
 ---
 
-# Domain Error Details
+## Domain Error Details
 
 Domain errors may expose structured details when consumers genuinely need them.
 
 Example:
 
-```text id="0cgofw"
+```text
 {
   "code": "INSUFFICIENT_INVENTORY",
   "details": {
@@ -653,11 +665,11 @@ Avoid exposing internal state merely because it exists.
 
 ---
 
-# Authentication Errors
+## Authentication Errors
 
 Authentication-related errors may include semantic codes such as:
 
-```text id="db7sy6"
+```text
 AUTHENTICATION_REQUIRED
 INVALID_CREDENTIALS
 SESSION_EXPIRED
@@ -668,11 +680,11 @@ The exact public distinction depends on information-disclosure requirements.
 
 ---
 
-# Authentication Privacy
+## Authentication Privacy
 
 Public login flows may intentionally return the same error code for:
 
-```text id="0t7tun"
+```text
 unknown account
 wrong password
 ```
@@ -683,17 +695,17 @@ Internal telemetry may preserve safe diagnostic distinctions.
 
 ---
 
-# Authorization Errors
+## Authorization Errors
 
 Authorization failures may expose:
 
-```text id="t802ju"
+```text
 PERMISSION_DENIED
 ```
 
 or:
 
-```text id="ydm9o5"
+```text
 RESOURCE_NOT_FOUND
 ```
 
@@ -703,11 +715,11 @@ The public contract must not expose internal policy evaluation details.
 
 ---
 
-# Not Found Errors
+## Not Found Errors
 
 A canonical not-found error may use:
 
-```text id="llpz0p"
+```text
 RESOURCE_NOT_FOUND
 ```
 
@@ -717,7 +729,7 @@ Domain-specific not-found errors may be appropriate where consumers need them.
 
 Example:
 
-```text id="nfzk4e"
+```text
 ORDER_NOT_FOUND
 ```
 
@@ -725,13 +737,13 @@ Avoid unnecessary code proliferation.
 
 ---
 
-# Conflict Errors
+## Conflict Errors
 
 Conflicts represent valid requests that cannot be completed because of current state.
 
 Examples include:
 
-```text id="k0rlwz"
+```text
 RESOURCE_VERSION_CONFLICT
 EMAIL_ALREADY_IN_USE
 IDEMPOTENCY_KEY_REUSED
@@ -742,19 +754,19 @@ These are distinct from invalid request syntax.
 
 ---
 
-# Concurrency Conflicts
+## Concurrency Conflicts
 
 Optimistic concurrency failures should have stable semantics.
 
 Example:
 
-```text id="g45y65"
+```text
 RESOURCE_VERSION_CONFLICT
 ```
 
 Consumers may respond by:
 
-```text id="0xs4wg"
+```text
 reload
 merge
 ask user to retry
@@ -762,13 +774,13 @@ ask user to retry
 
 ---
 
-# Duplicate Operations
+## Duplicate Operations
 
 Duplicate or already-processed operations may return domain-specific conflict semantics.
 
 Examples:
 
-```text id="0qv8of"
+```text
 ALREADY_PROCESSED
 PAYMENT_ALREADY_CAPTURED
 INVITATION_ALREADY_ACCEPTED
@@ -778,11 +790,11 @@ The API should distinguish safe replay from conflicting new intent.
 
 ---
 
-# Idempotency Errors
+## Idempotency Errors
 
 Possible idempotency errors may include:
 
-```text id="5q2t4d"
+```text
 IDEMPOTENCY_KEY_REUSED
 IDEMPOTENCY_CONFLICT
 ```
@@ -793,11 +805,11 @@ Exact semantics depend on the API idempotency design.
 
 ---
 
-# Rate Limiting
+## Rate Limiting
 
 Rate-limited operations should expose a stable code such as:
 
-```text id="r80ja7"
+```text
 RATE_LIMITED
 ```
 
@@ -805,11 +817,11 @@ The response may include retry metadata.
 
 ---
 
-# Retry-After
+## Retry-After
 
 For transports that support it, rate-limit responses may expose a protocol-level retry indication such as:
 
-```text id="k217cq"
+```text
 Retry-After
 ```
 
@@ -819,11 +831,11 @@ The exact format should follow protocol standards.
 
 ---
 
-# Rate-Limit Details
+## Rate-Limit Details
 
 Consumers may need:
 
-```text id="s936d4"
+```text
 retryAfterSeconds
 ```
 
@@ -833,13 +845,13 @@ Avoid exposing internal anti-abuse algorithms, thresholds, or detection logic.
 
 ---
 
-# External Dependency Errors
+## External Dependency Errors
 
 Provider failures must be translated before crossing the API boundary.
 
 Example:
 
-```text id="6e6j4u"
+```text
 payment provider timeout
     ↓
 PAYMENT_PROVIDER_UNAVAILABLE
@@ -849,7 +861,7 @@ or a more general stable semantic error.
 
 Do not expose:
 
-```text id="fzlv3v"
+```text
 StripeError
 AWS SDK exception
 SMTP server text
@@ -859,13 +871,13 @@ directly.
 
 ---
 
-# Provider Declines
+## Provider Declines
 
 An expected external business response such as a payment decline may map to a stable public business error.
 
 It should not be treated the same as:
 
-```text id="s38z1j"
+```text
 provider unavailable
 ```
 
@@ -873,13 +885,13 @@ Operational failure and business rejection are distinct.
 
 ---
 
-# Infrastructure Errors
+## Infrastructure Errors
 
 Unexpected database, network, storage, or runtime failures should normally map to a safe generic internal error.
 
 Example:
 
-```text id="ssv2mk"
+```text
 INTERNAL_ERROR
 ```
 
@@ -887,11 +899,11 @@ or an appropriately stable dependency-unavailable code where consumers can act m
 
 ---
 
-# Generic Internal Error
+## Generic Internal Error
 
 A generic unexpected failure may look conceptually like:
 
-```text id="0sghha"
+```text
 {
   "error": {
     "code": "INTERNAL_ERROR",
@@ -907,11 +919,11 @@ No internal cause should be exposed.
 
 ---
 
-# Service Unavailable
+## Service Unavailable
 
 Temporary service-level unavailability may use a semantic code such as:
 
-```text id="ekq1be"
+```text
 SERVICE_UNAVAILABLE
 ```
 
@@ -921,7 +933,7 @@ Consumers may retry only when the operation semantics make retry safe.
 
 ---
 
-# Dependency Unavailable
+## Dependency Unavailable
 
 A public dependency-unavailable error should be introduced only if consumers need to distinguish it from generic service failure.
 
@@ -929,13 +941,13 @@ Avoid exposing the actual vendor unnecessarily.
 
 For example:
 
-```text id="98qcya"
+```text
 PAYMENT_SERVICE_UNAVAILABLE
 ```
 
 may be appropriate.
 
-```text id="wh7mqx"
+```text
 STRIPE_US_EAST_2_TIMEOUT
 ```
 
@@ -943,19 +955,19 @@ is probably not.
 
 ---
 
-# Timeout Errors
+## Timeout Errors
 
 Timeouts require careful semantics.
 
 A timeout may mean:
 
-```text id="8dxdax"
+```text
 operation definitely did not happen
 ```
 
 or:
 
-```text id="58gwyp"
+```text
 outcome is unknown
 ```
 
@@ -963,7 +975,7 @@ The public contract should distinguish these situations where retry safety depen
 
 ---
 
-# Unknown Outcome
+## Unknown Outcome
 
 For operations where the backend cannot determine whether an external side effect occurred, the error contract may require a semantic representation of uncertain outcome.
 
@@ -971,7 +983,7 @@ This should be introduced only for domains where the consumer must react differe
 
 Example concept:
 
-```text id="og87fq"
+```text
 OPERATION_OUTCOME_UNKNOWN
 ```
 
@@ -979,13 +991,13 @@ Such errors require idempotency or reconciliation guidance.
 
 ---
 
-# Retryability
+## Retryability
 
 Retryability should not be inferred solely from HTTP status code.
 
 A public error may eventually expose:
 
-```text id="kn5f9j"
+```text
 retryable
 ```
 
@@ -995,19 +1007,19 @@ Whether retryability belongs directly in the error envelope is intentionally def
 
 ---
 
-# Retryable Is Contextual
+## Retryable Is Contextual
 
 Even when a dependency failure is transient, repeating the operation may be unsafe.
 
 For example:
 
-```text id="x8s6dv"
+```text
 payment request timed out
 ```
 
 does not imply:
 
-```text id="qzmrfl"
+```text
 blind retry is safe
 ```
 
@@ -1015,13 +1027,13 @@ unless idempotency protects the operation.
 
 ---
 
-# Retry Metadata
+## Retry Metadata
 
 If retry information is exposed, it should be machine-readable.
 
 Conceptual example:
 
-```text id="dwdkw7"
+```text
 "retry": {
   "allowed": true,
   "afterSeconds": 10
@@ -1032,13 +1044,13 @@ The exact schema is deferred.
 
 ---
 
-# Details Object
+## Details Object
 
 `details` may contain structured information specific to the error code.
 
 Example:
 
-```text id="s5kgu3"
+```text
 {
   "error": {
     "code": "RESOURCE_VERSION_CONFLICT",
@@ -1054,11 +1066,11 @@ Only include information consumers actually need.
 
 ---
 
-# Details Must Have Schema
+## Details Must Have Schema
 
 Avoid:
 
-```text id="r9vynq"
+```text
 details: arbitrary object
 ```
 
@@ -1068,7 +1080,7 @@ For every public error exposing details, the shape should be defined.
 
 ---
 
-# Details and Compatibility
+## Details and Compatibility
 
 Once consumers depend on a details field, that structure becomes part of the compatibility contract.
 
@@ -1076,11 +1088,11 @@ Changes require the same care as response-schema changes.
 
 ---
 
-# Details Must Be Safe
+## Details Must Be Safe
 
 Structured details must not expose:
 
-```text id="u5k5xu"
+```text
 internal record dump
 authorization policy
 stack trace
@@ -1091,13 +1103,13 @@ hidden tenant information
 
 ---
 
-# Metadata
+## Metadata
 
 Some errors may require cross-cutting metadata.
 
 Potential examples:
 
-```text id="76rt61"
+```text
 requestId
 traceId
 errorId
@@ -1108,7 +1120,7 @@ Keep cross-cutting fields separate from domain-specific `details`.
 
 ---
 
-# HTTP Status Mapping
+## HTTP Status Mapping
 
 For HTTP APIs, transport status should represent broad error category.
 
@@ -1131,13 +1143,13 @@ Domain semantics remain in the error code.
 
 ---
 
-# Status Codes Are Coarse
+## Status Codes Are Coarse
 
 Several distinct errors may map to the same HTTP status.
 
 For example:
 
-```text id="rqd47o"
+```text
 EMAIL_ALREADY_IN_USE
 RESOURCE_VERSION_CONFLICT
 ORDER_ALREADY_SHIPPED
@@ -1145,7 +1157,7 @@ ORDER_ALREADY_SHIPPED
 
 may all reasonably use:
 
-```text id="stzdsx"
+```text
 409
 ```
 
@@ -1153,11 +1165,11 @@ Consumers requiring semantic distinction should inspect the error code.
 
 ---
 
-# 400 vs 422
+## 400 vs 422
 
 Some API ecosystems use:
 
-```text id="xu5hvh"
+```text
 400
 ```
 
@@ -1165,7 +1177,7 @@ for request validation.
 
 Others use:
 
-```text id="e391i0"
+```text
 422
 ```
 
@@ -1177,17 +1189,17 @@ The important requirement is consistency.
 
 ---
 
-# 401 and 403
+## 401 and 403
 
 For HTTP:
 
-```text id="bfuz9q"
+```text
 401
 ```
 
 typically represents missing or invalid authentication.
 
-```text id="gyhihm"
+```text
 403
 ```
 
@@ -1197,11 +1209,11 @@ Information-disclosure requirements may modify external behavior.
 
 ---
 
-# 404 for Hidden Resources
+## 404 for Hidden Resources
 
 A protected resource may intentionally map authorization failure to:
 
-```text id="p5i7bo"
+```text
 404
 ```
 
@@ -1211,13 +1223,13 @@ This should be deliberate and tested.
 
 ---
 
-# 409 Conflict
+## 409 Conflict
 
 `409` is appropriate for state conflicts where the request is structurally valid but cannot be applied to current state.
 
 Examples:
 
-```text id="ttdbkh"
+```text
 duplicate unique business value
 stale resource version
 operation already completed
@@ -1225,11 +1237,11 @@ operation already completed
 
 ---
 
-# 429 Rate Limit
+## 429 Rate Limit
 
 A rate-limited consumer should receive:
 
-```text id="ew3s45"
+```text
 429
 ```
 
@@ -1239,7 +1251,7 @@ Retry guidance may accompany the response.
 
 ---
 
-# 5xx Errors
+## 5xx Errors
 
 Unexpected internal or dependency failures should generally use `5xx`.
 
@@ -1247,7 +1259,7 @@ Expected business failures should not become `500` merely because they are repre
 
 ---
 
-# HTTP Status Is Not Internal Severity
+## HTTP Status Is Not Internal Severity
 
 A `4xx` response can still be security-relevant.
 
@@ -1257,19 +1269,19 @@ Transport category and operational severity are separate concerns.
 
 ---
 
-# Protocol Independence
+## Protocol Independence
 
 The semantic error registry should not be inherently tied to HTTP.
 
 For example:
 
-```text id="7k9wfp"
+```text
 ORDER_ALREADY_SHIPPED
 ```
 
 can remain meaningful across:
 
-```text id="rluew8"
+```text
 HTTP
 RPC
 CLI
@@ -1280,7 +1292,7 @@ Transport adapters may map the semantic error appropriately.
 
 ---
 
-# Error Construction
+## Error Construction
 
 Application code should create or return semantic failures.
 
@@ -1288,7 +1300,7 @@ Transport adapters should serialize them into the public contract.
 
 Conceptually:
 
-```text id="pn1k32"
+```text
 domain/application error
         ↓
 transport mapper
@@ -1298,13 +1310,13 @@ HTTP status + public error envelope
 
 ---
 
-# Error Mapping Ownership
+## Error Mapping Ownership
 
 Mapping should occur at intentional boundaries.
 
 Examples:
 
-```text id="2j6fae"
+```text
 database uniqueness violation
     ↓ persistence/application translation
 EMAIL_ALREADY_IN_USE
@@ -1316,13 +1328,13 @@ Each layer should remove implementation-specific detail.
 
 ---
 
-# Raw Exception Serialization
+## Raw Exception Serialization
 
 Never serialize arbitrary exceptions directly.
 
 Prohibited:
 
-```text id="o1bt1c"
+```text
 return {
   error: exception
 }
@@ -1330,7 +1342,7 @@ return {
 
 This may expose:
 
-```text id="17mxz0"
+```text
 stack
 cause
 SQL
@@ -1341,7 +1353,7 @@ credentials
 
 ---
 
-# Cause Preservation
+## Cause Preservation
 
 The public response removes internal detail.
 
@@ -1351,13 +1363,13 @@ Public safety must not require destroying diagnostic evidence internally.
 
 ---
 
-# Report Once
+## Report Once
 
 Unexpected errors should normally be reported once at the authoritative error boundary.
 
 Avoid:
 
-```text id="4y8dcz"
+```text
 repository logs error
 service logs same error
 controller logs same error
@@ -1368,13 +1380,13 @@ unless each event has distinct operational meaning.
 
 ---
 
-# Expected Errors and Reporting
+## Expected Errors and Reporting
 
 Expected validation, business, authentication, and authorization failures should not automatically be sent to centralized error tracking as unexpected incidents.
 
 They may still contribute to:
 
-```text id="q8jk7o"
+```text
 metrics
 security telemetry
 audit events
@@ -1384,19 +1396,19 @@ where appropriate.
 
 ---
 
-# Error Severity
+## Error Severity
 
 Operational severity should remain separate from public error semantics.
 
 For example:
 
-```text id="v737sv"
+```text
 PAYMENT_PROVIDER_UNAVAILABLE
 ```
 
 may become a high-severity operational incident.
 
-```text id="kr22ve"
+```text
 PERMISSION_DENIED
 ```
 
@@ -1406,11 +1418,11 @@ Both are public errors.
 
 ---
 
-# Error Telemetry
+## Error Telemetry
 
 Safe error telemetry may include:
 
-```text id="fsgf5x"
+```text
 error code
 category
 operation
@@ -1423,13 +1435,11 @@ release
 
 It must follow:
 
-```text id="i7kqry"
-docs/security/telemetry-redaction.md
-```
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md)
 
 ---
 
-# Public Error Body Must Not Be Telemetry Dump
+## Public Error Body Must Not Be Telemetry Dump
 
 Do not expose diagnostic fields merely because they exist internally.
 
@@ -1437,17 +1447,17 @@ The consumer error contract and telemetry model are different surfaces.
 
 ---
 
-# Error IDs and Support
+## Error IDs and Support
 
 A support experience may ask the user for:
 
-```text id="mwbw69"
+```text
 errorId
 ```
 
 or:
 
-```text id="qwtpdz"
+```text
 requestId
 ```
 
@@ -1455,7 +1465,7 @@ Support tooling can use the identifier to locate sanitized internal diagnostics 
 
 ---
 
-# No Security Through Error ID Secrecy
+## No Security Through Error ID Secrecy
 
 Diagnostic identifiers should not be treated as credentials.
 
@@ -1463,13 +1473,13 @@ A user knowing an `errorId` must not automatically gain access to internal telem
 
 ---
 
-# Validation Path Privacy
+## Validation Path Privacy
 
 Validation field paths should expose only public request-schema fields.
 
 They must not reference:
 
-```text id="ka1uxz"
+```text
 internal database column
 backend property
 ORM path
@@ -1479,7 +1489,7 @@ unless those names are intentionally public.
 
 ---
 
-# Resource Identifiers in Errors
+## Resource Identifiers in Errors
 
 A public error should not echo sensitive resource identifiers unnecessarily.
 
@@ -1489,11 +1499,11 @@ Repeating it provides little value and may increase telemetry or UI exposure.
 
 ---
 
-# Tenant Information
+## Tenant Information
 
 Error details must not reveal another tenant's:
 
-```text id="0d89q0"
+```text
 name
 identifier
 resource existence
@@ -1504,13 +1514,13 @@ when authorization prevents access.
 
 ---
 
-# Security Errors
+## Security Errors
 
 Security-sensitive failures should prioritize safe disclosure over detailed debugging.
 
 Potential examples include:
 
-```text id="rvpekk"
+```text
 INVALID_CREDENTIALS
 PERMISSION_DENIED
 INVALID_WEBHOOK_SIGNATURE
@@ -1520,7 +1530,7 @@ Detailed causes belong in trusted diagnostics.
 
 ---
 
-# Webhook Errors
+## Webhook Errors
 
 Inbound webhook endpoints may expose minimal error responses according to provider requirements.
 
@@ -1528,11 +1538,11 @@ They should not reveal signature-validation internals.
 
 ---
 
-# File Upload Errors
+## File Upload Errors
 
 File APIs may expose structured failures such as:
 
-```text id="plsfni"
+```text
 FILE_TOO_LARGE
 UNSUPPORTED_MEDIA_TYPE
 UPLOAD_FAILED
@@ -1542,7 +1552,7 @@ Security-scanning failures may require careful wording to avoid revealing intern
 
 ---
 
-# Asynchronous Operation Errors
+## Asynchronous Operation Errors
 
 Long-running operations may fail after the initiating HTTP request has already succeeded.
 
@@ -1550,7 +1560,7 @@ Their error state should use the same stable semantic model where practical.
 
 Example:
 
-```text id="otrbq1"
+```text
 {
   "status": "failed",
   "error": {
@@ -1562,7 +1572,7 @@ Example:
 
 ---
 
-# Background Job Errors
+## Background Job Errors
 
 Internal jobs may use richer diagnostic failure models than public APIs.
 
@@ -1572,7 +1582,7 @@ Do not expose worker exception objects directly.
 
 ---
 
-# Partial Success
+## Partial Success
 
 Batch or multi-item operations may produce partial success.
 
@@ -1582,7 +1592,7 @@ Do not overload the ordinary single-error envelope ambiguously.
 
 Potential design:
 
-```text id="yxc0du"
+```text
 items:
   - success
   - error
@@ -1592,13 +1602,13 @@ or an operation-specific result schema.
 
 ---
 
-# Batch Errors
+## Batch Errors
 
 Batch APIs should identify which item failed without exposing unnecessary internal state.
 
 The behavior should define whether processing is:
 
-```text id="k78nrz"
+```text
 atomic
 best effort
 all-or-nothing
@@ -1609,11 +1619,11 @@ before designing error output.
 
 ---
 
-# Error Compatibility
+## Error Compatibility
 
 The following are compatibility-sensitive:
 
-```text id="48mqaa"
+```text
 error code
 error category
 status mapping when consumers depend on it
@@ -1625,7 +1635,7 @@ Changing any of these may break consumers.
 
 ---
 
-# Adding Error Codes
+## Adding Error Codes
 
 Adding a new error code may be compatible when clients handle unknown codes gracefully.
 
@@ -1635,7 +1645,7 @@ SDK and enum strategy should account for this.
 
 ---
 
-# Removing Error Codes
+## Removing Error Codes
 
 Removing or merging a public error code may break consumers.
 
@@ -1643,7 +1653,7 @@ The change should follow API compatibility policy.
 
 ---
 
-# Renaming Error Codes
+## Renaming Error Codes
 
 Renaming a public error code is generally breaking.
 
@@ -1651,7 +1661,7 @@ Prefer preserving the stable code and changing human-readable descriptions when 
 
 ---
 
-# Reusing Retired Codes
+## Reusing Retired Codes
 
 A retired error code should not later be reused for a different meaning.
 
@@ -1659,17 +1669,17 @@ Stable identifiers should remain semantically unique over their lifetime.
 
 ---
 
-# Changing Status Mapping
+## Changing Status Mapping
 
 Changing:
 
-```text id="k7tfz6"
+```text
 409
 ```
 
 to:
 
-```text id="58rxl8"
+```text
 400
 ```
 
@@ -1679,7 +1689,7 @@ Treat status mapping changes as contract changes where consumers rely on them.
 
 ---
 
-# Details Evolution
+## Details Evolution
 
 Adding optional fields to `details` may be compatible.
 
@@ -1689,7 +1699,7 @@ Exact compatibility depends on serialization and client behavior.
 
 ---
 
-# Unknown Error Codes
+## Unknown Error Codes
 
 Clients should have a safe fallback for unknown public error codes.
 
@@ -1697,7 +1707,7 @@ Generated SDKs should not crash merely because the server introduced an additive
 
 A fallback such as:
 
-```text id="l8jdwd"
+```text
 unknown API error
 ```
 
@@ -1705,13 +1715,13 @@ should preserve correlation information.
 
 ---
 
-# Client Error Handling
+## Client Error Handling
 
 Clients should broadly classify errors using stable contract semantics.
 
 Potential handling groups include:
 
-```text id="7648ay"
+```text
 validation
 authentication
 authorization
@@ -1725,11 +1735,11 @@ Exact UI behavior belongs to the client application.
 
 ---
 
-# Client Message Display
+## Client Message Display
 
 Clients should not automatically display every backend `message` verbatim without considering:
 
-```text id="t0iu6j"
+```text
 localization
 product tone
 context
@@ -1742,13 +1752,13 @@ Others may map to client-controlled copy.
 
 ---
 
-# SDK Error Types
+## SDK Error Types
 
 Generated or shared SDKs may expose structured error types.
 
 Conceptually:
 
-```text id="78131q"
+```text
 ApiError {
     code
     message
@@ -1763,7 +1773,7 @@ The exact implementation is deferred.
 
 ---
 
-# SDK Must Preserve Unknown Errors
+## SDK Must Preserve Unknown Errors
 
 An SDK should preserve unrecognized error codes and raw safe structured fields rather than discarding them.
 
@@ -1771,11 +1781,11 @@ This improves forward compatibility.
 
 ---
 
-# SDK Must Not Expose Transport Internals as Primary Semantics
+## SDK Must Not Expose Transport Internals as Primary Semantics
 
 Consumers should not need to catch framework-specific errors such as:
 
-```text id="9w3nkl"
+```text
 AxiosError
 FetchError
 GrpcStatusException
@@ -1787,13 +1797,13 @@ An SDK may preserve transport cause internally while exposing the Orion error mo
 
 ---
 
-# Documentation
+## Documentation
 
 Every public error code should eventually have generated documentation.
 
 Potential fields include:
 
-```text id="3w34qv"
+```text
 code
 description
 category
@@ -1805,7 +1815,7 @@ owner
 
 ---
 
-# Error Documentation Source
+## Error Documentation Source
 
 Generated error documentation should derive from the canonical error registry and contract schemas.
 
@@ -1813,13 +1823,13 @@ Do not maintain a separate manually synchronized list.
 
 ---
 
-# Error Examples
+## Error Examples
 
 Documentation examples must use synthetic data.
 
 Examples should demonstrate:
 
-```text id="d3p4bx"
+```text
 validation error
 authentication error
 domain conflict
@@ -1831,7 +1841,7 @@ where useful.
 
 ---
 
-# OpenAPI Representation
+## OpenAPI Representation
 
 If OpenAPI is selected, error schemas and documented operation errors should derive from or align with the canonical registry.
 
@@ -1839,13 +1849,13 @@ Do not manually duplicate error definitions operation by operation when tooling 
 
 ---
 
-# Operation Error Declarations
+## Operation Error Declarations
 
 Each API operation should eventually make expected public errors discoverable.
 
 Conceptually:
 
-```text id="pl7ivv"
+```text
 orders.cancel
     errors:
       - ORDER_NOT_FOUND
@@ -1855,7 +1865,7 @@ orders.cancel
 
 This can support:
 
-```text id="y0oi0f"
+```text
 documentation
 testing
 SDK generation
@@ -1866,13 +1876,13 @@ The exact metadata format is deferred.
 
 ---
 
-# Error Registry Does Not Mean Every Runtime Error Is Enumerated
+## Error Registry Does Not Mean Every Runtime Error Is Enumerated
 
 The registry should contain stable semantic errors.
 
 It should not attempt to enumerate every:
 
-```text id="f2bgcf"
+```text
 database exception
 network exception
 library error
@@ -1883,23 +1893,21 @@ These are translated into the stable semantic model.
 
 ---
 
-# Testing
+## Testing
 
 Error-contract behavior should be tested according to:
 
-```text id="i30dcs"
-docs/architecture/testing-strategy.md
-```
+- [docs/architecture/testing-strategy.md](../architecture/testing-strategy.md)
 
 ---
 
-# Contract Tests
+## Contract Tests
 
 Tests should verify the canonical error envelope.
 
 For example:
 
-```text id="d9940q"
+```text
 error.code exists
 message is string
 details matches code schema
@@ -1908,11 +1916,11 @@ correlation identifiers have correct format
 
 ---
 
-# Validation Tests
+## Validation Tests
 
 Validation tests should verify:
 
-```text id="nujc3m"
+```text
 top-level VALIDATION_FAILED
 field paths
 field reason codes
@@ -1921,17 +1929,17 @@ no internal schema leakage
 
 ---
 
-# Domain Error Tests
+## Domain Error Tests
 
 Domain operations exposed through APIs should verify that expected application errors map to stable public codes.
 
 ---
 
-# Authentication Error Tests
+## Authentication Error Tests
 
 Tests should verify safe semantics for:
 
-```text id="8qprfi"
+```text
 missing credentials
 invalid credentials
 expired credentials
@@ -1942,11 +1950,11 @@ according to the authentication design.
 
 ---
 
-# Authorization Error Tests
+## Authorization Error Tests
 
 Tests should verify:
 
-```text id="jyc7d2"
+```text
 denied operation
 hidden resource existence
 cross-tenant access
@@ -1956,11 +1964,11 @@ through the transport boundary.
 
 ---
 
-# Internal Error Tests
+## Internal Error Tests
 
 Unexpected failure tests should verify that the public response does not expose:
 
-```text id="2st8tk"
+```text
 stack
 SQL
 secret
@@ -1972,7 +1980,7 @@ while internal observability receives sufficient diagnostic context.
 
 ---
 
-# Redaction Tests
+## Redaction Tests
 
 Tests should assert that error serialization never includes restricted data.
 
@@ -1980,23 +1988,23 @@ This is especially important when exception objects or validation libraries reta
 
 ---
 
-# Retry Metadata Tests
+## Retry Metadata Tests
 
 If retry metadata is introduced, tests should verify that only genuinely retryable public errors expose it.
 
 ---
 
-# Compatibility Tests
+## Compatibility Tests
 
 Stable error codes and detail schemas should participate in API compatibility testing when consumers depend on them.
 
 ---
 
-# Generated Registry Validation
+## Generated Registry Validation
 
 CI should eventually verify that:
 
-```text id="z5t51d"
+```text
 all public error codes are registered
 registered codes are unique
 details schemas are valid
@@ -2006,11 +2014,11 @@ documentation is current
 
 ---
 
-# Static Analysis
+## Static Analysis
 
 Future tooling may detect:
 
-```text id="2y0iu8"
+```text
 raw exception serialized publicly
 unknown error code
 duplicate error code
@@ -2022,11 +2030,11 @@ where the selected language permits reliable analysis.
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 Before introducing a new public error, an AI agent should inspect:
 
-```text id="1jgg4k"
+```text
 existing error registry
 similar domain errors
 ownership
@@ -2039,7 +2047,7 @@ consumer requirements
 
 ---
 
-# AI Should Reuse Existing Errors
+## AI Should Reuse Existing Errors
 
 An AI agent should not create a new error code merely because a new code path was added.
 
@@ -2047,25 +2055,25 @@ If an existing semantic error already represents the condition, reuse it.
 
 ---
 
-# AI and Internal Errors
+## AI and Internal Errors
 
 An AI agent must not expose internal exception names or messages as public API contracts.
 
 ---
 
-# AI and Database Errors
+## AI and Database Errors
 
 A database constraint failure should be translated according to its semantic meaning.
 
 For example:
 
-```text id="677pwq"
+```text
 users_email_unique
 ```
 
 may translate to:
 
-```text id="kj4f3w"
+```text
 EMAIL_ALREADY_IN_USE
 ```
 
@@ -2073,13 +2081,13 @@ It must not escape as raw SQL or ORM metadata.
 
 ---
 
-# AI and Provider Errors
+## AI and Provider Errors
 
 Provider-specific failures must be translated before crossing the API boundary.
 
 An AI agent should identify whether the provider response represents:
 
-```text id="nmsvp4"
+```text
 business rejection
 temporary dependency failure
 configuration failure
@@ -2090,11 +2098,11 @@ rather than mapping all provider exceptions identically.
 
 ---
 
-# AI and Information Disclosure
+## AI and Information Disclosure
 
 When deciding between:
 
-```text id="bjzdl6"
+```text
 PERMISSION_DENIED
 RESOURCE_NOT_FOUND
 ```
@@ -2105,7 +2113,7 @@ It must not choose based solely on convenience.
 
 ---
 
-# AI and Error Tests
+## AI and Error Tests
 
 New or changed public error semantics should include tests at the relevant layer.
 
@@ -2113,7 +2121,7 @@ Bug fixes involving incorrect errors should add regression tests whenever practi
 
 ---
 
-# New Public Error Checklist
+## New Public Error Checklist
 
 Before introducing a new public error code, answer:
 
@@ -2136,7 +2144,7 @@ If these questions cannot be answered, the public error is not ready.
 
 ---
 
-# New Error Details Checklist
+## New Error Details Checklist
 
 Before adding structured error details, answer:
 
@@ -2151,7 +2159,7 @@ Before adding structured error details, answer:
 
 ---
 
-# Error Mapping Checklist
+## Error Mapping Checklist
 
 When translating an internal failure, answer:
 
@@ -2168,17 +2176,17 @@ When translating an internal failure, answer:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Parsing Error Messages
+### Parsing Error Messages
 
 Client logic based on:
 
-```text id="ucj6h5"
+```text
 message.includes("already exists")
 ```
 
@@ -2186,37 +2194,37 @@ Prohibited.
 
 ---
 
-## Raw Exception Response
+### Raw Exception Response
 
 Prohibited.
 
 ---
 
-## ORM Error Code as Public Contract
+### ORM Error Code as Public Contract
 
 Prohibited.
 
 ---
 
-## SQLSTATE as Public Contract
+### SQLSTATE as Public Contract
 
 Prohibited.
 
 ---
 
-## Provider Exception as Public Contract
+### Provider Exception as Public Contract
 
 Prohibited.
 
 ---
 
-## Stack Trace in Response
+### Stack Trace in Response
 
 Prohibited.
 
 ---
 
-## Arbitrary `details`
+### Arbitrary `details`
 
 Avoid.
 
@@ -2224,13 +2232,13 @@ Details require schema.
 
 ---
 
-## One Generic Error for Every Expected Failure
+### One Generic Error for Every Expected Failure
 
 Avoid when consumers need semantic distinctions.
 
 ---
 
-## Unique Error Code for Every Code Path
+### Unique Error Code for Every Code Path
 
 Avoid.
 
@@ -2238,25 +2246,25 @@ Codes represent semantics, not implementation locations.
 
 ---
 
-## Reusing Error Code With New Meaning
+### Reusing Error Code With New Meaning
 
 Prohibited.
 
 ---
 
-## Sensitive Value in Error Message
+### Sensitive Value in Error Message
 
 Prohibited.
 
 ---
 
-## Returning Authorization Internals
+### Returning Authorization Internals
 
 Prohibited.
 
 ---
 
-## Treating All Exceptions as `500`
+### Treating All Exceptions as `500`
 
 Avoid.
 
@@ -2264,13 +2272,13 @@ Expected business failures require semantic translation.
 
 ---
 
-## Treating All Dependency Failures as Retryable
+### Treating All Dependency Failures as Retryable
 
 Avoid.
 
 ---
 
-## HTTP Status as Only Error Contract
+### HTTP Status as Only Error Contract
 
 Avoid.
 
@@ -2278,19 +2286,19 @@ Status codes are too coarse for many application semantics.
 
 ---
 
-## `200 OK` With Hidden Error Object
+### `200 OK` With Hidden Error Object
 
 Avoid for ordinary API failure semantics unless a protocol specifically requires it.
 
 ---
 
-## Different Error Envelope per Endpoint
+### Different Error Envelope per Endpoint
 
 Avoid.
 
 ---
 
-## Full Input Echo on Validation Failure
+### Full Input Echo on Validation Failure
 
 Avoid.
 
@@ -2298,7 +2306,7 @@ It may expose sensitive data.
 
 ---
 
-# Initial API Error Policy
+## Initial API Error Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2325,13 +2333,12 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Remaining Implementation Decisions
 
-The following decisions are intentionally deferred:
+The accepted choices are linked above. These remaining details are intentionally deferred:
 
-```text id="18ti26"
+```text
 canonical error registry format
-error schema library
 HTTP validation status convention
 error identifier format
 request identifier format
@@ -2349,32 +2356,27 @@ Significant choices should be captured through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should be complemented by:
 
-```text id="a5hvmm"
-docs/api/versioning.md
-
-docs/architecture/versioning-and-compatibility.md
-
-docs/reliability/error-reporting.md
-docs/reliability/logging.md
-
-docs/security/incident-response.md
-```
+- [docs/api/versioning.md](versioning.md)
+- [docs/architecture/versioning-and-compatibility.md](../architecture/versioning-and-compatibility.md)
+- [docs/reliability/error-reporting.md](../reliability/error-reporting.md)
+- [docs/reliability/logging.md](../reliability/logging.md)
+- [docs/security/incident-response.md](../security/incident-response.md)
 
 Implementation-specific error documentation should derive from the canonical error registry rather than duplicating it manually.
 
 ---
 
-# Summary
+## Summary
 
 The public error contract exists to expose stable semantics without exposing internal implementation.
 
 The intended model is:
 
-```text id="85nz69"
+```text
 internal failure
     ↓
 classification
@@ -2388,7 +2390,7 @@ consumer
 
 Orion prefers:
 
-```text id="gcjyr8"
+```text
 stable codes over message parsing
 
 semantic errors over infrastructure exceptions

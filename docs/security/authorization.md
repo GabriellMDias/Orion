@@ -1,5 +1,15 @@
 # Authorization
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+## Read for this change
+
+- [Default Deny](#default-deny)
+- [Trusted Enforcement Boundary](#trusted-enforcement-boundary)
+- [Multi-Tenant Authorization](#multi-tenant-authorization)
+- [Authorization Testing](#authorization-testing)
+- [New Authorization Policy Checklist](#new-authorization-policy-checklist)
+
 ## Purpose
 
 This document defines the authorization architecture and security principles used by Orion.
@@ -25,12 +35,12 @@ Specific authorization libraries, policy engines, role models, permission storag
 
 This document complements:
 
-- `docs/security/authentication.md`;
-- `docs/security/data-classification.md`;
-- `docs/security/secrets-management.md`;
-- `docs/architecture/application-boundaries.md`;
-- `docs/architecture/dependency-rules.md`;
-- `docs/architecture/error-handling.md`.
+- [docs/security/authentication.md](authentication.md);
+- [docs/security/data-classification.md](data-classification.md);
+- [docs/security/secrets-management.md](secrets-management.md);
+- [docs/architecture/application-boundaries.md](../architecture/application-boundaries.md);
+- [docs/architecture/dependency-rules.md](../architecture/dependency-rules.md);
+- [docs/architecture/error-handling.md](../architecture/error-handling.md).
 
 ---
 
@@ -66,7 +76,7 @@ Authorization must not depend solely on user-interface state or client-supplied 
 
 ---
 
-# Default Deny
+## Default Deny
 
 Authorization should fail closed.
 
@@ -92,7 +102,7 @@ Security-sensitive ambiguity must not become implicit access.
 
 ---
 
-# Authorization Requires Trusted Identity
+## Authorization Requires Trusted Identity
 
 Authorization decisions that depend on identity must use a verified principal.
 
@@ -111,7 +121,7 @@ Authorization operates on trusted identity context.
 
 ---
 
-# Anonymous Actors
+## Anonymous Actors
 
 Some operations may be public.
 
@@ -129,7 +139,7 @@ Lack of authentication must not accidentally bypass authorization logic.
 
 ---
 
-# Authorization Decision Model
+## Authorization Decision Model
 
 A meaningful authorization decision may depend on:
 
@@ -153,7 +163,7 @@ Authorization should model only the dimensions required by actual domain rules.
 
 ---
 
-# Operation-Based Authorization
+## Operation-Based Authorization
 
 Authorization should protect meaningful operations.
 
@@ -184,7 +194,7 @@ call method X in controller Y
 
 ---
 
-# Resource-Based Authorization
+## Resource-Based Authorization
 
 Some permissions depend on the target resource.
 
@@ -207,7 +217,7 @@ Do not rely on client-provided ownership claims.
 
 ---
 
-# Ownership
+## Ownership
 
 Ownership is an authorization relationship.
 
@@ -225,7 +235,7 @@ Do not infer ownership casually from fields whose meaning is unrelated.
 
 ---
 
-# Ownership Is Not Authentication
+## Ownership Is Not Authentication
 
 An actor may be authenticated but not own a resource.
 
@@ -243,7 +253,7 @@ Authorization should fail.
 
 ---
 
-# Roles
+## Roles
 
 Roles group authorization responsibilities.
 
@@ -263,7 +273,7 @@ They must not become vague shortcuts for unrelated privileges.
 
 ---
 
-# Role Semantics
+## Role Semantics
 
 Every role should have a clear definition.
 
@@ -289,7 +299,7 @@ At what scope?
 
 ---
 
-# Permissions
+## Permissions
 
 Permissions represent allowed capabilities.
 
@@ -309,7 +319,7 @@ They should describe meaningful capabilities rather than framework implementatio
 
 ---
 
-# Roles vs Permissions
+## Roles vs Permissions
 
 Roles and permissions are different concepts.
 
@@ -334,7 +344,7 @@ Application logic should prefer checking meaningful authorization policy rather 
 
 ---
 
-# Avoid Hardcoded Role Checks
+## Avoid Hardcoded Role Checks
 
 Avoid:
 
@@ -358,7 +368,7 @@ The exact API will depend on the selected stack.
 
 ---
 
-# Policy-Based Authorization
+## Policy-Based Authorization
 
 A policy represents a reusable authorization rule.
 
@@ -381,7 +391,7 @@ Authorization policy should express business-security semantics clearly.
 
 ---
 
-# Authorization and Domain Rules
+## Authorization and Domain Rules
 
 Authorization and domain validation are related but distinct.
 
@@ -419,7 +429,7 @@ The exact evaluation order may vary based on information-disclosure requirements
 
 ---
 
-# Authorization Before Domain Execution
+## Authorization Before Domain Execution
 
 Sensitive operations should normally authorize before performing side effects.
 
@@ -445,7 +455,7 @@ unless atomic architecture requires a combined decision.
 
 ---
 
-# Information Disclosure
+## Information Disclosure
 
 Authorization order may affect whether protected resource existence is revealed.
 
@@ -473,7 +483,7 @@ This behavior should be deliberate.
 
 ---
 
-# Trusted Enforcement Boundary
+## Trusted Enforcement Boundary
 
 Authorization must be enforced in trusted code.
 
@@ -491,7 +501,7 @@ They do not provide security enforcement.
 
 ---
 
-# UI Authorization
+## UI Authorization
 
 A UI may use authorization information to:
 
@@ -509,7 +519,7 @@ A malicious or modified client must still be unable to perform the forbidden ope
 
 ---
 
-# Client Authorization Hints
+## Client Authorization Hints
 
 Clients may receive safe authorization hints such as:
 
@@ -527,7 +537,7 @@ The backend must independently evaluate the operation when it is requested.
 
 ---
 
-# Authorization Duplication
+## Authorization Duplication
 
 Avoid independently implementing the same authorization rule in:
 
@@ -545,7 +555,7 @@ Clients may derive presentation behavior from backend-provided capabilities or s
 
 ---
 
-# Multi-Tenant Authorization
+## Multi-Tenant Authorization
 
 Multi-tenant systems require explicit tenant isolation.
 
@@ -568,7 +578,7 @@ may be necessary but should not automatically be assumed sufficient.
 
 ---
 
-# Tenant Context
+## Tenant Context
 
 Tenant context must originate from a trusted source.
 
@@ -584,7 +594,7 @@ The system should determine whether the actor is authorized to act within the re
 
 ---
 
-# Tenant Switching
+## Tenant Switching
 
 If users may belong to multiple tenants, switching active tenant context must be explicit.
 
@@ -596,7 +606,7 @@ It is not proof of membership.
 
 ---
 
-# Cross-Tenant Access
+## Cross-Tenant Access
 
 Cross-tenant access should be prohibited by default.
 
@@ -614,7 +624,7 @@ They must not arise from accidental broad database access.
 
 ---
 
-# Database Tenant Isolation
+## Database Tenant Isolation
 
 Application authorization should be the primary semantic control.
 
@@ -636,7 +646,7 @@ Database isolation does not eliminate the need for clear application authorizati
 
 ---
 
-# Row-Level Security
+## Row-Level Security
 
 Database row-level security may eventually provide strong tenant or ownership enforcement.
 
@@ -646,7 +656,7 @@ Business authorization must not become hidden inside database policies without d
 
 ---
 
-# Administrative Authorization
+## Administrative Authorization
 
 Administrative operations require explicit authorization.
 
@@ -665,7 +675,7 @@ The existence of an "admin" UI does not itself secure these operations.
 
 ---
 
-# Administrative Roles
+## Administrative Roles
 
 Administrative roles should be narrow where practical.
 
@@ -683,7 +693,7 @@ Least privilege applies to administrative users.
 
 ---
 
-# Superuser Access
+## Superuser Access
 
 A global unrestricted role may sometimes be required.
 
@@ -703,7 +713,7 @@ Its existence should not become a shortcut around normal authorization design.
 
 ---
 
-# Support Access
+## Support Access
 
 Support personnel may require access to customer information or limited account actions.
 
@@ -720,7 +730,7 @@ security administration
 
 ---
 
-# Impersonation
+## Impersonation
 
 If support or administrators can impersonate users, authorization must preserve both identities.
 
@@ -746,7 +756,7 @@ It should not silently replace administrator identity.
 
 ---
 
-# Machine Authorization
+## Machine Authorization
 
 Machine actors also require authorization.
 
@@ -762,7 +772,7 @@ Authentication as a trusted service does not imply unrestricted application acce
 
 ---
 
-# Service-to-Service Authorization
+## Service-to-Service Authorization
 
 Service communication may require both:
 
@@ -787,7 +797,7 @@ unless explicitly permitted.
 
 ---
 
-# Workload Identity
+## Workload Identity
 
 Where workload identities exist, authorization may use service identity directly.
 
@@ -803,7 +813,7 @@ over broadly shared internal credentials.
 
 ---
 
-# CI and Automation Authorization
+## CI and Automation Authorization
 
 CI systems and deployment automation are actors.
 
@@ -825,7 +835,7 @@ secret-management administration
 
 ---
 
-# AI Agent Authorization
+## AI Agent Authorization
 
 AI agents must operate under explicit authorization.
 
@@ -847,7 +857,7 @@ Each capability should be authorized separately.
 
 ---
 
-# Delegated AI Actions
+## Delegated AI Actions
 
 When an AI agent acts on behalf of a human, the system should preserve delegated authority where practical.
 
@@ -865,7 +875,7 @@ The agent should not receive permanent unrestricted authority.
 
 ---
 
-# Authorization Context
+## Authorization Context
 
 An authorization decision may require contextual information.
 
@@ -885,7 +895,7 @@ Context should be trusted or validated appropriately.
 
 ---
 
-# Authorization Context Must Be Minimal
+## Authorization Context Must Be Minimal
 
 Do not pass arbitrary request objects into policy evaluation when a smaller explicit context is sufficient.
 
@@ -910,7 +920,7 @@ This keeps authorization testable and transport-independent.
 
 ---
 
-# Environment-Specific Authorization
+## Environment-Specific Authorization
 
 Production access may have stricter requirements than development access.
 
@@ -930,7 +940,7 @@ Environment should be an explicit policy input only where the distinction is sec
 
 ---
 
-# Authentication Assurance
+## Authentication Assurance
 
 Some operations may require:
 
@@ -957,7 +967,7 @@ sensitive exports
 
 ---
 
-# Step-Up Authorization
+## Step-Up Authorization
 
 Authorization may determine that the actor has sufficient permissions but insufficient current authentication assurance.
 
@@ -977,7 +987,7 @@ Authorization and authentication cooperate without becoming the same concern.
 
 ---
 
-# Temporal Authorization
+## Temporal Authorization
 
 Some permissions may be time-limited.
 
@@ -996,7 +1006,7 @@ Expired access must fail closed.
 
 ---
 
-# Relationship-Based Authorization
+## Relationship-Based Authorization
 
 Some applications may require authorization based on relationships.
 
@@ -1015,7 +1025,7 @@ Do not force every authorization model into global roles if relationships better
 
 ---
 
-# Attribute-Based Authorization
+## Attribute-Based Authorization
 
 Some policies may depend on attributes.
 
@@ -1035,7 +1045,7 @@ Introduce it only where actual authorization requirements justify it.
 
 ---
 
-# RBAC
+## RBAC
 
 Role-Based Access Control may be appropriate when permissions naturally group into organizational roles.
 
@@ -1055,7 +1065,7 @@ It should match actual domain semantics.
 
 ---
 
-# ABAC
+## ABAC
 
 Attribute-Based Access Control may be appropriate when decisions depend on multiple dynamic attributes.
 
@@ -1074,7 +1084,7 @@ ABAC introduces policy complexity and should be justified.
 
 ---
 
-# ReBAC
+## ReBAC
 
 Relationship-Based Access Control may be appropriate for graph-like relationships.
 
@@ -1090,7 +1100,7 @@ Again, choose the model based on domain needs rather than architectural fashion.
 
 ---
 
-# Mixed Authorization Models
+## Mixed Authorization Models
 
 Real systems may combine:
 
@@ -1108,7 +1118,7 @@ Avoid mixing mechanisms without a coherent policy model.
 
 ---
 
-# Permission Scope
+## Permission Scope
 
 Permissions should define scope where needed.
 
@@ -1128,7 +1138,7 @@ Do not encode arbitrary scope conventions into strings without documentation.
 
 ---
 
-# Resource Scope
+## Resource Scope
 
 Authorization may apply at levels such as:
 
@@ -1144,7 +1154,7 @@ These scopes should be explicit where they affect policy.
 
 ---
 
-# Permission Naming
+## Permission Naming
 
 Permission names should represent stable capabilities.
 
@@ -1168,7 +1178,7 @@ Permission naming should describe application semantics.
 
 ---
 
-# Permission Granularity
+## Permission Granularity
 
 Permissions should be neither excessively broad nor excessively microscopic.
 
@@ -1192,7 +1202,7 @@ Choose granularity based on meaningful security behavior.
 
 ---
 
-# Permission Registry
+## Permission Registry
 
 As Orion evolves, stable permissions should have a canonical machine-readable registry where practical.
 
@@ -1218,7 +1228,7 @@ The exact format depends on the selected stack.
 
 ---
 
-# Role Registry
+## Role Registry
 
 If roles are used, roles should also have explicit definitions.
 
@@ -1236,7 +1246,7 @@ Roles should not be defined only in scattered conditionals.
 
 ---
 
-# Policy Ownership
+## Policy Ownership
 
 Authorization policies should have identifiable ownership.
 
@@ -1254,7 +1264,7 @@ It should not own the business meaning of every operation.
 
 ---
 
-# Centralized Authorization Infrastructure
+## Centralized Authorization Infrastructure
 
 Shared authorization infrastructure may provide:
 
@@ -1272,7 +1282,7 @@ Domain-specific authorization ownership should remain clear.
 
 ---
 
-# Local Policy Definition
+## Local Policy Definition
 
 A domain or feature may define authorization close to the protected operation.
 
@@ -1290,7 +1300,7 @@ The important principle is discoverability.
 
 ---
 
-# Authorization at Application Boundaries
+## Authorization at Application Boundaries
 
 Authorization should normally happen before protected application operations.
 
@@ -1310,7 +1320,7 @@ The application operation may also enforce authorization internally when the sam
 
 ---
 
-# Defense in Depth
+## Defense in Depth
 
 Critical operations may enforce authorization at more than one layer.
 
@@ -1331,7 +1341,7 @@ Avoid duplicated policy implementations that may drift.
 
 ---
 
-# Worker Authorization
+## Worker Authorization
 
 Background workers often operate without an interactive user.
 
@@ -1353,7 +1363,7 @@ These are different authorization semantics.
 
 ---
 
-# Jobs Triggered by Users
+## Jobs Triggered by Users
 
 If a user schedules a job, the system must decide whether authorization is evaluated:
 
@@ -1367,7 +1377,7 @@ The correct behavior depends on whether permissions may change before execution.
 
 ---
 
-# Permission Changes During Async Work
+## Permission Changes During Async Work
 
 Consider:
 
@@ -1387,7 +1397,7 @@ This decision should follow domain and security requirements.
 
 ---
 
-# Events and Authorization
+## Events and Authorization
 
 Events should not assume that every consumer inherits the producer's authority.
 
@@ -1397,7 +1407,7 @@ Actor context may be included when semantically required, but it must not become
 
 ---
 
-# Data Access Authorization
+## Data Access Authorization
 
 Reading data is an authorization decision.
 
@@ -1416,7 +1426,7 @@ Authorization applies to reads as well as writes.
 
 ---
 
-# Field-Level Authorization
+## Field-Level Authorization
 
 Some systems may require protecting individual fields.
 
@@ -1433,7 +1443,7 @@ It increases complexity significantly.
 
 ---
 
-# Response Filtering
+## Response Filtering
 
 If different actors may see different fields, response construction must respect authorization.
 
@@ -1449,7 +1459,7 @@ Prefer deliberate response schemas.
 
 ---
 
-# Bulk Operations
+## Bulk Operations
 
 Bulk operations may increase authorization risk.
 
@@ -1467,7 +1477,7 @@ Permission to modify one resource does not automatically imply permission to mod
 
 ---
 
-# Search and Listing Authorization
+## Search and Listing Authorization
 
 Collection endpoints must not expose unauthorized resources.
 
@@ -1485,7 +1495,7 @@ not only detail endpoints.
 
 ---
 
-# Inference Attacks
+## Inference Attacks
 
 Even when direct data access is blocked, aggregate responses may reveal protected information.
 
@@ -1502,7 +1512,7 @@ Authorization design should consider information disclosure when data is sensiti
 
 ---
 
-# Authorization and Caching
+## Authorization and Caching
 
 Caches must not cause one actor to receive another actor's protected data.
 
@@ -1524,7 +1534,7 @@ actor
 
 ---
 
-# Authorization and CDN Caching
+## Authorization and CDN Caching
 
 Public caching infrastructure requires special care for authenticated responses.
 
@@ -1534,7 +1544,7 @@ HTTP caching policy should reflect authentication and authorization semantics.
 
 ---
 
-# Authorization and Database Queries
+## Authorization and Database Queries
 
 Authorization should influence data access safely.
 
@@ -1558,7 +1568,7 @@ especially for large or sensitive datasets.
 
 ---
 
-# Avoid IDOR
+## Avoid IDOR
 
 Insecure Direct Object Reference occurs when possession of a resource identifier is treated as authorization.
 
@@ -1580,7 +1590,7 @@ Ownership or permission must be verified.
 
 ---
 
-# Predictable Identifiers
+## Predictable Identifiers
 
 Opaque or unpredictable identifiers can reduce accidental exposure.
 
@@ -1590,7 +1600,7 @@ Even a cryptographically random resource ID requires authorization when the reso
 
 ---
 
-# Authorization and Data Classification
+## Authorization and Data Classification
 
 More sensitive data may require stronger authorization.
 
@@ -1610,7 +1620,7 @@ It informs the security requirements.
 
 ---
 
-# Restricted Data
+## Restricted Data
 
 Access to `RESTRICTED` data should be rare and explicit.
 
@@ -1626,7 +1636,7 @@ Ordinary application users and support roles should not receive restricted data 
 
 ---
 
-# Authorization and Secrets
+## Authorization and Secrets
 
 Authorization to operate a system does not automatically grant access to its raw secrets.
 
@@ -1646,7 +1656,7 @@ Capability-based operational systems should prefer allowing actions without expo
 
 ---
 
-# Authorization and Production Access
+## Authorization and Production Access
 
 Production operational access should use separate authorization policy from ordinary product authorization.
 
@@ -1662,13 +1672,11 @@ rotate secret
 
 These rules will be expanded in:
 
-```text
-docs/security/production-access.md
-```
+- [docs/security/production-access.md](production-access.md)
 
 ---
 
-# Authorization and Audit Logs
+## Authorization and Audit Logs
 
 Sensitive authorization decisions may require audit events.
 
@@ -1688,7 +1696,7 @@ Audit records should capture the trusted actor.
 
 ---
 
-# Authorization Decision Logging
+## Authorization Decision Logging
 
 Not every authorization decision should be logged.
 
@@ -1708,7 +1716,7 @@ The exact telemetry policy should balance diagnostic value, privacy, and cost.
 
 ---
 
-# Authorization Failure Telemetry
+## Authorization Failure Telemetry
 
 Authorization failures may be:
 
@@ -1730,7 +1738,7 @@ Telemetry should distinguish semantics where useful.
 
 ---
 
-# Public Authorization Errors
+## Public Authorization Errors
 
 Common public authorization semantics may include:
 
@@ -1746,7 +1754,7 @@ Authorization infrastructure should not expose internal policy evaluation detail
 
 ---
 
-# Internal Authorization Diagnostics
+## Internal Authorization Diagnostics
 
 Internal diagnostics may include:
 
@@ -1766,7 +1774,7 @@ Avoid logging entire actor or resource objects.
 
 ---
 
-# Policy Reason Codes
+## Policy Reason Codes
 
 Authorization systems may eventually use machine-readable internal reason codes.
 
@@ -1786,7 +1794,7 @@ They should not necessarily become public API error codes.
 
 ---
 
-# Avoid Policy Detail Leakage
+## Avoid Policy Detail Leakage
 
 A public denial should not expose information such as:
 
@@ -1800,7 +1808,7 @@ Public messages should remain safe.
 
 ---
 
-# Authorization Changes
+## Authorization Changes
 
 Changing authorization policy is security-sensitive.
 
@@ -1818,7 +1826,7 @@ Such changes should receive explicit tests and documentation.
 
 ---
 
-# Permission Migration
+## Permission Migration
 
 Changing role or permission semantics may require migrating persisted assignments.
 
@@ -1837,7 +1845,7 @@ Authorization data migrations should be treated as security-sensitive.
 
 ---
 
-# Removing Permissions
+## Removing Permissions
 
 Removing a permission may affect:
 
@@ -1853,7 +1861,7 @@ The system should identify existing assignments before removing the capability.
 
 ---
 
-# Renaming Permissions
+## Renaming Permissions
 
 A permission rename is not merely cosmetic when assignments are persisted.
 
@@ -1863,7 +1871,7 @@ Prefer stable permission identifiers with editable human-readable descriptions.
 
 ---
 
-# Role Changes
+## Role Changes
 
 Changing the permissions granted by an existing role can silently alter access for many actors.
 
@@ -1871,7 +1879,7 @@ Role changes should therefore be reviewed as security changes.
 
 ---
 
-# Authorization Data
+## Authorization Data
 
 Authorization state may include:
 
@@ -1888,7 +1896,7 @@ This data is security-sensitive and generally at least `CONFIDENTIAL`.
 
 ---
 
-# Authorization Data Integrity
+## Authorization Data Integrity
 
 Authorization data must preserve strong integrity.
 
@@ -1898,7 +1906,7 @@ Database constraints and transactions should be used where appropriate.
 
 ---
 
-# Authorization Transactions
+## Authorization Transactions
 
 Security-sensitive changes may need transactional guarantees.
 
@@ -1916,7 +1924,7 @@ Exact transaction boundaries depend on implementation.
 
 ---
 
-# Self-Escalation
+## Self-Escalation
 
 Users must not be able to grant themselves privileges beyond their current authority.
 
@@ -1938,7 +1946,7 @@ Input schemas should distinguish ordinary editable fields from privileged securi
 
 ---
 
-# Mass Assignment
+## Mass Assignment
 
 Generic object update mechanisms can cause authorization vulnerabilities.
 
@@ -1954,7 +1962,7 @@ Prefer explicit update contracts.
 
 ---
 
-# Privilege Escalation
+## Privilege Escalation
 
 Authorization design should consider both:
 
@@ -1974,7 +1982,7 @@ Both require explicit prevention.
 
 ---
 
-# Privilege Inheritance
+## Privilege Inheritance
 
 If roles or groups inherit permissions, inheritance must remain understandable.
 
@@ -1984,7 +1992,7 @@ A contributor should be able to determine why an actor has a permission.
 
 ---
 
-# Permission Explanation
+## Permission Explanation
 
 For complex authorization systems, it may eventually be useful to explain:
 
@@ -1999,7 +2007,7 @@ Such diagnostics should not leak protected policy details to ordinary users.
 
 ---
 
-# Authorization Introspection
+## Authorization Introspection
 
 Trusted tools may eventually support questions such as:
 
@@ -2017,7 +2025,7 @@ Access to such tools must itself be authorized.
 
 ---
 
-# Policy Determinism
+## Policy Determinism
 
 Given the same trusted inputs and policy state, authorization should produce predictable results.
 
@@ -2034,7 +2042,7 @@ AI reasoning
 
 ---
 
-# Authorization Side Effects
+## Authorization Side Effects
 
 Authorization checks should generally be free of business side effects.
 
@@ -2052,7 +2060,7 @@ Audit or telemetry side effects may occur through controlled infrastructure wher
 
 ---
 
-# Pure Policy Functions
+## Pure Policy Functions
 
 Where practical, authorization policy should be representable as:
 
@@ -2070,7 +2078,7 @@ External data lookup may still be necessary.
 
 ---
 
-# Authorization Data Loading
+## Authorization Data Loading
 
 Policy evaluation may require loading:
 
@@ -2086,7 +2094,7 @@ Avoid excessive repeated authorization queries that create significant performan
 
 ---
 
-# Avoid Authorization N+1
+## Avoid Authorization N+1
 
 Collection operations may accidentally evaluate authorization with one database query per item.
 
@@ -2096,7 +2104,7 @@ Security correctness comes first, but architecture should avoid obvious scalabil
 
 ---
 
-# Cached Authorization Decisions
+## Cached Authorization Decisions
 
 Authorization decisions may be cached only when their freshness semantics are understood.
 
@@ -2112,7 +2120,7 @@ The acceptable delay must be explicit.
 
 ---
 
-# Immediate Revocation
+## Immediate Revocation
 
 Some permissions may require near-immediate revocation.
 
@@ -2128,7 +2136,7 @@ This requirement should influence caching and token design.
 
 ---
 
-# Authorization in Tokens
+## Authorization in Tokens
 
 Permissions or roles may be embedded in tokens.
 
@@ -2148,7 +2156,7 @@ The architecture must define how long stale authorization claims may remain vali
 
 ---
 
-# Server-Side Authorization State
+## Server-Side Authorization State
 
 Server-side policy lookup may provide fresher authorization state at the cost of additional runtime dependency.
 
@@ -2156,7 +2164,7 @@ The decision should be based on required revocation semantics and performance.
 
 ---
 
-# Hybrid Authorization
+## Hybrid Authorization
 
 A system may use token claims for coarse authorization and authoritative server state for sensitive operations.
 
@@ -2166,7 +2174,7 @@ The model should remain explicit.
 
 ---
 
-# Authorization and Feature Flags
+## Authorization and Feature Flags
 
 Feature availability and authorization are different concepts.
 
@@ -2188,7 +2196,7 @@ Do not use feature flags as a security boundary.
 
 ---
 
-# Subscription and Entitlements
+## Subscription and Entitlements
 
 Product entitlements may resemble permissions.
 
@@ -2205,7 +2213,7 @@ They should remain conceptually distinct where doing so improves clarity.
 
 ---
 
-# License Enforcement
+## License Enforcement
 
 License or subscription restrictions should not be confused with identity authorization.
 
@@ -2215,7 +2223,7 @@ Distinct failure semantics may be useful.
 
 ---
 
-# Authorization Testing
+## Authorization Testing
 
 Authorization policy must be testable.
 
@@ -2237,7 +2245,7 @@ Security-sensitive policy should have explicit test coverage.
 
 ---
 
-# Negative Tests
+## Negative Tests
 
 Authorization tests must verify denial paths.
 
@@ -2251,7 +2259,7 @@ Who must not be able to perform this?
 
 ---
 
-# Cross-Tenant Tests
+## Cross-Tenant Tests
 
 Multi-tenant systems should include tests specifically proving tenant isolation.
 
@@ -2269,7 +2277,7 @@ These tests should be considered high-value security tests.
 
 ---
 
-# Privilege Escalation Tests
+## Privilege Escalation Tests
 
 Security-sensitive update operations should test that ordinary actors cannot modify:
 
@@ -2285,7 +2293,7 @@ without proper authorization.
 
 ---
 
-# Authorization Regression Tests
+## Authorization Regression Tests
 
 Authorization bugs should produce regression tests whenever practical.
 
@@ -2305,7 +2313,7 @@ The regression should verify the denied behavior.
 
 ---
 
-# Property-Based Authorization Testing
+## Property-Based Authorization Testing
 
 If the selected stack supports it and policy complexity justifies it, property-based tests may validate invariants such as:
 
@@ -2319,7 +2327,7 @@ This should be introduced only where it provides concrete value.
 
 ---
 
-# Authorization Test Helpers
+## Authorization Test Helpers
 
 Test infrastructure may provide helpers to create:
 
@@ -2337,7 +2345,7 @@ They must not hide the policy being tested.
 
 ---
 
-# End-to-End Authorization Tests
+## End-to-End Authorization Tests
 
 Critical flows may require end-to-end tests proving that the full trusted boundary rejects unauthorized clients.
 
@@ -2355,7 +2363,7 @@ Unit policy tests alone do not prove transport integration is correct.
 
 ---
 
-# Authorization in Development
+## Authorization in Development
 
 Development environments must not disable authorization by default.
 
@@ -2367,7 +2375,7 @@ They must not bypass the authorization architecture itself.
 
 ---
 
-# Authorization Bypass
+## Authorization Bypass
 
 A generic development flag such as:
 
@@ -2389,7 +2397,7 @@ Prefer realistic development identities over bypassing policy.
 
 ---
 
-# Superuser Development Accounts
+## Superuser Development Accounts
 
 Development may use a synthetic administrative account.
 
@@ -2399,13 +2407,11 @@ Developers should still test ordinary and denied access paths.
 
 ---
 
-# Authorization and Error Handling
+## Authorization and Error Handling
 
 Authorization failures should follow:
 
-```text
-docs/architecture/error-handling.md
-```
+- [docs/architecture/error-handling.md](../architecture/error-handling.md)
 
 The public response should preserve safe semantics.
 
@@ -2413,7 +2419,7 @@ Internal policy diagnostics should remain separate.
 
 ---
 
-# Authorization and Observability
+## Authorization and Observability
 
 Authorization systems should provide enough evidence to investigate security-relevant failures without creating excessive telemetry.
 
@@ -2431,7 +2437,7 @@ with identifiers included only when permitted and operationally necessary.
 
 ---
 
-# Security Monitoring
+## Security Monitoring
 
 Patterns such as:
 
@@ -2448,7 +2454,7 @@ Detection should be introduced based on real security requirements.
 
 ---
 
-# Authorization and Data Classification
+## Authorization and Data Classification
 
 Authorization design should account for data sensitivity.
 
@@ -2458,7 +2464,7 @@ Access to `RESTRICTED` information should require exceptional policy.
 
 ---
 
-# Authorization Documentation
+## Authorization Documentation
 
 Authorization documentation should explain:
 
@@ -2476,7 +2482,7 @@ without duplicating machine-readable policy definitions unnecessarily.
 
 ---
 
-# Generated Authorization Documentation
+## Generated Authorization Documentation
 
 If roles and permissions become machine-readable, Orion should generate reference documentation where practical.
 
@@ -2494,7 +2500,7 @@ This helps humans and AI agents discover the authorization model.
 
 ---
 
-# Machine-Readable Authorization Model
+## Machine-Readable Authorization Model
 
 A future canonical authorization registry may define concepts such as:
 
@@ -2519,7 +2525,7 @@ The exact representation will depend on the selected stack.
 
 ---
 
-# Mechanical Enforcement
+## Mechanical Enforcement
 
 Future tooling may enforce rules such as:
 
@@ -2543,7 +2549,7 @@ The exact mechanisms will depend on architecture and tooling.
 
 ---
 
-# Static Analysis
+## Static Analysis
 
 Static analysis may eventually detect patterns such as:
 
@@ -2558,7 +2564,7 @@ Mechanical checks should target high-value violations rather than attempt to inf
 
 ---
 
-# Policy Coverage
+## Policy Coverage
 
 It may eventually be useful to validate that exposed protected operations have an associated authorization declaration.
 
@@ -2574,7 +2580,7 @@ This should be introduced if the selected architecture supports it cleanly.
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 AI agents must not introduce authorization logic casually.
 
@@ -2595,7 +2601,7 @@ An agent must not resolve authorization uncertainty by granting broader access.
 
 ---
 
-# AI-Assisted Security Review
+## AI-Assisted Security Review
 
 Machine-readable policies may eventually allow AI agents to inspect questions such as:
 
@@ -2613,7 +2619,7 @@ Such analysis should rely on canonical policy definitions and tests rather than 
 
 ---
 
-# New Permission Checklist
+## New Permission Checklist
 
 Before creating a permission, answer:
 
@@ -2632,7 +2638,7 @@ If these questions cannot be answered, the permission is not ready.
 
 ---
 
-# New Role Checklist
+## New Role Checklist
 
 Before creating a role, answer:
 
@@ -2649,7 +2655,7 @@ Before creating a role, answer:
 
 ---
 
-# New Authorization Policy Checklist
+## New Authorization Policy Checklist
 
 Before creating a policy, answer:
 
@@ -2666,13 +2672,13 @@ Before creating a policy, answer:
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## UI-Only Authorization
+### UI-Only Authorization
 
 ```text
 button hidden
@@ -2684,7 +2690,7 @@ Prohibited.
 
 ---
 
-## Trusting Client Roles
+### Trusting Client Roles
 
 ```text
 request.role == "admin"
@@ -2696,7 +2702,7 @@ Prohibited.
 
 ---
 
-## Trusting Resource Identifier Possession
+### Trusting Resource Identifier Possession
 
 ```text
 actor knows resource ID
@@ -2708,7 +2714,7 @@ Prohibited.
 
 ---
 
-## Scattered Role Checks
+### Scattered Role Checks
 
 ```text
 if role == admin
@@ -2720,13 +2726,13 @@ Avoid.
 
 ---
 
-## Default Allow
+### Default Allow
 
 Prohibited for security-sensitive access.
 
 ---
 
-## Generic Admin Bypass
+### Generic Admin Bypass
 
 A single undocumented bypass around normal policies.
 
@@ -2734,31 +2740,31 @@ Strongly discouraged.
 
 ---
 
-## Cross-Tenant Query Without Scope
+### Cross-Tenant Query Without Scope
 
 Prohibited where tenant isolation is required.
 
 ---
 
-## Mass Assignment of Security Fields
+### Mass Assignment of Security Fields
 
 Prohibited.
 
 ---
 
-## Feature Flag as Security
+### Feature Flag as Security
 
 Prohibited.
 
 ---
 
-## Client Capability Hint as Authority
+### Client Capability Hint as Authority
 
 Prohibited.
 
 ---
 
-## Stale Token Role Assumed Forever
+### Stale Token Role Assumed Forever
 
 Avoid.
 
@@ -2766,7 +2772,7 @@ Authorization freshness must be explicit.
 
 ---
 
-## Shared Authorization Logic Across Clients as Security
+### Shared Authorization Logic Across Clients as Security
 
 Client-shared policy may improve UX.
 
@@ -2774,13 +2780,13 @@ It must not replace trusted enforcement.
 
 ---
 
-## Authorization by Obscurity
+### Authorization by Obscurity
 
 Hidden routes, unpredictable IDs, or undocumented endpoints are not authorization controls.
 
 ---
 
-## Silent Privilege Expansion
+### Silent Privilege Expansion
 
 Changing an existing role to grant substantially broader access without explicit review.
 
@@ -2788,7 +2794,7 @@ Avoid.
 
 ---
 
-# Initial Authorization Policy
+## Initial Authorization Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2815,7 +2821,7 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Future Implementation Decisions
 
 The following decisions are intentionally deferred:
 
@@ -2840,26 +2846,22 @@ Significant decisions should be documented through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should eventually be complemented by:
 
-```text
-docs/security/production-access.md
-docs/security/incident-response.md
-docs/security/data-retention.md
-
-docs/api/principles.md
-
-docs/database/principles.md
-docs/database/transactions-and-concurrency.md
-```
+- [docs/security/production-access.md](production-access.md)
+- [docs/security/incident-response.md](incident-response.md)
+- [docs/security/data-retention.md](data-retention.md)
+- [docs/api/principles.md](../api/principles.md)
+- [docs/database/principles.md](../database/principles.md)
+- [docs/database/transactions-and-concurrency.md](../database/transactions-and-concurrency.md)
 
 Application-specific authorization documentation should reference this policy rather than independently redefine the security model.
 
 ---
 
-# Summary
+## Summary
 
 Authorization determines whether an actor may perform an operation.
 

@@ -1,5 +1,20 @@
 # Database Migrations
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0006](../adr/0006-select-prisma-orm-for-database-access-and-migrations.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Released Migration](#released-migration)
+- [Unreleased Migration](#unreleased-migration)
+- [Destructive Changes](#destructive-changes)
+- [Backfills](#backfills)
+- [Initial Migration Policy](#initial-migration-policy)
+- [Schema Evolution](#schema-evolution)
+
+Related policy: [versioning and compatibility](../architecture/versioning-and-compatibility.md), [schema documentation](schema-documentation.md).
+
 ## Purpose
 
 This document defines the database migration policy used by Orion.
@@ -22,15 +37,15 @@ They are not a complete record of every schema experiment performed during devel
 
 This document is technology-agnostic.
 
-Specific migration tools, schema-generation mechanisms, deployment commands, and database engines will be selected later through explicit architectural decisions.
+PostgreSQL, Prisma Schema Language for representable structures, and Prisma Migrate are selected by ADR-0005 and ADR-0006. Deployment commands and remaining migration implementation details are not available yet.
 
 This document complements:
 
-- `docs/database/principles.md`;
-- `docs/architecture/versioning-and-compatibility.md`;
-- `docs/architecture/testing-strategy.md`;
-- `docs/architecture/error-handling.md`;
-- `docs/reliability/observability.md`.
+- [docs/database/principles.md](principles.md);
+- [docs/architecture/versioning-and-compatibility.md](../architecture/versioning-and-compatibility.md);
+- [docs/architecture/testing-strategy.md](../architecture/testing-strategy.md);
+- [docs/architecture/error-handling.md](../architecture/error-handling.md);
+- [docs/reliability/observability.md](../reliability/observability.md).
 
 ---
 
@@ -60,7 +75,7 @@ These are different responsibilities.
 
 ---
 
-# Why This Policy Exists
+## Why This Policy Exists
 
 During development, schema design often evolves through exploration.
 
@@ -90,7 +105,7 @@ Migration history should describe this transition clearly and safely.
 
 ---
 
-# Migration History Is Not Git History
+## Migration History Is Not Git History
 
 Migration files must not be used as a substitute for source-control history.
 
@@ -116,7 +131,7 @@ Do not force migrations to preserve information Git already records better.
 
 ---
 
-# Released and Unreleased Migrations
+## Released and Unreleased Migrations
 
 Every migration should be understood as either:
 
@@ -134,7 +149,7 @@ This distinction determines whether the migration history may be edited.
 
 ---
 
-# Unreleased Migration
+## Unreleased Migration
 
 An unreleased migration has not yet become part of a persistent database history that Orion promises to upgrade safely.
 
@@ -154,7 +169,7 @@ when doing so improves the final migration history.
 
 ---
 
-# Released Migration
+## Released Migration
 
 A released migration has become part of a persistent database state whose future upgrades depend on that migration history.
 
@@ -176,7 +191,7 @@ Corrections require a new migration.
 
 ---
 
-# What Counts as Released?
+## What Counts as Released?
 
 A migration is released when it has been applied to a database environment that Orion considers part of durable release history.
 
@@ -193,7 +208,7 @@ The exact release environments will be defined with deployment architecture.
 
 ---
 
-# Temporary Development Databases
+## Temporary Development Databases
 
 A migration applied only to disposable developer or test databases is not automatically released.
 
@@ -212,7 +227,7 @@ Their existence does not force migration immutability.
 
 ---
 
-# Persistent Non-Production Environments
+## Persistent Non-Production Environments
 
 Not every non-production environment is disposable.
 
@@ -230,7 +245,7 @@ The environment policy must be explicit.
 
 ---
 
-# When Release Status Is Uncertain
+## When Release Status Is Uncertain
 
 If it is unclear whether a migration has entered durable history, treat it as immutable until verified.
 
@@ -248,7 +263,7 @@ corrupted migration history
 
 ---
 
-# Migration Immutability
+## Migration Immutability
 
 Once released, a migration's meaning and contents are immutable.
 
@@ -268,7 +283,7 @@ That breaks reproducibility.
 
 ---
 
-# Migration Checksums
+## Migration Checksums
 
 If the selected migration tool supports checksums or equivalent integrity verification, released migration modification should be detected automatically.
 
@@ -284,7 +299,7 @@ repository history is inconsistent
 
 ---
 
-# Fix Forward
+## Fix Forward
 
 When a released migration is incorrect, the normal strategy is:
 
@@ -304,7 +319,7 @@ This preserves deterministic upgrade behavior.
 
 ---
 
-# Example: Released Mistake
+## Example: Released Mistake
 
 Suppose a released migration creates:
 
@@ -326,7 +341,7 @@ through a new migration.
 
 ---
 
-# Example: Unreleased Mistake
+## Example: Unreleased Mistake
 
 Suppose the same migration has only been used locally and has never entered durable release history.
 
@@ -348,7 +363,7 @@ for no operational reason.
 
 ---
 
-# Development Iteration
+## Development Iteration
 
 During feature development, contributors may experiment with database design.
 
@@ -367,7 +382,7 @@ Git already preserves the experimentation.
 
 ---
 
-# Squashing
+## Squashing
 
 Squashing combines multiple unreleased migrations into a smaller set of meaningful migrations.
 
@@ -380,7 +395,7 @@ Squashing is appropriate when:
 
 ---
 
-# Squashing Is Not Always One Migration
+## Squashing Is Not Always One Migration
 
 The objective is not:
 
@@ -398,7 +413,7 @@ A feature may legitimately require several migrations.
 
 ---
 
-# Meaningful Migration Boundaries
+## Meaningful Migration Boundaries
 
 Separate migrations may be appropriate when they represent distinct deployment or data-safety stages.
 
@@ -426,7 +441,7 @@ These intermediate states may be necessary even before release if they model the
 
 ---
 
-# Safety Over Migration Count
+## Safety Over Migration Count
 
 Never collapse migrations merely to reduce file count when the combined operation would be less safe.
 
@@ -444,7 +459,7 @@ A single migration file is not inherently better.
 
 ---
 
-# Migration Naming
+## Migration Naming
 
 Migration names should describe intent.
 
@@ -470,7 +485,7 @@ The exact naming syntax depends on the migration tool.
 
 ---
 
-# Migration Identifier
+## Migration Identifier
 
 Migration identifiers should remain unique and deterministic according to the selected tooling.
 
@@ -486,7 +501,7 @@ The identifier format matters less than immutability and ordering.
 
 ---
 
-# Schema Migrations
+## Schema Migrations
 
 A schema migration changes database structure.
 
@@ -504,7 +519,7 @@ Schema changes should be reviewed for both logical correctness and operational i
 
 ---
 
-# Data Migrations
+## Data Migrations
 
 A data migration changes persisted data to support a new schema or semantic model.
 
@@ -521,7 +536,7 @@ Data migrations require the same seriousness as schema migrations.
 
 ---
 
-# Schema and Data Migration Separation
+## Schema and Data Migration Separation
 
 Schema and data changes may be separated when doing so improves:
 
@@ -538,7 +553,7 @@ The decision should follow risk rather than ceremony.
 
 ---
 
-# Backfills
+## Backfills
 
 A backfill populates or transforms existing data.
 
@@ -558,7 +573,7 @@ A migration tool executing one transaction is not necessarily the correct mechan
 
 ---
 
-# Small Backfills
+## Small Backfills
 
 Small bounded backfills may safely execute as part of a migration.
 
@@ -572,7 +587,7 @@ The expected row count and operational cost should be understood.
 
 ---
 
-# Large Backfills
+## Large Backfills
 
 Large backfills may require dedicated application or operational tooling.
 
@@ -594,7 +609,7 @@ The backfill may need to be resumable.
 
 ---
 
-# Backfill Idempotency
+## Backfill Idempotency
 
 Long-running or retryable backfills should preferably be idempotent.
 
@@ -604,7 +619,7 @@ This improves recovery after interruption.
 
 ---
 
-# Backfill Progress
+## Backfill Progress
 
 Long-running backfills should provide progress visibility.
 
@@ -622,7 +637,7 @@ Exact telemetry depends on tooling.
 
 ---
 
-# Expand–Migrate–Contract
+## Expand–Migrate–Contract
 
 Breaking schema changes should often follow:
 
@@ -638,7 +653,7 @@ when old and new application versions may coexist.
 
 ---
 
-# Expand Phase
+## Expand Phase
 
 The expand phase introduces new schema while preserving compatibility with existing application code.
 
@@ -655,7 +670,7 @@ Old application versions must continue functioning.
 
 ---
 
-# Migrate Phase
+## Migrate Phase
 
 The migrate phase moves application behavior or data toward the new model.
 
@@ -672,7 +687,7 @@ This phase may span multiple releases.
 
 ---
 
-# Contract Phase
+## Contract Phase
 
 The contract phase removes obsolete compatibility structures after all consumers have migrated.
 
@@ -689,7 +704,7 @@ Contract operations must not occur while old application versions still depend o
 
 ---
 
-# Rolling Deployments
+## Rolling Deployments
 
 If deployment allows old and new application instances to coexist, migrations must remain compatible during that period.
 
@@ -705,7 +720,7 @@ This creates deployment-time failures.
 
 ---
 
-# Application Before Migration
+## Application Before Migration
 
 Some changes require database migration before new code is deployed.
 
@@ -721,7 +736,7 @@ The new application must not start before required schema exists.
 
 ---
 
-# Application Before Contract
+## Application Before Contract
 
 Other changes require application rollout before destructive schema cleanup.
 
@@ -739,7 +754,7 @@ Migration order must reflect compatibility.
 
 ---
 
-# Migration and Deployment Are One System
+## Migration and Deployment Are One System
 
 Schema deployment and application deployment must be designed together.
 
@@ -759,7 +774,7 @@ What happens during rollback?
 
 ---
 
-# Deployment Compatibility Matrix
+## Deployment Compatibility Matrix
 
 For significant schema changes, it may be useful to reason about:
 
@@ -774,7 +789,7 @@ Invalid combinations should be identified before release.
 
 ---
 
-# Backward-Compatible Schema Changes
+## Backward-Compatible Schema Changes
 
 Generally safer changes include:
 
@@ -791,7 +806,7 @@ For example, some `ALTER TABLE` operations may lock large tables.
 
 ---
 
-# Breaking Schema Changes
+## Breaking Schema Changes
 
 Potentially breaking changes include:
 
@@ -809,7 +824,7 @@ These require compatibility analysis.
 
 ---
 
-# Renaming Columns
+## Renaming Columns
 
 Direct renaming may break old application versions.
 
@@ -831,7 +846,7 @@ This is more verbose but may be operationally safer.
 
 ---
 
-# Renaming Tables
+## Renaming Tables
 
 Table renames have similar compatibility implications.
 
@@ -841,7 +856,7 @@ The exact strategy depends on database capabilities.
 
 ---
 
-# Type Changes
+## Type Changes
 
 Changing column types may involve:
 
@@ -857,7 +872,7 @@ A type change should never be assumed trivial merely because the migration synta
 
 ---
 
-# Narrowing Types
+## Narrowing Types
 
 Type narrowing can destroy or reject existing data.
 
@@ -873,7 +888,7 @@ Existing data must be validated before enforcement.
 
 ---
 
-# NOT NULL Migration
+## NOT NULL Migration
 
 A safe sequence may be:
 
@@ -893,7 +908,7 @@ when introducing a required field into an existing populated table.
 
 ---
 
-# Defaults
+## Defaults
 
 Adding a default can affect:
 
@@ -910,7 +925,7 @@ Both should be intentional.
 
 ---
 
-# Default Removal
+## Default Removal
 
 Defaults introduced for migration compatibility may be temporary.
 
@@ -918,7 +933,7 @@ If the long-term model expects explicit application input, remove transitional d
 
 ---
 
-# Adding Constraints
+## Adding Constraints
 
 Adding a constraint to existing data requires verifying that current rows satisfy it.
 
@@ -940,7 +955,7 @@ Use such capabilities when beneficial.
 
 ---
 
-# Unique Constraints
+## Unique Constraints
 
 Adding uniqueness to populated data requires checking duplicates first.
 
@@ -948,7 +963,7 @@ A migration should not discover production duplicates unexpectedly during deploy
 
 ---
 
-# Foreign Keys
+## Foreign Keys
 
 Adding foreign keys to existing data requires ensuring all referenced values are valid.
 
@@ -956,7 +971,7 @@ Invalid historical rows may require cleanup before enforcement.
 
 ---
 
-# Index Creation
+## Index Creation
 
 Index creation can be expensive or locking depending on database technology.
 
@@ -966,7 +981,7 @@ Use non-blocking or concurrent mechanisms when the selected database supports th
 
 ---
 
-# Index Removal
+## Index Removal
 
 Removing an index may affect:
 
@@ -979,7 +994,7 @@ Verify whether the index is only an optimization or also enforces semantics.
 
 ---
 
-# Destructive Changes
+## Destructive Changes
 
 Destructive changes require explicit review.
 
@@ -1007,7 +1022,7 @@ Is the operation compatible with rollback?
 
 ---
 
-# Data Destruction Must Be Intentional
+## Data Destruction Must Be Intentional
 
 The fact that application code no longer references a field does not prove the data is safe to delete.
 
@@ -1025,7 +1040,7 @@ Ownership and retention policy must be checked.
 
 ---
 
-# Irreversible Migrations
+## Irreversible Migrations
 
 Some migrations cannot be meaningfully reversed.
 
@@ -1044,7 +1059,7 @@ Irreversibility must be explicit.
 
 ---
 
-# Down Migrations
+## Down Migrations
 
 Orion does not assume that every migration must have a safe automatic `down` operation.
 
@@ -1060,7 +1075,7 @@ cannot be reversed merely by recreating an empty column.
 
 ---
 
-# Rollback Strategy
+## Rollback Strategy
 
 Rollback should distinguish:
 
@@ -1075,7 +1090,7 @@ These are different operations.
 
 ---
 
-# Application Rollback
+## Application Rollback
 
 An application rollback returns code to a previous release.
 
@@ -1085,7 +1100,7 @@ Migration planning must account for this.
 
 ---
 
-# Database Rollback
+## Database Rollback
 
 Database rollback changes schema backward.
 
@@ -1095,7 +1110,7 @@ Automatic rollback should not be assumed safe.
 
 ---
 
-# Data Restoration
+## Data Restoration
 
 If a migration destroys or corrupts data, recovery may require:
 
@@ -1109,7 +1124,7 @@ rather than an ordinary down migration.
 
 ---
 
-# Forward Recovery
+## Forward Recovery
 
 In many production incidents, the preferred response is:
 
@@ -1123,7 +1138,7 @@ This preserves forward history and may reduce risk.
 
 ---
 
-# Migration Transactions
+## Migration Transactions
 
 Whether a migration runs inside a transaction depends on:
 
@@ -1138,7 +1153,7 @@ Do not assume transactional DDL behavior is universal.
 
 ---
 
-# Large Migration Transactions
+## Large Migration Transactions
 
 Large migrations inside one transaction may:
 
@@ -1153,7 +1168,7 @@ Operational safety may require smaller steps.
 
 ---
 
-# Non-Transactional Operations
+## Non-Transactional Operations
 
 Some database operations cannot run inside a transaction.
 
@@ -1163,7 +1178,7 @@ Failure recovery requires additional care.
 
 ---
 
-# Migration Locks
+## Migration Locks
 
 Migration tooling should prevent multiple incompatible migration processes from modifying the same database concurrently where practical.
 
@@ -1171,7 +1186,7 @@ Concurrent migration execution can corrupt migration state.
 
 ---
 
-# Migration Ordering
+## Migration Ordering
 
 Migration order must be deterministic.
 
@@ -1181,7 +1196,7 @@ The selected tooling should define canonical ordering.
 
 ---
 
-# Parallel Development
+## Parallel Development
 
 Parallel feature development may create conflicting unreleased migrations.
 
@@ -1191,7 +1206,7 @@ Do not preserve accidental merge ordering purely because files were created inde
 
 ---
 
-# Branch Migrations
+## Branch Migrations
 
 Feature branches may contain temporary migration histories.
 
@@ -1201,7 +1216,7 @@ The final shared history should represent valid forward evolution.
 
 ---
 
-# Merge Conflicts
+## Merge Conflicts
 
 Migration merge conflicts require semantic review.
 
@@ -1221,7 +1236,7 @@ Should unreleased migrations be regenerated?
 
 ---
 
-# Schema Diff Tools
+## Schema Diff Tools
 
 Schema-diff tooling may help generate migrations.
 
@@ -1241,7 +1256,7 @@ before accepting generated migrations.
 
 ---
 
-# ORM-Generated Migrations
+## ORM-Generated Migrations
 
 If an ORM generates migrations, its output must still follow Orion's migration policy.
 
@@ -1262,7 +1277,7 @@ while unreleased if the final result is safer or clearer.
 
 ---
 
-# Tool State vs Database Truth
+## Tool State vs Database Truth
 
 Some migration systems maintain internal metadata tables.
 
@@ -1274,7 +1289,7 @@ Schema drift must still be detectable.
 
 ---
 
-# Baselines
+## Baselines
 
 Existing databases may sometimes need a migration baseline.
 
@@ -1290,7 +1305,7 @@ Baselining is a significant operation and should be documented.
 
 ---
 
-# Initial Migration
+## Initial Migration
 
 For a new project, the initial migration may create the first released schema.
 
@@ -1300,7 +1315,7 @@ After release, it becomes immutable like every other released migration.
 
 ---
 
-# Squashing Historical Released Migrations
+## Squashing Historical Released Migrations
 
 Released migrations should not normally be squashed in place.
 
@@ -1312,7 +1327,7 @@ It must not silently rewrite the history used by existing installations.
 
 ---
 
-# Migration Retention
+## Migration Retention
 
 Released migration files should remain available as long as supported database states depend on them.
 
@@ -1330,7 +1345,7 @@ Retention policy must align with support policy.
 
 ---
 
-# Database Creation
+## Database Creation
 
 A new database should be reproducible from repository-controlled sources.
 
@@ -1346,7 +1361,7 @@ The selected method must remain deterministic.
 
 ---
 
-# Fresh Database Test
+## Fresh Database Test
 
 CI should eventually verify that a fresh database can reach the current schema.
 
@@ -1361,7 +1376,7 @@ schema-generation drift
 
 ---
 
-# Upgrade Path Test
+## Upgrade Path Test
 
 Fresh-database testing is not sufficient.
 
@@ -1381,7 +1396,7 @@ current schema
 
 ---
 
-# Supported Upgrade Window
+## Supported Upgrade Window
 
 As Orion matures, it may define how far back direct database upgrades are supported.
 
@@ -1397,7 +1412,7 @@ This decision should follow deployment and support requirements.
 
 ---
 
-# Migration Test Fixtures
+## Migration Test Fixtures
 
 Migration tests may preserve released schema snapshots or baselines.
 
@@ -1407,7 +1422,7 @@ They should not be updated merely to make failing migration tests pass.
 
 ---
 
-# Schema Equivalence
+## Schema Equivalence
 
 After migration, the resulting database should match the intended canonical schema.
 
@@ -1427,7 +1442,7 @@ to detect drift.
 
 ---
 
-# Migration Data Tests
+## Migration Data Tests
 
 Data migrations should test semantic outcomes.
 
@@ -1443,7 +1458,7 @@ not only that the migration executes without error.
 
 ---
 
-# Migration Idempotency
+## Migration Idempotency
 
 Ordinary schema migrations are not necessarily idempotent.
 
@@ -1455,7 +1470,7 @@ Do not apply one rule to every migration mechanism.
 
 ---
 
-# Migration Failure
+## Migration Failure
 
 A migration failure should leave a diagnosable state.
 
@@ -1470,7 +1485,7 @@ whether partial changes remain
 
 ---
 
-# Partial Migration Failure
+## Partial Migration Failure
 
 Non-transactional migrations may partially apply before failure.
 
@@ -1480,7 +1495,7 @@ Blind retry may fail or cause further damage.
 
 ---
 
-# Failed Migration State
+## Failed Migration State
 
 The migration tool's internal state may need repair after partial failure.
 
@@ -1490,7 +1505,7 @@ Do not manually mark failed migrations as successful merely to continue deployme
 
 ---
 
-# Migration Observability
+## Migration Observability
 
 Production migrations should emit safe operational telemetry.
 
@@ -1510,13 +1525,11 @@ Long-running data operations may emit additional progress metrics.
 
 ---
 
-# Migration Logs
+## Migration Logs
 
 Migration logs must follow:
 
-```text
-docs/security/telemetry-redaction.md
-```
+- [docs/security/telemetry-redaction.md](../security/telemetry-redaction.md)
 
 They must not dump:
 
@@ -1528,7 +1541,7 @@ secret configuration
 
 ---
 
-# Migration Duration
+## Migration Duration
 
 Migration duration should be observable.
 
@@ -1543,7 +1556,7 @@ unexpected execution plan
 
 ---
 
-# Lock Monitoring
+## Lock Monitoring
 
 High-risk migrations may require observation of:
 
@@ -1558,7 +1571,7 @@ The exact procedures depend on database platform.
 
 ---
 
-# Migration Alerting
+## Migration Alerting
 
 Important migration failures should become operationally visible.
 
@@ -1566,7 +1579,7 @@ A deployment must not silently proceed after a required schema migration failed.
 
 ---
 
-# Readiness
+## Readiness
 
 An application that requires schema version N should not become ready against an incompatible schema.
 
@@ -1574,7 +1587,7 @@ The exact compatibility check depends on architecture.
 
 ---
 
-# Schema Version Checks
+## Schema Version Checks
 
 A formal numeric schema version is not required by default.
 
@@ -1584,7 +1597,7 @@ Explicit versioning should be introduced only when useful.
 
 ---
 
-# Application Compatibility Checks
+## Application Compatibility Checks
 
 Applications may eventually validate required migration state during startup or deployment.
 
@@ -1592,7 +1605,7 @@ Such checks must not leak database credentials or internal details through publi
 
 ---
 
-# Migrations in CI
+## Migrations in CI
 
 CI should eventually validate:
 
@@ -1609,7 +1622,7 @@ according to repository maturity.
 
 ---
 
-# Migration Linting
+## Migration Linting
 
 Static migration checks may detect risky operations such as:
 
@@ -1626,7 +1639,7 @@ The selected database platform determines what can be detected accurately.
 
 ---
 
-# Risk Classification
+## Risk Classification
 
 Significant migrations may be classified conceptually as:
 
@@ -1651,7 +1664,7 @@ A formal system should be introduced only if useful.
 
 ---
 
-# High-Risk Migration Review
+## High-Risk Migration Review
 
 Additional review is appropriate for:
 
@@ -1667,7 +1680,7 @@ security-sensitive data changes
 
 ---
 
-# Migration Approval
+## Migration Approval
 
 The repository should not require unnecessary manual bureaucracy for ordinary low-risk migrations.
 
@@ -1677,7 +1690,7 @@ Automation should handle routine safety checks where possible.
 
 ---
 
-# Manual Production Migrations
+## Manual Production Migrations
 
 Schema changes should not normally be typed manually into production.
 
@@ -1694,7 +1707,7 @@ testing
 
 ---
 
-# Emergency Schema Changes
+## Emergency Schema Changes
 
 An emergency may sometimes require direct production intervention.
 
@@ -1714,7 +1727,7 @@ The production schema and repository history must not remain divergent.
 
 ---
 
-# Schema Drift
+## Schema Drift
 
 Schema drift occurs when actual database structure differs from repository-controlled migration state.
 
@@ -1731,7 +1744,7 @@ environment inconsistency
 
 ---
 
-# Drift Detection
+## Drift Detection
 
 Orion should eventually detect drift automatically where practical.
 
@@ -1745,7 +1758,7 @@ canonical schema comparison
 
 ---
 
-# Drift Resolution
+## Drift Resolution
 
 Do not automatically overwrite unexpected production drift.
 
@@ -1762,7 +1775,7 @@ Then reconcile safely.
 
 ---
 
-# Data Fixes vs Migrations
+## Data Fixes vs Migrations
 
 Not every production data correction belongs in permanent schema migration history.
 
@@ -1780,7 +1793,7 @@ The distinction should be explicit.
 
 ---
 
-# Reusable Data Transformation
+## Reusable Data Transformation
 
 If a data transformation is required for every database upgrading through a release boundary, it belongs in the release migration path.
 
@@ -1788,7 +1801,7 @@ If it is a one-off repair for one corrupted environment, it may not.
 
 ---
 
-# Reference Data Migrations
+## Reference Data Migrations
 
 Changes to canonical reference data may require migrations when database rows are the source of truth.
 
@@ -1804,7 +1817,7 @@ The ownership of reference data must be explicit.
 
 ---
 
-# Seed Data Is Not Migration History
+## Seed Data Is Not Migration History
 
 Development seed scripts must not be relied upon to upgrade released production data.
 
@@ -1812,7 +1825,7 @@ Migration logic should contain or invoke the required transformation for release
 
 ---
 
-# Migration and Feature Flags
+## Migration and Feature Flags
 
 Feature flags may help separate:
 
@@ -1829,7 +1842,7 @@ Temporary migration flags should have removal criteria.
 
 ---
 
-# Dual Writes
+## Dual Writes
 
 Expand–migrate–contract may temporarily require writing both old and new representations.
 
@@ -1846,7 +1859,7 @@ removal condition
 
 ---
 
-# Dual Reads
+## Dual Reads
 
 Applications may temporarily support reading old and new representations.
 
@@ -1856,7 +1869,7 @@ Fallback behavior must not hide incomplete migration indefinitely.
 
 ---
 
-# Compatibility Code
+## Compatibility Code
 
 Temporary migration compatibility code should be clearly identifiable.
 
@@ -1871,7 +1884,7 @@ Such code should have explicit removal conditions.
 
 ---
 
-# Migration Debt
+## Migration Debt
 
 Temporary compatibility structures that remain indefinitely become migration debt.
 
@@ -1888,7 +1901,7 @@ They should be removed after migration completion.
 
 ---
 
-# Migration Completion
+## Migration Completion
 
 A complex migration is complete only when:
 
@@ -1906,7 +1919,7 @@ The migration lifecycle may span multiple releases.
 
 ---
 
-# Verification
+## Verification
 
 After migration, verify the intended result.
 
@@ -1925,7 +1938,7 @@ Verification should be proportional to risk.
 
 ---
 
-# Data Validation Queries
+## Data Validation Queries
 
 High-risk migrations may define pre- and post-migration validation queries.
 
@@ -1935,7 +1948,7 @@ They must follow data-classification policy.
 
 ---
 
-# Migration Runbooks
+## Migration Runbooks
 
 Particularly risky production migrations may require runbooks describing:
 
@@ -1956,7 +1969,7 @@ docs/runbooks/
 
 ---
 
-# Abort Conditions
+## Abort Conditions
 
 A high-risk migration should define when execution should stop.
 
@@ -1973,7 +1986,7 @@ Exact thresholds should follow operational evidence.
 
 ---
 
-# Rollout Strategy
+## Rollout Strategy
 
 Some migrations may require staged rollout.
 
@@ -1991,7 +2004,7 @@ This depends on deployment architecture and database topology.
 
 ---
 
-# Multiple Databases
+## Multiple Databases
 
 If multiple database instances exist, migration coordination must define:
 
@@ -2006,7 +2019,7 @@ Do not assume all databases update atomically.
 
 ---
 
-# Tenant-Specific Databases
+## Tenant-Specific Databases
 
 If each tenant eventually has a database, migration systems must track migration state per tenant.
 
@@ -2016,7 +2029,7 @@ Operational tooling must make skew visible.
 
 ---
 
-# Sharded Databases
+## Sharded Databases
 
 Sharding introduces additional migration complexity.
 
@@ -2026,7 +2039,7 @@ Orion should not design for sharding before such requirements exist.
 
 ---
 
-# Customer-Managed Databases
+## Customer-Managed Databases
 
 If Orion software is ever distributed to customer-managed environments, migration compatibility becomes a public product contract.
 
@@ -2036,22 +2049,20 @@ This is not assumed today.
 
 ---
 
-# Migration Security
+## Migration Security
 
 Migration processes often require elevated privileges.
 
 They must follow:
 
-```text
-docs/security/secrets-management.md
-docs/security/production-access.md
-```
+- [docs/security/secrets-management.md](../security/secrets-management.md)
+- [docs/security/production-access.md](../security/production-access.md)
 
 Migration credentials should not be exposed to ordinary runtime code.
 
 ---
 
-# Migration Credential Scope
+## Migration Credential Scope
 
 Prefer migration credentials that grant only the privileges required for schema evolution.
 
@@ -2059,7 +2070,7 @@ Avoid using unrestricted database superuser credentials when a narrower role is 
 
 ---
 
-# Migration Audit
+## Migration Audit
 
 Production migration execution should be attributable where practical.
 
@@ -2076,7 +2087,7 @@ result
 
 ---
 
-# Sensitive Data in Migration Code
+## Sensitive Data in Migration Code
 
 Migration files must not contain real production sensitive values.
 
@@ -2093,7 +2104,7 @@ Data transformations should operate generically.
 
 ---
 
-# Generated Migration Files
+## Generated Migration Files
 
 Generated migration files may be committed if they represent repository-controlled migration history.
 
@@ -2103,7 +2114,7 @@ Released generated migrations are immutable.
 
 ---
 
-# Handwritten Migrations
+## Handwritten Migrations
 
 Handwritten migrations follow exactly the same release policy.
 
@@ -2111,7 +2122,7 @@ Manual authorship does not grant special status.
 
 ---
 
-# Migration Documentation
+## Migration Documentation
 
 Complex migrations should explain non-obvious intent.
 
@@ -2137,7 +2148,7 @@ depending on scope.
 
 ---
 
-# Comments in Migration Files
+## Comments in Migration Files
 
 Comments are useful when they explain:
 
@@ -2152,7 +2163,7 @@ Avoid comments that merely restate SQL.
 
 ---
 
-# ADRs for Major Migrations
+## ADRs for Major Migrations
 
 A migration may deserve an ADR when it changes major architectural behavior.
 
@@ -2169,7 +2180,7 @@ Ordinary schema evolution does not require an ADR.
 
 ---
 
-# Migration Review Questions
+## Migration Review Questions
 
 Every migration review should consider:
 
@@ -2188,7 +2199,7 @@ Every migration review should consider:
 
 ---
 
-# Before Creating a Migration
+## Before Creating a Migration
 
 Before generating a migration, determine:
 
@@ -2206,7 +2217,7 @@ Do not automatically create another migration for every local schema edit.
 
 ---
 
-# Migration Refinement Workflow
+## Migration Refinement Workflow
 
 For unreleased work:
 
@@ -2226,7 +2237,7 @@ The correct result should optimize released history, not preserve every local ed
 
 ---
 
-# Migration Append Workflow
+## Migration Append Workflow
 
 A new migration is appropriate when:
 
@@ -2248,7 +2259,7 @@ the intermediate state is itself meaningful
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 AI agents must not treat migration generation as a mechanical schema-diff task.
 
@@ -2265,7 +2276,7 @@ deployment compatibility
 
 ---
 
-# AI Must Verify Release Status
+## AI Must Verify Release Status
 
 An AI agent must not edit an existing migration unless it can establish that the migration is unreleased.
 
@@ -2279,7 +2290,7 @@ and create a new forward migration if a change is required.
 
 ---
 
-# AI and Migration Noise
+## AI and Migration Noise
 
 An AI agent should avoid sequences such as:
 
@@ -2297,7 +2308,7 @@ It should refine unreleased history when safe.
 
 ---
 
-# AI and Safety
+## AI and Safety
 
 An AI agent must not squash migrations merely for cleanliness when the separate steps are required for:
 
@@ -2312,7 +2323,7 @@ Safety takes precedence over aesthetic migration history.
 
 ---
 
-# AI and Destructive Changes
+## AI and Destructive Changes
 
 Before introducing:
 
@@ -2336,7 +2347,7 @@ Lack of code references is insufficient evidence that deletion is safe.
 
 ---
 
-# AI and Migration Tests
+## AI and Migration Tests
 
 An AI-generated migration should include or update relevant tests.
 
@@ -2352,7 +2363,7 @@ compatibility test
 
 ---
 
-# AI and Generated Tool Output
+## AI and Generated Tool Output
 
 AI agents must review ORM- or tool-generated migration output before accepting it.
 
@@ -2360,7 +2371,7 @@ Generated code is not trusted intent.
 
 ---
 
-# Mechanical Enforcement
+## Mechanical Enforcement
 
 Future tooling may enforce rules such as:
 
@@ -2382,7 +2393,7 @@ The exact enforcement depends on selected database tooling.
 
 ---
 
-# Released Migration Registry
+## Released Migration Registry
 
 If the selected migration tool does not clearly distinguish release status, Orion may eventually maintain machine-readable release metadata.
 
@@ -2399,7 +2410,7 @@ This should be introduced only if tooling does not already provide a reliable so
 
 ---
 
-# Git Tags and Releases
+## Git Tags and Releases
 
 Repository releases may eventually provide the canonical boundary for migration release status.
 
@@ -2417,7 +2428,7 @@ The exact policy will be selected later.
 
 ---
 
-# Migration Changelog
+## Migration Changelog
 
 Migration history is not a user-facing changelog.
 
@@ -2435,7 +2446,7 @@ Do not conflate the two histories.
 
 ---
 
-# Migration and ADR History
+## Migration and ADR History
 
 Migrations describe state transitions.
 
@@ -2445,7 +2456,7 @@ A migration should not contain the entire rationale for a major architectural ch
 
 ---
 
-# Migration and Current Documentation
+## Migration and Current Documentation
 
 Migration history explains how the schema evolved.
 
@@ -2455,7 +2466,7 @@ Do not require contributors to reconstruct current database semantics solely fro
 
 ---
 
-# History Separation
+## History Separation
 
 Orion deliberately separates:
 
@@ -2480,115 +2491,115 @@ Each history has a different responsibility.
 
 ---
 
-# Common Anti-Patterns
+## Common Anti-Patterns
 
 The following patterns are prohibited or strongly discouraged.
 
 ---
 
-## Editing Released Migrations
+### Editing Released Migrations
 
 Prohibited.
 
 ---
 
-## Deleting Released Migrations
+### Deleting Released Migrations
 
 Prohibited.
 
 ---
 
-## Migration Per Development Edit
+### Migration Per Development Edit
 
 Avoid.
 
 ---
 
-## Keeping Abandoned Unreleased Experiments
+### Keeping Abandoned Unreleased Experiments
 
 Avoid.
 
 ---
 
-## Squashing Required Safety Stages
+### Squashing Required Safety Stages
 
 Prohibited.
 
 ---
 
-## Assuming One Migration Is Always Better
+### Assuming One Migration Is Always Better
 
 Avoid.
 
 ---
 
-## Automatic Down Migration as Recovery Strategy
+### Automatic Down Migration as Recovery Strategy
 
 Avoid.
 
 ---
 
-## Large Unbounded Backfill in One Transaction
+### Large Unbounded Backfill in One Transaction
 
 Avoid.
 
 ---
 
-## Dropping Data Without Ownership Review
+### Dropping Data Without Ownership Review
 
 Prohibited.
 
 ---
 
-## Schema Diff Without Intent Review
+### Schema Diff Without Intent Review
 
 Avoid.
 
 ---
 
-## Migration Tool Defines Architecture
+### Migration Tool Defines Architecture
 
 Avoid.
 
 ---
 
-## Manual Production Schema Changes
+### Manual Production Schema Changes
 
 Prohibited as normal workflow.
 
 ---
 
-## Production Drift Ignored
+### Production Drift Ignored
 
 Prohibited.
 
 ---
 
-## App Deployment Without Schema Compatibility Analysis
+### App Deployment Without Schema Compatibility Analysis
 
 Avoid.
 
 ---
 
-## Backfill Without Progress or Recovery Strategy
+### Backfill Without Progress or Recovery Strategy
 
 Avoid for large operations.
 
 ---
 
-## Runtime App Uses Migration Admin Credential
+### Runtime App Uses Migration Admin Credential
 
 Avoid.
 
 ---
 
-## Migration Contains Real Sensitive Data
+### Migration Contains Real Sensitive Data
 
 Prohibited.
 
 ---
 
-# Initial Migration Policy
+## Initial Migration Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2615,13 +2626,11 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Remaining Implementation Decisions
 
-The following decisions are intentionally deferred:
+The accepted choices are linked above. These remaining details are intentionally deferred:
 
 ```text
-migration tool
-schema definition source
 migration naming format
 migration checksum mechanism
 release-state detection
@@ -2640,27 +2649,22 @@ Significant choices should be documented through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document should be complemented by:
 
-```text
-docs/database/schema-documentation.md
-docs/database/transactions-and-concurrency.md
-
-docs/architecture/versioning-and-compatibility.md
-
-docs/security/production-access.md
-docs/security/data-retention.md
-
-docs/reliability/health-checks.md
-```
+- [docs/database/schema-documentation.md](schema-documentation.md)
+- [docs/database/transactions-and-concurrency.md](transactions-and-concurrency.md)
+- [docs/architecture/versioning-and-compatibility.md](../architecture/versioning-and-compatibility.md)
+- [docs/security/production-access.md](../security/production-access.md)
+- [docs/security/data-retention.md](../security/data-retention.md)
+- [docs/reliability/health-checks.md](../reliability/health-checks.md)
 
 Implementation-specific migration documentation should reference this policy rather than redefine migration history rules independently.
 
 ---
 
-# Summary
+## Summary
 
 Migration history exists to move durable databases safely between meaningful released states.
 
@@ -2714,3 +2718,168 @@ recoverability
 The correct migration history is not the shortest history.
 
 It is the clearest safe path between database states that actually matter.
+
+
+## Schema Evolution
+
+Database schemas evolve through migrations.
+
+The canonical migration policy is:
+
+```text
+production history is immutable
+development history is disposable
+```
+
+More precisely:
+
+```text
+released migration history is immutable
+unreleased migration history may be refined
+```
+
+Detailed policy belongs in:
+
+- [docs/database/migrations.md](migrations.md)
+
+---
+
+## Released State
+
+A migration becomes immutable once it participates in a permanent released database history according to the repository's release policy.
+
+After that point, correcting the schema requires a new migration.
+
+---
+
+## Unreleased State
+
+Before a migration becomes part of released history, it may be:
+
+```text
+rewritten
+combined
+regenerated
+removed
+```
+
+when doing so results in cleaner meaningful history.
+
+Git preserves development history.
+
+Database migrations preserve released schema transitions.
+
+---
+
+## Migration Count
+
+The goal is not the smallest possible number of migrations.
+
+The goal is the smallest number of meaningful and safe migrations.
+
+Multiple migrations may be required for:
+
+```text
+backfill
+expand-migrate-contract
+large transformations
+backward-compatible deployment
+zero-downtime changes
+```
+
+---
+
+## Schema Change Safety
+
+Schema changes should consider:
+
+```text
+data loss
+locking
+table rewrite
+deployment compatibility
+rollback
+backfill duration
+application version coexistence
+```
+
+A syntactically valid migration may still be operationally unsafe.
+
+---
+
+## Destructive Changes
+
+Changes such as:
+
+```text
+DROP TABLE
+DROP COLUMN
+truncate
+type narrowing
+```
+
+require explicit review of data-loss implications.
+
+Do not assume unused application code means stored data is disposable.
+
+---
+
+## Renames
+
+Column or table renames may be operationally breaking.
+
+Depending on deployment topology, an expand-and-contract sequence may be safer than direct rename.
+
+---
+
+## Backfills
+
+Data backfills should be treated as data migrations.
+
+Large backfills may require:
+
+```text
+batching
+progress tracking
+retry
+observability
+```
+
+They should not automatically run inside one long transaction.
+
+---
+
+## Schema and Application Compatibility
+
+During rolling deployments, old and new application versions may coexist.
+
+Schema evolution should account for this when deployment architecture requires it.
+
+The database is often a shared compatibility boundary between versions.
+
+---
+
+## Migration Rollback
+
+Not every database migration is safely reversible.
+
+Rollback strategy should distinguish:
+
+```text
+application rollback
+schema rollback
+data restoration
+forward fix
+```
+
+Blind automatic down migrations can be dangerous after data has changed.
+
+---
+
+## Forward Recovery
+
+For released migrations, fixing forward is often safer than attempting destructive rollback.
+
+The correct strategy depends on migration type and incident severity.
+
+---

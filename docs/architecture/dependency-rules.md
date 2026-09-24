@@ -1,5 +1,17 @@
 # Dependency Rules
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0003](../adr/0003-establish-repository-validation-and-architecture-enforcement.md), [ADR-0004](../adr/0004-select-fastify-as-the-backend-http-framework.md), [ADR-0006](../adr/0006-select-prisma-orm-for-database-access-and-migrations.md), [ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md), [ADR-0008](../adr/0008-select-react-vite-and-tanstack-for-web-applications.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Dependency Matrix](#dependency-matrix)
+- [Application Internal Dependency Direction](#application-internal-dependency-direction)
+- [Client/Server Dependency Rules](#clientserver-dependency-rules)
+- [Dependency Enforcement](#dependency-enforcement)
+- [Temporary Exceptions](#temporary-exceptions)
+
 ## Purpose
 
 This document defines dependency rules for the Orion repository.
@@ -43,13 +55,13 @@ Dependency validity is an architectural concern.
 
 ---
 
-# Dependency Categories
+## Dependency Categories
 
 Orion distinguishes between several categories of dependency.
 
 ---
 
-## Compile-Time Dependency
+### Compile-Time Dependency
 
 A compile-time dependency exists when one source module imports, references, links against, or otherwise requires another module to build.
 
@@ -71,7 +83,7 @@ Compile-time dependencies are the primary subject of repository dependency enfor
 
 ---
 
-## Runtime Dependency
+### Runtime Dependency
 
 A runtime dependency exists when one application or component requires another system while executing.
 
@@ -101,7 +113,7 @@ A runtime dependency does not imply a compile-time dependency on the other appli
 
 ---
 
-## Development Dependency
+### Development Dependency
 
 A development dependency exists only for development, testing, building, generation, validation, or repository automation.
 
@@ -120,7 +132,7 @@ Development dependencies must not leak into production runtime paths unless they
 
 ---
 
-## Generated Dependency
+### Generated Dependency
 
 A generated dependency exists when code or documentation is produced from another canonical source.
 
@@ -138,7 +150,7 @@ The canonical source must not depend back on the generated artifact unless expli
 
 ---
 
-# Repository-Level Dependency Model
+## Repository-Level Dependency Model
 
 The intended high-level dependency relationship is:
 
@@ -162,7 +174,7 @@ The following general rules apply.
 
 ---
 
-## Applications May Depend on Packages
+### Applications May Depend on Packages
 
 Valid:
 
@@ -188,7 +200,7 @@ Applications consume shared capabilities through explicit package APIs.
 
 ---
 
-## Packages Must Not Depend on Applications
+### Packages Must Not Depend on Applications
 
 Invalid:
 
@@ -214,7 +226,7 @@ Shared packages must remain independent of application implementation.
 
 ---
 
-## Applications Must Not Import Other Applications
+### Applications Must Not Import Other Applications
 
 Invalid:
 
@@ -248,7 +260,7 @@ not through implementation imports.
 
 ---
 
-## Runtime Code Must Not Depend on Repository Tooling
+### Runtime Code Must Not Depend on Repository Tooling
 
 Invalid:
 
@@ -270,7 +282,7 @@ Runtime code must not require tooling to execute.
 
 ---
 
-## Runtime Code Must Not Depend on Infrastructure Definitions
+### Runtime Code Must Not Depend on Infrastructure Definitions
 
 Invalid:
 
@@ -292,7 +304,7 @@ Application behavior must not depend directly on infrastructure-as-code implemen
 
 ---
 
-# Dependency Matrix
+## Dependency Matrix
 
 The following matrix defines the default high-level dependency policy.
 
@@ -315,7 +327,7 @@ The following matrix defines the default high-level dependency policy.
 
 ---
 
-# Package Dependency Principles
+## Package Dependency Principles
 
 Packages should form a directed dependency graph.
 
@@ -353,7 +365,7 @@ The architectural problem must be addressed.
 
 ---
 
-# Package Stability
+## Package Stability
 
 More stable concepts should generally sit lower in the dependency graph.
 
@@ -383,7 +395,7 @@ The principle is that high-volatility infrastructure should not unnecessarily co
 
 ---
 
-# Domain Dependencies
+## Domain Dependencies
 
 If `packages/domain/` exists, it should remain among the most stable shared packages.
 
@@ -415,7 +427,7 @@ The domain package should not become dependent on transport, persistence, or dep
 
 ---
 
-# Contracts Dependencies
+## Contracts Dependencies
 
 If `packages/contracts/` exists, it should represent explicit cross-boundary contracts.
 
@@ -443,7 +455,7 @@ Contracts should remain usable by multiple consumers without importing unrelated
 
 ---
 
-# Database Dependencies
+## Database Dependencies
 
 If `packages/database/` exists, it may depend on database-specific infrastructure such as:
 
@@ -482,7 +494,7 @@ The exact placement of repository interfaces will be defined by the selected app
 
 ---
 
-# SDK Dependencies
+## SDK Dependencies
 
 If `packages/sdk/` exists, it may depend on:
 
@@ -508,7 +520,7 @@ It must not become a disguised import path into backend internals.
 
 ---
 
-# Observability Dependencies
+## Observability Dependencies
 
 If `packages/observability/` exists, it may expose shared telemetry primitives.
 
@@ -536,7 +548,7 @@ Domain-level telemetry may be useful, but business behavior should not become co
 
 ---
 
-# Configuration Dependencies
+## Configuration Dependencies
 
 If `packages/config/` exists, it may provide configuration validation and loading primitives.
 
@@ -563,7 +575,7 @@ This keeps dependencies explicit and reduces hidden coupling.
 
 ---
 
-# Testing Dependencies
+## Testing Dependencies
 
 Production runtime code must not depend on testing infrastructure.
 
@@ -583,7 +595,7 @@ Tests may have broader dependency access than runtime code, but tests should not
 
 ---
 
-# UI Dependencies
+## UI Dependencies
 
 If shared UI packages exist, platform compatibility must be explicit.
 
@@ -609,7 +621,7 @@ Client-specific UI packages must not become dependencies of backend or domain pa
 
 ---
 
-# Application Internal Dependency Direction
+## Application Internal Dependency Direction
 
 Within an application, dependencies should generally flow from outer delivery mechanisms toward stable behavior.
 
@@ -657,7 +669,7 @@ without explicit architectural justification.
 
 ---
 
-# UI Application Dependency Direction
+## UI Application Dependency Direction
 
 A conceptual client application may look like:
 
@@ -699,7 +711,7 @@ when that separation improves consistency and testability.
 
 ---
 
-# Composition Root
+## Composition Root
 
 Applications should have a recognizable composition root.
 
@@ -736,7 +748,7 @@ This makes dependency direction easier to reason about and test.
 
 ---
 
-# Direct Imports vs Dependency Injection
+## Direct Imports vs Dependency Injection
 
 Dependency injection does not require a framework.
 
@@ -780,7 +792,7 @@ Abstraction should correspond to a meaningful boundary.
 
 ---
 
-# External Provider Dependencies
+## External Provider Dependencies
 
 Third-party provider SDKs should normally remain near integration boundaries.
 
@@ -811,7 +823,7 @@ An abstraction should represent an application capability, not just duplicate an
 
 ---
 
-# Persistence Dependency Rules
+## Persistence Dependency Rules
 
 Domain or application behavior should not depend on raw database representation unnecessarily.
 
@@ -843,7 +855,7 @@ Persistence abstractions should protect meaningful behavior or ownership boundar
 
 ---
 
-# ORM Models Are Not Automatically Domain Models
+## ORM Models Are Not Automatically Domain Models
 
 An ORM-generated type may represent:
 
@@ -873,7 +885,7 @@ Sharing a representation is acceptable only when the concepts genuinely have the
 
 ---
 
-# Public API Dependencies
+## Public API Dependencies
 
 Public API contracts must not depend on private implementation types.
 
@@ -893,7 +905,7 @@ Public contracts should evolve according to consumer requirements rather than in
 
 ---
 
-# Error Dependency Rules
+## Error Dependency Rules
 
 Internal exceptions or error classes may be richer than externally exposed error contracts.
 
@@ -921,7 +933,7 @@ database driver messages
 
 ---
 
-# Shared Identifier Dependencies
+## Shared Identifier Dependencies
 
 Identifiers may be shared when they represent a true cross-boundary concept.
 
@@ -952,7 +964,7 @@ Do not unify them merely because they are all strings or UUIDs.
 
 ---
 
-# Events Dependency Rules
+## Events Dependency Rules
 
 Event producers and consumers should depend on canonical event contracts rather than each other's implementation.
 
@@ -980,7 +992,7 @@ Events must not create hidden circular ownership.
 
 ---
 
-# Infrastructure Dependency Direction
+## Infrastructure Dependency Direction
 
 Infrastructure adapters may depend on stable capability contracts.
 
@@ -1004,7 +1016,7 @@ It should not be applied mechanically to trivial implementation details.
 
 ---
 
-# Tooling Dependency Direction
+## Tooling Dependency Direction
 
 Repository tooling may depend on or inspect application structure.
 
@@ -1031,7 +1043,7 @@ That does not grant application runtime code permission to depend on tooling int
 
 ---
 
-# Documentation Generation Dependencies
+## Documentation Generation Dependencies
 
 Generated documentation should depend on canonical machine-readable sources.
 
@@ -1057,13 +1069,13 @@ Do not create reverse dependencies where application behavior depends on generat
 
 ---
 
-# Forbidden Generic Dependency Patterns
+## Forbidden Generic Dependency Patterns
 
 The following patterns should be treated with suspicion or prohibited when they hide ownership.
 
 ---
 
-## Generic `common` Package
+### Generic `common` Package
 
 Avoid:
 
@@ -1085,7 +1097,7 @@ packages/observability
 
 ---
 
-## Generic `utils` Package
+### Generic `utils` Package
 
 Avoid making all applications depend on:
 
@@ -1099,7 +1111,7 @@ Small utility logic should normally remain local unless it represents a stable r
 
 ---
 
-## Application Internal Reuse
+### Application Internal Reuse
 
 Do not create dependencies such as:
 
@@ -1113,7 +1125,7 @@ Move genuinely shared behavior into an appropriate package.
 
 ---
 
-## Infrastructure Leakage
+### Infrastructure Leakage
 
 Avoid:
 
@@ -1139,7 +1151,7 @@ unless the architecture explicitly justifies such coupling.
 
 ---
 
-## Dependency Through Global State
+### Dependency Through Global State
 
 Avoid hiding dependencies behind:
 
@@ -1158,7 +1170,7 @@ It is simply harder to understand.
 
 ---
 
-# Client/Server Dependency Rules
+## Client/Server Dependency Rules
 
 Client applications may depend on:
 
@@ -1182,7 +1194,7 @@ Build tooling should eventually prevent server-only modules from being bundled i
 
 ---
 
-# Server-Only and Client-Safe Code
+## Server-Only and Client-Safe Code
 
 Packages that may be consumed by client applications must be explicitly safe for those environments.
 
@@ -1200,7 +1212,7 @@ Runtime compatibility should eventually become mechanically validated.
 
 ---
 
-# Secret Dependency Rules
+## Secret Dependency Rules
 
 Secrets belong only in trusted runtime boundaries that require them.
 
@@ -1224,7 +1236,7 @@ Secrets must not become part of generated client artifacts or shared public conf
 
 ---
 
-# Cross-Domain Dependencies
+## Cross-Domain Dependencies
 
 Business domains should avoid arbitrary internal dependencies.
 
@@ -1252,7 +1264,7 @@ A dependency between domains should answer:
 
 ---
 
-# Avoid Bidirectional Domain Dependencies
+## Avoid Bidirectional Domain Dependencies
 
 Avoid:
 
@@ -1286,7 +1298,7 @@ The important rule is to avoid hidden circular business ownership.
 
 ---
 
-# Read Dependencies and Write Dependencies
+## Read Dependencies and Write Dependencies
 
 Reading another domain's data is still a dependency.
 
@@ -1306,7 +1318,7 @@ Where domain ownership matters, reads should also respect explicit boundaries.
 
 ---
 
-# Database Table Ownership
+## Database Table Ownership
 
 When database ownership becomes defined, modules should access tables according to ownership rules.
 
@@ -1334,7 +1346,7 @@ These rules should eventually be enforced where practical.
 
 ---
 
-# Dependency on Generated Code
+## Dependency on Generated Code
 
 Authored code may depend on generated code when the generated artifact has a stable role.
 
@@ -1359,7 +1371,7 @@ Generated code must not become the only place where important semantics are docu
 
 ---
 
-# Versioned Dependencies
+## Versioned Dependencies
 
 When separately released artifacts exist, version compatibility becomes part of the dependency relationship.
 
@@ -1387,7 +1399,7 @@ Breaking dependency compatibility requires an explicit migration strategy.
 
 ---
 
-# Dependency Additions
+## Dependency Additions
 
 Before adding a new dependency edge, ask:
 
@@ -1406,7 +1418,7 @@ If the dependency feels convenient but ownership is unclear, do not add it until
 
 ---
 
-# Third-Party Dependencies
+## Third-Party Dependencies
 
 External libraries also create architectural dependencies.
 
@@ -1441,7 +1453,7 @@ without an explicit reason.
 
 ---
 
-# Transitive Dependencies
+## Transitive Dependencies
 
 Do not rely intentionally on undeclared transitive dependencies.
 
@@ -1451,7 +1463,7 @@ This makes ownership and upgrades predictable.
 
 ---
 
-# Optional Dependencies
+## Optional Dependencies
 
 Optional dependencies should correspond to genuinely optional capabilities.
 
@@ -1459,7 +1471,7 @@ Do not use optional dependency mechanisms to hide unclear architecture or incomp
 
 ---
 
-# Dynamic Dependencies
+## Dynamic Dependencies
 
 Dynamic imports, plugin loading, reflection, and runtime resolution may obscure dependency graphs.
 
@@ -1471,7 +1483,7 @@ Architectural dependency analysis should account for dynamic relationships when 
 
 ---
 
-# Dependency Cycles
+## Dependency Cycles
 
 Dependency cycles are prohibited by default.
 
@@ -1496,7 +1508,7 @@ unless the architecture genuinely requires such behavior.
 
 ---
 
-# Dependency Depth
+## Dependency Depth
 
 Deep dependency graphs increase reasoning cost.
 
@@ -1516,7 +1528,7 @@ The objective is the clearest dependency graph possible.
 
 ---
 
-# Dependency Fan-Out
+## Dependency Fan-Out
 
 A module with dependencies on many unrelated components may have too many responsibilities.
 
@@ -1542,7 +1554,7 @@ High fan-out is not automatically wrong, but it should be intentional.
 
 ---
 
-# Dependency Fan-In
+## Dependency Fan-In
 
 High fan-in may indicate a stable foundational component.
 
@@ -1561,7 +1573,7 @@ Changes to foundational packages require additional care.
 
 ---
 
-# Dependency Ownership
+## Dependency Ownership
 
 Every dependency should have an identifiable owner on both sides.
 
@@ -1573,7 +1585,7 @@ Consumers must not depend on undocumented implementation behavior.
 
 ---
 
-# Public vs Internal Dependency Surface
+## Public vs Internal Dependency Surface
 
 Packages and applications should distinguish public APIs from internal implementation.
 
@@ -1597,7 +1609,7 @@ Tooling should eventually reject unsupported internal imports.
 
 ---
 
-# Barrel Exports
+## Barrel Exports
 
 Barrel files or package entry points may be useful for defining public API surfaces.
 
@@ -1607,7 +1619,7 @@ A public API should make supported dependencies clearer, not hide ownership.
 
 ---
 
-# Dependency Enforcement
+## Dependency Enforcement
 
 Dependency rules should progressively become mechanically enforced.
 
@@ -1628,7 +1640,7 @@ Validation should fail when architectural rules are violated.
 
 ---
 
-# Enforcement Error Quality
+## Enforcement Error Quality
 
 Dependency violations should produce actionable diagnostics.
 
@@ -1659,7 +1671,7 @@ Architecture tooling is part of the developer interface.
 
 ---
 
-# Enforcement Location
+## Enforcement Location
 
 The same core dependency rules should be usable:
 
@@ -1674,7 +1686,7 @@ CI must not be the first place where a contributor discovers an obvious dependen
 
 ---
 
-# Temporary Exceptions
+## Temporary Exceptions
 
 A temporary dependency exception may be acceptable when there is a concrete reason.
 
@@ -1692,7 +1704,7 @@ Where practical, temporary exceptions should be tracked mechanically.
 
 ---
 
-# Permanent Exceptions
+## Permanent Exceptions
 
 A permanent exception to a major dependency rule represents an architectural decision.
 
@@ -1702,7 +1714,7 @@ The dependency rule documentation should then be updated if the exception change
 
 ---
 
-# Migration of Dependency Rules
+## Migration of Dependency Rules
 
 When introducing stricter enforcement into an existing codebase:
 
@@ -1717,7 +1729,7 @@ Do not weaken the intended architecture merely because legacy code currently vio
 
 ---
 
-# AI Agent Requirements
+## AI Agent Requirements
 
 AI agents must inspect dependency ownership before introducing new imports or package relationships.
 
@@ -1738,7 +1750,7 @@ When a legitimate requirement conflicts with the current dependency architecture
 
 ---
 
-# Example: Valid Web Dependency
+## Example: Valid Web Dependency
 
 ```text
 apps/web
@@ -1765,7 +1777,7 @@ No backend internals are imported.
 
 ---
 
-# Example: Invalid Web Dependency
+## Example: Invalid Web Dependency
 
 ```text
 apps/web
@@ -1794,7 +1806,7 @@ apps/api
 
 ---
 
-# Example: Valid Backend Persistence Dependency
+## Example: Valid Backend Persistence Dependency
 
 ```text
 application operation
@@ -1812,7 +1824,7 @@ Persistence technology remains outside the stable business capability.
 
 ---
 
-# Example: Invalid Domain Dependency
+## Example: Invalid Domain Dependency
 
 ```text
 packages/domain
@@ -1828,7 +1840,7 @@ A simpler project may deliberately choose a more direct model, but that choice m
 
 ---
 
-# Example: Valid Event Dependency
+## Example: Valid Event Dependency
 
 ```text
 API
@@ -1846,7 +1858,7 @@ They do not import each other's implementation.
 
 ---
 
-# Example: Invalid Tooling Dependency
+## Example: Invalid Tooling Dependency
 
 ```text
 apps/api
@@ -1860,7 +1872,7 @@ If the application needs configuration functionality, that capability should bel
 
 ---
 
-# Example: Provider Isolation
+## Example: Provider Isolation
 
 Prefer:
 
@@ -1886,7 +1898,7 @@ when email delivery is a meaningful shared capability.
 
 ---
 
-# Initial Rules
+## Initial Rules
 
 Before the full Orion stack exists, the following rules should be considered foundational:
 
@@ -1905,7 +1917,7 @@ These rules should become mechanically enforceable as soon as the selected techn
 
 ---
 
-# Future Dependency Model
+## Future Dependency Model
 
 As Orion's concrete stack and package topology are defined, this document should evolve from general rules into an explicit machine-enforceable dependency map.
 
@@ -1936,7 +1948,7 @@ The actual dependency graph must be decided from real responsibilities rather th
 
 ---
 
-# Summary
+## Summary
 
 Dependency direction expresses architecture.
 

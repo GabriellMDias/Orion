@@ -1,5 +1,20 @@
 # Testing Strategy
 
+[Documentation index](../README.md) · [Validation availability](../validation.md)
+
+Governing decisions: [ADR-0009](../adr/0009-establish-testing-strategy-and-tooling.md). Accepted choices are distinct from implemented tooling.
+
+## Read for this change
+
+- [Test Categories](#test-categories)
+- [Real Database Tests](#real-database-tests)
+- [Security Tests](#security-tests)
+- [Test Selection](#test-selection)
+- [Canonical Test Commands](#canonical-test-commands)
+- [Initial Testing Policy](#initial-testing-policy)
+
+Related policy: [transactions and concurrency](../database/transactions-and-concurrency.md), [authorization](../security/authorization.md).
+
 ## Purpose
 
 This document defines the testing strategy used by Orion.
@@ -25,18 +40,18 @@ The shape of the test suite should reflect the architecture, contracts, risks, a
 
 This document is technology-agnostic.
 
-Specific test frameworks, runners, browsers, containers, mocking libraries, and CI infrastructure will be selected later through explicit architectural decisions.
+ADR-0009 selects the test runners, real-infrastructure strategy, and browser execution model; ADR-0011 selects CI. Their implementation and remaining suite-specific details are still pending.
 
 This document complements:
 
-- `docs/architecture/principles.md`;
-- `docs/architecture/application-boundaries.md`;
-- `docs/architecture/dependency-rules.md`;
-- `docs/architecture/error-handling.md`;
-- `docs/architecture/configuration.md`;
-- `docs/security/authentication.md`;
-- `docs/security/authorization.md`;
-- `docs/reliability/observability.md`.
+- [docs/architecture/principles.md](principles.md);
+- [docs/architecture/application-boundaries.md](application-boundaries.md);
+- [docs/architecture/dependency-rules.md](dependency-rules.md);
+- [docs/architecture/error-handling.md](error-handling.md);
+- [docs/architecture/configuration.md](configuration.md);
+- [docs/security/authentication.md](../security/authentication.md);
+- [docs/security/authorization.md](../security/authorization.md);
+- [docs/reliability/observability.md](../reliability/observability.md).
 
 ---
 
@@ -62,7 +77,7 @@ A valuable test should provide a clear answer.
 
 ---
 
-# Testing as Risk Control
+## Testing as Risk Control
 
 Different tests protect against different risks.
 
@@ -95,7 +110,7 @@ The test type should follow the risk being protected.
 
 ---
 
-# Test Pyramid Is Guidance, Not Doctrine
+## Test Pyramid Is Guidance, Not Doctrine
 
 Orion does not require a rigid numerical testing pyramid.
 
@@ -115,7 +130,9 @@ Do not replace inexpensive deterministic tests with expensive end-to-end tests u
 
 ---
 
-# Test Categories
+## Test Categories
+
+The [accepted execution model](../adr/0009-establish-testing-strategy-and-tooling.md#decision) maps pure logic to Vitest in Node, infrastructure integration to Vitest with real dependencies, PostgreSQL behavior to Testcontainers and committed migrations, browser-dependent components to Vitest Browser Mode with Playwright, and complete browser journeys to Playwright Test. These are selected responsibilities, not available test commands; see [validation availability](../validation.md).
 
 Orion recognizes several major categories of automated tests:
 
@@ -139,7 +156,7 @@ Test categories should be introduced according to actual architecture and risk.
 
 ---
 
-# Unit Tests
+## Unit Tests
 
 Unit tests verify behavior within a small, isolated responsibility.
 
@@ -166,7 +183,7 @@ Unit tests should normally be:
 
 ---
 
-# Unit Test Boundaries
+## Unit Test Boundaries
 
 A unit is a meaningful responsibility.
 
@@ -184,7 +201,7 @@ Do not create artificial test seams merely to satisfy a narrow definition of "un
 
 ---
 
-# Testing Implementation Details
+## Testing Implementation Details
 
 Avoid tests that depend heavily on private implementation details.
 
@@ -202,7 +219,7 @@ Such tests increase refactoring cost without protecting product behavior.
 
 ---
 
-# Public Behavior
+## Public Behavior
 
 Prefer testing through a stable public surface.
 
@@ -218,7 +235,7 @@ Tests should reinforce module boundaries.
 
 ---
 
-# Pure Domain Logic
+## Pure Domain Logic
 
 Pure domain logic should generally be tested without:
 
@@ -236,7 +253,7 @@ This provides fast, precise feedback.
 
 ---
 
-# Integration Tests
+## Integration Tests
 
 Integration tests verify interaction between real components.
 
@@ -254,7 +271,7 @@ Integration tests should use real implementations where the integration itself i
 
 ---
 
-# Real Database Tests
+## Real Database Tests
 
 Persistence behavior should eventually be tested against the actual database technology used in production where practical.
 
@@ -282,7 +299,7 @@ migrations
 
 ---
 
-# Integration Environment
+## Integration Environment
 
 Integration tests should run against isolated infrastructure.
 
@@ -301,7 +318,7 @@ Tests must not depend on shared production-like mutable state.
 
 ---
 
-# Contract Tests
+## Contract Tests
 
 Contract tests verify that independently evolving components agree on boundary semantics.
 
@@ -327,7 +344,7 @@ compatibility
 
 ---
 
-# Canonical Contracts
+## Canonical Contracts
 
 Where a canonical schema exists, contract tests should derive from or validate against it.
 
@@ -345,7 +362,7 @@ over maintaining independent expectations manually in each consumer.
 
 ---
 
-# Consumer Expectations
+## Consumer Expectations
 
 Some boundaries may require verifying that a provider continues satisfying actual consumer expectations.
 
@@ -361,7 +378,7 @@ The exact contract-testing strategy should be selected based on deployment topol
 
 ---
 
-# Component Tests
+## Component Tests
 
 Component tests verify a larger cohesive component without exercising the entire system.
 
@@ -377,7 +394,7 @@ Component tests can provide stronger confidence than narrow unit tests without t
 
 ---
 
-# End-to-End Tests
+## End-to-End Tests
 
 End-to-end tests verify important workflows through production-like boundaries.
 
@@ -408,7 +425,7 @@ They should focus on critical workflows.
 
 ---
 
-# End-to-End Test Scope
+## End-to-End Test Scope
 
 Do not test every permutation through full end-to-end flows.
 
@@ -423,7 +440,7 @@ with detailed edge cases covered at lower test levels.
 
 ---
 
-# Critical User Journeys
+## Critical User Journeys
 
 Important product workflows should eventually have end-to-end protection.
 
@@ -441,7 +458,7 @@ The exact journeys depend on the product built on Orion.
 
 ---
 
-# Architecture Tests
+## Architecture Tests
 
 Architecture rules should eventually be tested mechanically.
 
@@ -463,7 +480,7 @@ Architecture tests protect design constraints that ordinary behavioral tests may
 
 ---
 
-# Architecture Tests in CI
+## Architecture Tests in CI
 
 Architecture violations should fail CI once the rule is mature and enforced.
 
@@ -471,7 +488,7 @@ A valid build that violates architecture is not considered healthy.
 
 ---
 
-# Migration Tests
+## Migration Tests
 
 Database migrations should be tested.
 
@@ -493,7 +510,7 @@ The exact strategy will be defined in database documentation.
 
 ---
 
-# Migration History Policy
+## Migration History Policy
 
 Migration testing must follow Orion's release-aware migration policy.
 
@@ -505,7 +522,7 @@ Tests should validate the migration path that actually matters for released stat
 
 ---
 
-# Security Tests
+## Security Tests
 
 Security-sensitive behavior requires explicit tests.
 
@@ -529,7 +546,7 @@ Security properties should not rely solely on manual review.
 
 ---
 
-# Negative Security Tests
+## Negative Security Tests
 
 Security tests must verify forbidden behavior.
 
@@ -549,13 +566,11 @@ Successful-path testing alone is insufficient.
 
 ---
 
-# Authorization Tests
+## Authorization Tests
 
 Authorization testing should follow:
 
-```text
-docs/security/authorization.md
-```
+- [docs/security/authorization.md](../security/authorization.md)
 
 Important policies should test:
 
@@ -571,13 +586,11 @@ revoked access
 
 ---
 
-# Authentication Tests
+## Authentication Tests
 
 Authentication testing should follow:
 
-```text
-docs/security/authentication.md
-```
+- [docs/security/authentication.md](../security/authentication.md)
 
 Important cases may include:
 
@@ -595,7 +608,7 @@ depending on the selected authentication model.
 
 ---
 
-# Telemetry Tests
+## Telemetry Tests
 
 Observability behavior may require tests.
 
@@ -619,7 +632,7 @@ It should be verifiable.
 
 ---
 
-# Redaction Tests
+## Redaction Tests
 
 Telemetry redaction requires negative assertions.
 
@@ -638,7 +651,7 @@ A redaction regression is a security defect.
 
 ---
 
-# Smoke Tests
+## Smoke Tests
 
 Smoke tests provide a small validation that a deployed or built application is fundamentally operational.
 
@@ -660,7 +673,7 @@ They are not substitutes for deeper integration testing.
 
 ---
 
-# Deployment Smoke Tests
+## Deployment Smoke Tests
 
 Deployment workflows may run smoke tests after deployment.
 
@@ -670,7 +683,7 @@ The exact policy will be defined later.
 
 ---
 
-# Performance Tests
+## Performance Tests
 
 Performance tests should be introduced when a measurable performance requirement exists.
 
@@ -688,7 +701,7 @@ Do not build elaborate performance infrastructure before there is a meaningful t
 
 ---
 
-# Load Tests
+## Load Tests
 
 Load tests evaluate behavior under expected or elevated concurrency.
 
@@ -707,7 +720,7 @@ It must not accidentally attack production.
 
 ---
 
-# Stress Tests
+## Stress Tests
 
 Stress tests identify behavior beyond expected operating limits.
 
@@ -724,7 +737,7 @@ These tests should be introduced according to operational maturity.
 
 ---
 
-# Benchmark Tests
+## Benchmark Tests
 
 Microbenchmarks may be useful for performance-critical algorithms.
 
@@ -734,7 +747,7 @@ Benchmark results should be stable enough to be meaningful.
 
 ---
 
-# Test Selection
+## Test Selection
 
 Choose the lowest-cost test level that reliably protects the behavior.
 
@@ -760,7 +773,7 @@ Do not use a mock to validate a real database constraint.
 
 ---
 
-# Testing at the Correct Boundary
+## Testing at the Correct Boundary
 
 A bug should generally be tested at the boundary where the defect occurred.
 
@@ -784,7 +797,7 @@ This produces precise regression protection.
 
 ---
 
-# Regression Tests
+## Regression Tests
 
 A bug fix should include a regression test whenever practical.
 
@@ -801,7 +814,7 @@ If a regression test is not practical, the reason and verification approach shou
 
 ---
 
-# Regression Test Placement
+## Regression Test Placement
 
 Place a regression test at the lowest meaningful layer that reproduces the defect.
 
@@ -809,7 +822,7 @@ Do not automatically create an expensive end-to-end test for every bug.
 
 ---
 
-# Test Naming
+## Test Naming
 
 Test names should describe behavior.
 
@@ -829,7 +842,7 @@ A test failure should communicate what guarantee was violated.
 
 ---
 
-# Arrange, Act, Assert
+## Arrange, Act, Assert
 
 Tests should have understandable structure.
 
@@ -847,7 +860,7 @@ Clarity is.
 
 ---
 
-# Given, When, Then
+## Given, When, Then
 
 Behavior-oriented tests may use:
 
@@ -863,7 +876,7 @@ Do not enforce one stylistic convention if another remains equally clear.
 
 ---
 
-# One Behavioral Concern
+## One Behavioral Concern
 
 A test should normally protect one coherent behavior.
 
@@ -873,7 +886,7 @@ Several assertions may collectively describe one result.
 
 ---
 
-# Assertion Quality
+## Assertion Quality
 
 Assertions should verify meaningful outcomes.
 
@@ -895,7 +908,7 @@ Tests should fail for meaningful reasons.
 
 ---
 
-# Error Assertions
+## Error Assertions
 
 Expected failures should be tested through stable error semantics.
 
@@ -915,7 +928,7 @@ unless the human-readable message itself is the behavior under test.
 
 ---
 
-# Public Contract Assertions
+## Public Contract Assertions
 
 API tests should verify stable external behavior.
 
@@ -923,7 +936,7 @@ Avoid coupling tests unnecessarily to internal service classes or ORM objects.
 
 ---
 
-# Test Data
+## Test Data
 
 Automated tests should use synthetic data.
 
@@ -931,13 +944,11 @@ Tests must not depend on real production customer information.
 
 This requirement follows:
 
-```text
-docs/security/data-classification.md
-```
+- [docs/security/data-classification.md](../security/data-classification.md)
 
 ---
 
-# Test Fixtures
+## Test Fixtures
 
 Fixtures should be:
 
@@ -951,7 +962,7 @@ Large global fixtures make tests difficult to understand.
 
 ---
 
-# Factories
+## Factories
 
 Factories may simplify creation of valid domain objects and persistence records.
 
@@ -969,7 +980,7 @@ is preferable to repeating dozens of irrelevant fields in every test.
 
 ---
 
-# Hidden Factory Behavior
+## Hidden Factory Behavior
 
 Factories must not hide behavior that matters to the test.
 
@@ -979,7 +990,7 @@ Convenient defaults must not obscure why a test passes.
 
 ---
 
-# Seeds
+## Seeds
 
 Development seed data and automated test fixtures serve different purposes.
 
@@ -989,7 +1000,7 @@ Test setup should remain deterministic.
 
 ---
 
-# Deterministic Tests
+## Deterministic Tests
 
 Given the same code and test inputs, a test should produce the same result.
 
@@ -1009,7 +1020,7 @@ where deterministic substitutes are possible.
 
 ---
 
-# Time
+## Time
 
 Time-dependent behavior should use controllable time abstractions where practical.
 
@@ -1025,7 +1036,7 @@ Prefer an explicit test clock or equivalent mechanism.
 
 ---
 
-# Timezones
+## Timezones
 
 Tests involving dates and times should make timezone assumptions explicit.
 
@@ -1033,7 +1044,7 @@ Avoid tests that pass only on a developer's local timezone.
 
 ---
 
-# Randomness
+## Randomness
 
 Randomness used in tests should be:
 
@@ -1047,7 +1058,7 @@ When a random failure occurs, reproduction must be practical.
 
 ---
 
-# Unique Values
+## Unique Values
 
 Tests may require unique identifiers or names.
 
@@ -1055,7 +1066,7 @@ Generate them deterministically or safely enough to prevent collisions without r
 
 ---
 
-# External Network Access
+## External Network Access
 
 Unit and ordinary integration tests should not depend on uncontrolled internet access.
 
@@ -1072,7 +1083,7 @@ Such dependencies make CI unreliable.
 
 ---
 
-# Provider Sandboxes
+## Provider Sandboxes
 
 External provider integration tests may use official sandbox environments when the integration itself requires validation.
 
@@ -1089,7 +1100,7 @@ and may run separately from the fastest validation loop.
 
 ---
 
-# Mocking
+## Mocking
 
 Mocks are useful when they isolate an external responsibility.
 
@@ -1099,7 +1110,7 @@ Use mocks deliberately.
 
 ---
 
-# What to Mock
+## What to Mock
 
 Good mocking candidates may include:
 
@@ -1115,7 +1126,7 @@ when the integration itself is not under test.
 
 ---
 
-# What Not to Mock Automatically
+## What Not to Mock Automatically
 
 Avoid mocking every internal class.
 
@@ -1131,7 +1142,7 @@ This makes refactoring expensive.
 
 ---
 
-# Database Mocking
+## Database Mocking
 
 Mocked repositories can be useful for focused application tests.
 
@@ -1141,7 +1152,7 @@ Database semantics must eventually be verified against the real database.
 
 ---
 
-# HTTP Mocking
+## HTTP Mocking
 
 Client tests may mock API boundaries.
 
@@ -1151,7 +1162,7 @@ Use the correct side of the boundary.
 
 ---
 
-# Fake Implementations
+## Fake Implementations
 
 Fakes can provide simpler deterministic implementations of external capabilities.
 
@@ -1169,7 +1180,7 @@ A fake that behaves fundamentally differently from production can create false c
 
 ---
 
-# Test Doubles as Contracts
+## Test Doubles as Contracts
 
 A test double should implement the same meaningful capability interface as the production implementation where such an interface exists.
 
@@ -1177,7 +1188,7 @@ Avoid test-only APIs that allow impossible production behavior unless the test e
 
 ---
 
-# Failure Injection
+## Failure Injection
 
 Tests should be able to simulate important failures.
 
@@ -1195,7 +1206,7 @@ Failure injection is valuable for resilience and error-handling tests.
 
 ---
 
-# Flaky Tests
+## Flaky Tests
 
 Flaky tests are defects.
 
@@ -1213,7 +1224,7 @@ They must not be ignored indefinitely.
 
 ---
 
-# Retrying Tests
+## Retrying Tests
 
 Automatic test retry may help diagnose environmental instability.
 
@@ -1223,7 +1234,7 @@ A test that passes on the third attempt is still potentially broken.
 
 ---
 
-# Quarantined Tests
+## Quarantined Tests
 
 Temporary quarantine may be necessary for a known flaky test.
 
@@ -1240,7 +1251,7 @@ Quarantine is temporary debt.
 
 ---
 
-# Test Independence
+## Test Independence
 
 Tests should not depend on execution order.
 
@@ -1254,7 +1265,7 @@ Each test should establish its own required state.
 
 ---
 
-# Shared State
+## Shared State
 
 Mutable shared state between tests should be minimized.
 
@@ -1272,7 +1283,7 @@ Shared state creates order-dependent failures.
 
 ---
 
-# Parallel Execution
+## Parallel Execution
 
 Tests should be designed for parallel execution where practical.
 
@@ -1282,7 +1293,7 @@ Parallelism must not compromise isolation.
 
 ---
 
-# Database Test Isolation
+## Database Test Isolation
 
 Database tests may use strategies such as:
 
@@ -1300,7 +1311,7 @@ Isolation must remain reliable under parallel execution if CI uses parallelism.
 
 ---
 
-# Transaction Rollback Tests
+## Transaction Rollback Tests
 
 Wrapping tests in transactions may improve speed.
 
@@ -1317,7 +1328,7 @@ Use it only when it matches the behavior being tested.
 
 ---
 
-# Database Reset
+## Database Reset
 
 Full database reset provides strong isolation but may be slower.
 
@@ -1332,7 +1343,7 @@ implementation complexity
 
 ---
 
-# Test Environment
+## Test Environment
 
 The test environment should be reproducible.
 
@@ -1342,7 +1353,7 @@ Required infrastructure should be started through documented tooling where pract
 
 ---
 
-# Canonical Test Commands
+## Canonical Test Commands
 
 Orion should eventually expose canonical commands for test categories.
 
@@ -1361,7 +1372,7 @@ Do not document commands that do not exist.
 
 ---
 
-# One Canonical Validation Workflow
+## One Canonical Validation Workflow
 
 The repository should eventually have one canonical validation workflow that provides confidence appropriate for ordinary changes.
 
@@ -1380,7 +1391,7 @@ The actual command must not be invented before implementation.
 
 ---
 
-# Local Feedback
+## Local Feedback
 
 The most common development test loop should remain fast.
 
@@ -1388,7 +1399,7 @@ A contributor should be able to validate a focused change without running the en
 
 ---
 
-# Affected Tests
+## Affected Tests
 
 As the repository grows, tooling may run only tests affected by a change.
 
@@ -1398,7 +1409,7 @@ A fast but incomplete dependency calculation is dangerous.
 
 ---
 
-# CI Test Layers
+## CI Test Layers
 
 CI may use multiple levels of validation.
 
@@ -1422,7 +1433,7 @@ The exact workflow will depend on repository scale.
 
 ---
 
-# Required CI Checks
+## Required CI Checks
 
 Once stable, critical test categories should become blocking checks.
 
@@ -1432,7 +1443,7 @@ Exceptions should be explicit.
 
 ---
 
-# Test Failure Diagnostics
+## Test Failure Diagnostics
 
 A failing test should provide enough information to understand:
 
@@ -1449,7 +1460,7 @@ Poor diagnostics waste contributor and AI-agent time.
 
 ---
 
-# CI Artifacts
+## CI Artifacts
 
 Failed integration or end-to-end tests may produce diagnostic artifacts such as:
 
@@ -1466,7 +1477,7 @@ They must not contain production secrets or real customer data.
 
 ---
 
-# Screenshot Tests
+## Screenshot Tests
 
 UI screenshot tests may be useful for visual regressions.
 
@@ -1485,7 +1496,7 @@ and should not replace semantic UI tests.
 
 ---
 
-# Snapshot Tests
+## Snapshot Tests
 
 Snapshots may be useful for large structured output.
 
@@ -1495,7 +1506,7 @@ A snapshot change should remain understandable.
 
 ---
 
-# Large Snapshots
+## Large Snapshots
 
 Avoid large snapshots of:
 
@@ -1509,7 +1520,7 @@ when focused assertions communicate behavior more clearly.
 
 ---
 
-# Golden Files
+## Golden Files
 
 Golden-file tests may be appropriate for:
 
@@ -1526,7 +1537,7 @@ Golden files should be deterministic.
 
 ---
 
-# Generated Code Tests
+## Generated Code Tests
 
 Generated artifacts should be tested at their source and generation boundary.
 
@@ -1543,7 +1554,7 @@ Do not hand-edit generated outputs.
 
 ---
 
-# Documentation Generation Tests
+## Documentation Generation Tests
 
 Generated documentation should be reproducible.
 
@@ -1559,7 +1570,7 @@ depending on repository policy.
 
 ---
 
-# Architecture Documentation Tests
+## Architecture Documentation Tests
 
 Authored documentation cannot be fully validated automatically.
 
@@ -1567,7 +1578,7 @@ However, links, references, generated indexes, and machine-readable cross-refere
 
 ---
 
-# API Tests
+## API Tests
 
 API testing should cover:
 
@@ -1586,7 +1597,7 @@ Not every API behavior needs a full network-level test.
 
 ---
 
-# API Integration Tests
+## API Integration Tests
 
 Important transport behavior should eventually be tested through the actual transport adapter.
 
@@ -1602,7 +1613,7 @@ validation
 
 ---
 
-# Client Tests
+## Client Tests
 
 Web, mobile, and desktop tests should focus on client responsibilities such as:
 
@@ -1619,7 +1630,7 @@ They should not attempt to retest every backend business invariant.
 
 ---
 
-# Accessibility Tests
+## Accessibility Tests
 
 Where applicable, automated accessibility checks should be part of client testing.
 
@@ -1629,7 +1640,7 @@ They can prevent common regressions.
 
 ---
 
-# Mobile Tests
+## Mobile Tests
 
 Mobile-specific testing may eventually include:
 
@@ -1646,7 +1657,7 @@ only when those capabilities exist.
 
 ---
 
-# Desktop Tests
+## Desktop Tests
 
 Desktop-specific testing may eventually include:
 
@@ -1661,7 +1672,7 @@ according to actual product requirements.
 
 ---
 
-# Worker Tests
+## Worker Tests
 
 Background workers should test:
 
@@ -1678,7 +1689,7 @@ where applicable.
 
 ---
 
-# Message Consumer Tests
+## Message Consumer Tests
 
 Consumers should verify event-contract compatibility separately from processing behavior where useful.
 
@@ -1692,7 +1703,7 @@ consumer operation executes
 
 ---
 
-# Idempotency Tests
+## Idempotency Tests
 
 Operations expected to be idempotent must have explicit tests.
 
@@ -1708,7 +1719,7 @@ The test should verify that duplicate execution does not create unintended side 
 
 ---
 
-# Concurrency Tests
+## Concurrency Tests
 
 Important concurrency behavior requires tests.
 
@@ -1725,7 +1736,7 @@ Concurrency bugs often cannot be protected by ordinary unit tests alone.
 
 ---
 
-# Transaction Tests
+## Transaction Tests
 
 Critical transactional workflows should verify atomicity.
 
@@ -1741,7 +1752,7 @@ when atomic behavior is required.
 
 ---
 
-# Compensation Tests
+## Compensation Tests
 
 Distributed workflows using compensation should test partial failure.
 
@@ -1758,7 +1769,7 @@ The exact behavior belongs to the domain.
 
 ---
 
-# Retry Tests
+## Retry Tests
 
 Retry behavior should verify:
 
@@ -1774,7 +1785,7 @@ Retries must not hide permanent failures.
 
 ---
 
-# Timeout Tests
+## Timeout Tests
 
 Important remote operations should test timeout behavior where practical.
 
@@ -1784,13 +1795,11 @@ Injectable or configurable test timing may be appropriate.
 
 ---
 
-# Error Handling Tests
+## Error Handling Tests
 
 Error tests should follow:
 
-```text
-docs/architecture/error-handling.md
-```
+- [docs/architecture/error-handling.md](error-handling.md)
 
 Important checks include:
 
@@ -1804,13 +1813,11 @@ unexpected failure reported
 
 ---
 
-# Configuration Tests
+## Configuration Tests
 
 Configuration tests should follow:
 
-```text
-docs/architecture/configuration.md
-```
+- [docs/architecture/configuration.md](configuration.md)
 
 Potential cases include:
 
@@ -1824,7 +1831,7 @@ client/server classification
 
 ---
 
-# Secret Tests
+## Secret Tests
 
 Secret-management tests may validate:
 
@@ -1839,7 +1846,7 @@ Never use real credentials in tests.
 
 ---
 
-# Data Classification Tests
+## Data Classification Tests
 
 When classification becomes machine-readable, tests may verify:
 
@@ -1851,7 +1858,7 @@ export requires explicit classification handling
 
 ---
 
-# Test Coverage
+## Test Coverage
 
 Coverage metrics may help identify untested areas.
 
@@ -1876,7 +1883,7 @@ Coverage should support judgment, not replace it.
 
 ---
 
-# Coverage Thresholds
+## Coverage Thresholds
 
 Global coverage thresholds should not be introduced automatically.
 
@@ -1886,7 +1893,7 @@ Risk-based expectations are preferable.
 
 ---
 
-# Critical Code Coverage
+## Critical Code Coverage
 
 Security-sensitive and high-risk modules may justify stronger coverage expectations.
 
@@ -1904,7 +1911,7 @@ The expectation should still focus on meaningful branches and invariants.
 
 ---
 
-# Branch Coverage
+## Branch Coverage
 
 Branch coverage may reveal missing decision-path tests.
 
@@ -1914,7 +1921,7 @@ It still does not prove semantic correctness.
 
 ---
 
-# Mutation Testing
+## Mutation Testing
 
 Mutation testing may eventually help evaluate whether tests detect incorrect behavior.
 
@@ -1924,7 +1931,7 @@ It is relatively expensive and should not be introduced without concrete benefit
 
 ---
 
-# Test Review
+## Test Review
 
 Code review should evaluate tests as production assets.
 
@@ -1944,7 +1951,7 @@ Is it unnecessarily coupled to implementation?
 
 ---
 
-# New Feature Testing
+## New Feature Testing
 
 A new feature should identify its meaningful risks before implementation is considered complete.
 
@@ -1962,7 +1969,7 @@ depending on the feature.
 
 ---
 
-# Definition of Done
+## Definition of Done
 
 Testing requirements should be part of the repository's Definition of Done.
 
@@ -1972,7 +1979,7 @@ It should include the verification appropriate to its risk.
 
 ---
 
-# Risk-Based Testing
+## Risk-Based Testing
 
 More critical behavior deserves stronger test evidence.
 
@@ -1992,7 +1999,7 @@ The test strategy should respond to these risks.
 
 ---
 
-# High-Risk Changes
+## High-Risk Changes
 
 Examples may include:
 
@@ -2010,7 +2017,7 @@ Such changes may require several complementary test layers.
 
 ---
 
-# Low-Risk Changes
+## Low-Risk Changes
 
 Low-risk changes should not require excessive test ceremony.
 
@@ -2026,7 +2033,7 @@ Testing should remain proportional.
 
 ---
 
-# Testing Private Methods
+## Testing Private Methods
 
 Private methods should not normally require direct tests.
 
@@ -2036,7 +2043,7 @@ If a private method becomes difficult to test because it contains substantial in
 
 ---
 
-# Test-Only Production APIs
+## Test-Only Production APIs
 
 Avoid adding production APIs solely to make internal implementation testable.
 
@@ -2044,7 +2051,7 @@ Prefer architectural seams that are meaningful in production.
 
 ---
 
-# Testability
+## Testability
 
 Testability is an architectural property.
 
@@ -2063,7 +2070,7 @@ Do not use testing as an excuse for excessive abstraction.
 
 ---
 
-# Dependency Injection
+## Dependency Injection
 
 Explicit dependency injection may improve testability for replaceable infrastructure.
 
@@ -2073,7 +2080,7 @@ Avoid interfaces created solely because "tests need mocks" when no meaningful bo
 
 ---
 
-# Test Framework Coupling
+## Test Framework Coupling
 
 Domain and application code should not depend on the test framework.
 
@@ -2083,7 +2090,7 @@ Production behavior must remain test-framework-independent.
 
 ---
 
-# Shared Testing Package
+## Shared Testing Package
 
 A future `packages/testing/` may contain reusable testing capabilities such as:
 
@@ -2101,7 +2108,7 @@ Behavior-specific tests should remain near the code they protect.
 
 ---
 
-# Test Placement
+## Test Placement
 
 Tests should generally live close to the behavior they protect.
 
@@ -2121,7 +2128,7 @@ System-level and end-to-end suites may live in dedicated locations.
 
 ---
 
-# Unit Test Placement
+## Unit Test Placement
 
 Unit tests should remain discoverable next to or near their module.
 
@@ -2129,7 +2136,7 @@ Do not create a distant global unit-test tree that mirrors the entire repository
 
 ---
 
-# End-to-End Test Placement
+## End-to-End Test Placement
 
 End-to-end tests may require dedicated application-level suites because they cross multiple boundaries.
 
@@ -2137,7 +2144,7 @@ Their ownership should still be explicit.
 
 ---
 
-# Test Ownership
+## Test Ownership
 
 Every important test suite should have an identifiable owner.
 
@@ -2151,7 +2158,7 @@ Ownership usually follows the feature, package, or application being tested.
 
 ---
 
-# Test Documentation
+## Test Documentation
 
 Complex test infrastructure should document:
 
@@ -2167,7 +2174,7 @@ Simple tests should not require unnecessary documentation.
 
 ---
 
-# Test Commands in Local `AGENTS.md`
+## Test Commands in Local `AGENTS.md`
 
 Application- or package-specific `AGENTS.md` files may eventually document relevant validation commands.
 
@@ -2175,7 +2182,7 @@ They should reference canonical scripts rather than duplicate implementation log
 
 ---
 
-# AI Agent Behavior
+## AI Agent Behavior
 
 AI agents should treat tests as part of the implementation.
 
@@ -2192,7 +2199,7 @@ An agent must not delete or weaken tests merely to make a change pass unless the
 
 ---
 
-# AI and Failing Tests
+## AI and Failing Tests
 
 A failing test is evidence.
 
@@ -2212,7 +2219,7 @@ It should not assume the test is obsolete simply because it conflicts with gener
 
 ---
 
-# AI and Regression Tests
+## AI and Regression Tests
 
 When fixing a bug, an AI agent should add a regression test whenever practical.
 
@@ -2230,7 +2237,7 @@ test passes
 
 ---
 
-# AI and Test Selection
+## AI and Test Selection
 
 AI agents should prefer the narrowest meaningful test during iteration.
 
@@ -2238,7 +2245,7 @@ Before completing the task, they should run the broader canonical validation req
 
 ---
 
-# AI-Generated Tests
+## AI-Generated Tests
 
 AI-generated tests must be held to the same standards as human-authored tests.
 
@@ -2255,7 +2262,7 @@ A test is valuable only if it can meaningfully fail.
 
 ---
 
-# Test Failure Reproduction
+## Test Failure Reproduction
 
 When an AI agent receives a failing CI test, it should attempt to reproduce the relevant failure through the canonical local workflow where possible.
 
@@ -2263,7 +2270,7 @@ CI-specific assumptions should remain discoverable.
 
 ---
 
-# Evidence-Based Changes
+## Evidence-Based Changes
 
 Tests, logs, traces, schemas, and contracts should allow AI agents to reason from observable evidence.
 
@@ -2271,7 +2278,7 @@ This is a central Orion principle.
 
 ---
 
-# Test Performance
+## Test Performance
 
 The test suite should have performance expectations.
 
@@ -2281,7 +2288,7 @@ Over time, test duration should be observable and optimized when it becomes a de
 
 ---
 
-# Slow Test Classification
+## Slow Test Classification
 
 Tests that require expensive infrastructure may be categorized separately.
 
@@ -2298,7 +2305,7 @@ Their slower execution should be intentional.
 
 ---
 
-# Test Timeouts
+## Test Timeouts
 
 Tests should have bounded execution time.
 
@@ -2308,7 +2315,7 @@ Timeout values should be appropriate for the category.
 
 ---
 
-# Test Resource Cleanup
+## Test Resource Cleanup
 
 Tests that create external resources must clean them up reliably.
 
@@ -2325,7 +2332,7 @@ Cleanup should occur even after failure where practical.
 
 ---
 
-# Leaked Test Resources
+## Leaked Test Resources
 
 Leaked test resources can create:
 
@@ -2340,7 +2347,7 @@ Resource lifecycle should therefore be explicit.
 
 ---
 
-# Test Secrets
+## Test Secrets
 
 Tests must never contain real production secrets.
 
@@ -2356,7 +2363,7 @@ Do not create realistic-looking credentials that trigger secret scanners unneces
 
 ---
 
-# Test Logging
+## Test Logging
 
 Test output should remain useful.
 
@@ -2366,7 +2373,7 @@ When tests fail, targeted diagnostics are more valuable than complete internal d
 
 ---
 
-# Sensitive Test Output
+## Sensitive Test Output
 
 Even synthetic tests should follow safe logging patterns.
 
@@ -2374,7 +2381,7 @@ Unsafe habits in test code often spread into production code.
 
 ---
 
-# Environment Parity
+## Environment Parity
 
 Test environments should reproduce production semantics where those semantics matter.
 
@@ -2393,7 +2400,7 @@ The important differences should be understood.
 
 ---
 
-# Emulator Limitations
+## Emulator Limitations
 
 Emulators and in-memory substitutes may differ from production services.
 
@@ -2401,7 +2408,7 @@ When they are used, important provider-specific behavior may still require integ
 
 ---
 
-# Compatibility Testing
+## Compatibility Testing
 
 Separately deployable components may require compatibility tests.
 
@@ -2417,13 +2424,11 @@ new database schema with previous application version
 
 Compatibility expectations will be defined further in:
 
-```text
-docs/architecture/versioning-and-compatibility.md
-```
+- [docs/architecture/versioning-and-compatibility.md](versioning-and-compatibility.md)
 
 ---
 
-# Backward Compatibility Tests
+## Backward Compatibility Tests
 
 If a compatibility promise exists, it should have automated protection where practical.
 
@@ -2431,7 +2436,7 @@ A written promise without verification is fragile.
 
 ---
 
-# Forward Compatibility Tests
+## Forward Compatibility Tests
 
 Some deployments may require old applications to tolerate newer data or contracts.
 
@@ -2439,7 +2444,7 @@ This should be tested only where the architecture explicitly requires it.
 
 ---
 
-# Release Tests
+## Release Tests
 
 Release-specific validation may include:
 
@@ -2459,7 +2464,7 @@ The exact release process will be defined later.
 
 ---
 
-# Production Tests
+## Production Tests
 
 Automated testing against production should be extremely limited and safe.
 
@@ -2474,7 +2479,7 @@ Never run destructive integration suites against production data.
 
 ---
 
-# Synthetic Monitoring
+## Synthetic Monitoring
 
 Future reliability tooling may continuously execute safe synthetic workflows against deployed systems.
 
@@ -2484,19 +2489,17 @@ It should be designed separately.
 
 ---
 
-# Test Data Privacy
+## Test Data Privacy
 
 Testing practices must follow:
 
-```text
-docs/security/data-classification.md
-```
+- [docs/security/data-classification.md](../security/data-classification.md)
 
 Production-derived data should not enter ordinary test environments by default.
 
 ---
 
-# Anonymized Production Data
+## Anonymized Production Data
 
 If production-derived data is ever required for a specific test, anonymization must be meaningful.
 
@@ -2506,7 +2509,7 @@ Synthetic data remains preferable.
 
 ---
 
-# Database Dumps
+## Database Dumps
 
 Production database dumps must not be used as ordinary local test fixtures.
 
@@ -2514,7 +2517,7 @@ This creates unnecessary privacy and security risk.
 
 ---
 
-# Test Reports
+## Test Reports
 
 Test reports may contain:
 
@@ -2529,7 +2532,7 @@ They must not expose restricted information.
 
 ---
 
-# Test Artifacts Retention
+## Test Artifacts Retention
 
 CI artifact retention should eventually reflect:
 
@@ -2543,7 +2546,7 @@ Sensitive artifacts may require shorter retention or stricter access.
 
 ---
 
-# Testing Documentation
+## Testing Documentation
 
 The repository should eventually provide generated or authored guidance showing:
 
@@ -2560,7 +2563,7 @@ Implementation-specific commands belong with actual tooling.
 
 ---
 
-# Mechanical Enforcement
+## Mechanical Enforcement
 
 Future tooling may enforce testing requirements such as:
 
@@ -2582,7 +2585,7 @@ Not every testing requirement can or should be mechanically enforced.
 
 ---
 
-# Test Metadata
+## Test Metadata
 
 If the repository eventually needs richer orchestration, tests may expose metadata such as:
 
@@ -2598,7 +2601,7 @@ This should be introduced only when useful.
 
 ---
 
-# Test Tags
+## Test Tags
 
 Test tags or categories may distinguish:
 
@@ -2616,7 +2619,7 @@ Do not build complex test taxonomy prematurely.
 
 ---
 
-# Test Skipping
+## Test Skipping
 
 Tests should not be skipped casually.
 
@@ -2626,7 +2629,7 @@ Long-term unexplained skips are effectively deleted tests.
 
 ---
 
-# Conditional Tests
+## Conditional Tests
 
 Environment-dependent conditional skipping should be explicit.
 
@@ -2642,7 +2645,7 @@ Core correctness tests should not silently skip because infrastructure is missin
 
 ---
 
-# Disabled Tests
+## Disabled Tests
 
 A disabled critical test should be treated as technical debt.
 
@@ -2650,7 +2653,7 @@ The repository should avoid accumulating permanent inactive safety checks.
 
 ---
 
-# Removing Tests
+## Removing Tests
 
 A test may be removed when:
 
@@ -2668,7 +2671,7 @@ Removal should be intentional.
 
 ---
 
-# Refactoring Tests
+## Refactoring Tests
 
 Refactoring may require adjusting tests that depend on implementation details.
 
@@ -2678,7 +2681,7 @@ A refactor that deletes meaningful coverage is incomplete.
 
 ---
 
-# Duplicate Tests
+## Duplicate Tests
 
 Some overlap between test layers is acceptable for critical behavior.
 
@@ -2688,7 +2691,7 @@ Each layer should add distinct confidence.
 
 ---
 
-# Test Value
+## Test Value
 
 A useful test should optimize for:
 
@@ -2704,7 +2707,7 @@ No single dimension should dominate blindly.
 
 ---
 
-# Initial Testing Policy
+## Initial Testing Policy
 
 Until stack-specific implementation exists, Orion adopts the following requirements:
 
@@ -2731,20 +2734,15 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 
 ---
 
-# Future Implementation Decisions
+## Remaining Implementation Decisions
 
-The following decisions are intentionally deferred:
+The accepted choices are linked above. These remaining details are intentionally deferred:
 
 ```text
-test framework
-test runner
 mocking library
-browser automation framework
-integration test infrastructure
 database isolation strategy
-container strategy
+container lifecycle and reuse strategy
 test categorization
-coverage tooling
 mutation testing
 CI parallelization
 affected-test detection
@@ -2756,7 +2754,7 @@ Significant choices may be captured through ADRs.
 
 ---
 
-# Future Documentation
+## Future Documentation
 
 This document may later be complemented by:
 
@@ -2779,7 +2777,7 @@ Implementation-specific testing documentation should reference this strategy rat
 
 ---
 
-# Summary
+## Summary
 
 Tests exist to protect important behavior.
 
