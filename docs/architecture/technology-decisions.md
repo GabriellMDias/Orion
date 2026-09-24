@@ -20,10 +20,10 @@ This is a navigation summary, not an independent technology specification. Each 
 
 ## Deliberately unresolved or conditional choices
 
-- Backend development execution/build details remain implementation choices; `tsc` is already the type-checking authority. Task orchestration and TypeScript project references are not initial requirements. Advanced unused-code analysis is not an initial baseline requirement.
+- The first API's [development/build convention](backend-execution-and-generated-artifacts.md#api-development-and-build) is recorded for future implementation. `tsc` is already the type-checking authority; the application and its scripts do not yet exist. Task orchestration and TypeScript project references are not initial requirements. Advanced unused-code analysis is not an initial baseline requirement.
 - UI/design systems, styling, accessibility primitives, charts, grids, and forms depend on product needs. No general global-state library or full-stack web framework is selected by default.
 - GraphQL, tRPC, gRPC, rich SDK generators, and other-language clients require a concrete consumer or boundary. They do not replace the accepted interoperable API by implication.
-- Authentication provider and implementation, authorization model, tenant model, and AI delegation mechanisms depend on the application. Existing security policies still apply.
+- [Approval Request identity and authorization](../domains/approval-request.md#identity-and-authorization-boundary) is selected for the reference feature; its concrete provider and provider-specific session/refresh/revocation behavior remain deferred. Other applications' authorization and tenancy choices and AI delegation mechanisms depend on their requirements. Existing security policies still apply.
 - Queue/messaging infrastructure, background-job infrastructure, cache, search, dedicated vector infrastructure, and object-storage providers are not global defaults. Introduce them only for demonstrated requirements.
 - Mobile and desktop stacks, deployment platform, application containerization, cloud provider, infrastructure as code, and continuous delivery remain product/deployment decisions. Testcontainers does not select an application deployment platform.
 - Observability storage/vendors, error-reporting providers, alerting/paging, sampling rates, and retention depend on operational requirements. Do not introduce a provider abstraction solely to hide a vendor without a genuine responsibility.

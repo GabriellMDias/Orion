@@ -1,6 +1,6 @@
 # Approval Request: Reference Feature
 
-[Documentation index](../README.md) · [Implementation plan](../implementation-plan.md#phase-3) · [Owner decisions](../human-actions.md#h-04)
+[Documentation index](../README.md) · [Implementation conventions](approval-request-implementation.md) · [Implementation plan](../implementation-plan.md#phase-3) · [Owner decisions](../human-actions.md#h-04)
 
 This is the canonical business specification for Orion’s Approval Request reference feature. It records the project owner's Phase 3 decision. It does not assert that the feature, API, database schema, or user interface already exists. Architectural and security policies still govern its eventual implementation.
 
@@ -17,7 +17,7 @@ The following is the feature's authorization policy. Owner checks use the reques
 | Operation | Authorized principal and resource scope |
 | --- | --- |
 | Create | Any authenticated human; the creator becomes the owner. |
-| Get/list | An owner may view their own requests. A principal with review capability may view requests relevant to review. Results must be limited to authorized requests; the exact review-relevance query is a later API design detail. |
+| Get/list | An owner may view their own requests. A principal with review capability may view requests relevant to review. Results must be limited to authorized requests; the initial reviewable scope is specified in the [implementation conventions](approval-request-implementation.md#read-and-list-contracts). |
 | Edit draft, submit, cancel | The request owner only, subject to the state rules below. |
 | Approve, reject | A principal with review capability who is **not** the request owner, subject to the state and rejection-reason rules below. |
 
@@ -37,7 +37,7 @@ Authorization and domain validity are both required. A principal cannot gain a f
 
 - A request has exactly one of the five states below. `APPROVED`, `REJECTED`, and `CANCELLED` are terminal: no later edit or state transition is valid.
 - State changes and draft edits must be conditional on the current state. A stale or concurrent operation must report a conflict instead of silently overwriting newer state. The winning state and any required rejection reason remain consistent.
-- Repeated or competing operations must not create inconsistent effects. A retry may be reported as a conflict or handled as a safe replay; exact retry and response semantics remain an implementation decision. One request must not acquire multiple terminal outcomes.
+- Repeated or competing operations must not create inconsistent effects. The [implementation conventions](approval-request-implementation.md#mutations-concurrency-and-transactions) define safe create replay and version-conflict behavior for later mutations. One request must not acquire multiple terminal outcomes.
 - Read operations do not mutate a request. Owner and reviewer visibility follows the authorization policy above; self-review is prohibited even when a user holds both capabilities.
 
 ## State transitions
@@ -63,11 +63,11 @@ All other state-changing combinations are invalid. In particular, an edit or sub
 | A stale edit or transition loses a race to another write | Report a conflict and preserve the winning write; do not silently overwrite it. |
 | A duplicate or competing action arrives | Preserve one consistent result and report a safe replay or conflict as appropriate; do not apply a second inconsistent outcome. |
 
-Authentication failure, insufficient review capability, non-ownership for owner operations, and attempted self-review are expected denials. They must leave the request unchanged. Transport status codes, error identifiers, validation shapes, denial response details, and conflict/replay mechanics will be specified with the API and persistence design.
+Authentication failure, insufficient review capability, non-ownership for owner operations, and attempted self-review are expected denials. They must leave the request unchanged. The [implementation conventions](approval-request-implementation.md#api-failures-and-canonical-metadata) specify planned transport mappings; executable contract shapes and safe denial details will be created with the API.
 
 ## Data ownership, classification, and lifecycle
 
-Approval Request owns its creator identity, request state, and, when rejected, the rejection reason as business data. The creator identity establishes ownership and must remain associated with the request. Exact editable fields, identifiers, timestamps, schema metadata, and transaction ownership remain for [P3.4](../implementation-plan.md#phase-3). Access follows the policy above; there is no tenant scope.
+Approval Request owns its creator identity, request state, and, when rejected, the rejection reason as business data. The creator identity establishes ownership and must remain associated with the request. Feature-level identifier, clock, schema, and transaction conventions are in the [implementation design](approval-request-implementation.md); exact editable payload fields will be defined with the executable contracts. Access follows the policy above; there is no tenant scope.
 
 The owner classifies the intended feature data as ordinary **internal application data**. No secrets, credentials, financial, medical, or other specially sensitive data are intentionally part of this feature. Treat request content and rejection reasons as untrusted input and apply the [data-classification policy](../security/data-classification.md); this classification does not authorize public disclosure or unrestricted telemetry capture.
 

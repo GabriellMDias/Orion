@@ -9,6 +9,7 @@ Choose the route relevant to the change. Policy pages provide section links for 
 | Execute or track implementation phases | [Living implementation plan](implementation-plan.md) |
 | Resolve owner decisions, external access, or other human prerequisites | [Human-action checklist](human-actions.md) |
 | Understand the reference feature's business rules and acceptance scenarios | [Approval Request](domains/approval-request.md) |
+| Implement the reference feature's persistence, concurrency, access, and list contracts | [Approval Request implementation conventions](domains/approval-request-implementation.md) |
 | Evaluate architectural tradeoffs or exceptions | [Principles](architecture/principles.md) |
 | Find selected technology decisions | [Technology decisions](architecture/technology-decisions.md) |
 | Place code or create an application/package | [Repository structure](architecture/repository-structure.md), [application boundaries](architecture/application-boundaries.md) |
@@ -19,6 +20,7 @@ Choose the route relevant to the change. Policy pages provide section links for 
 | Change independently deployed or persisted contracts | [Versioning and compatibility](architecture/versioning-and-compatibility.md) |
 | Handle delivery, retries, and external side effects | [Delivery and side effects](architecture/delivery-and-side-effects.md) |
 | Implement CI or dependency automation | [Continuous integration](architecture/continuous-integration.md) |
+| Build the first API or regenerate derived references | [Backend execution and generated artifacts](architecture/backend-execution-and-generated-artifacts.md) |
 
 ## APIs and data
 

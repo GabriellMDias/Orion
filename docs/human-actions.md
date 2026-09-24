@@ -6,7 +6,7 @@
 
 This checklist records implementation prerequisites that require a project-owner decision, human-controlled account action, unavailable privilege, or securely supplied external configuration. Codex must maintain it throughout implementation and must never silently skip work because human intervention is needed.
 
-Phases 1 and 2 are complete. The Phase 3 Approval Request business and identity/access decisions are recorded in H-04 and H-05. Conditional items become necessary only when their trigger applies. There are currently no implemented application configuration schemas or `.env` variable names.
+Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-04 and H-05, with [implementation conventions](domains/approval-request-implementation.md) and [execution/artifact conventions](architecture/backend-execution-and-generated-artifacts.md) ready for later phases. No new human action is required before Phase 4. Conditional items become necessary only when their trigger applies. There are currently no implemented application configuration schemas or `.env` variable names.
 
 ## How Codex maintains this checklist
 
