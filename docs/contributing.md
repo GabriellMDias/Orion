@@ -10,6 +10,8 @@ Use the [task index](README.md) to locate the policy relevant to a change. This 
 4. Implement the change, add or update behavior tests, update affected documentation, and regenerate derived artifacts from their canonical sources.
 5. Run the available [validation](validation.md), review the final diff, and report unavailable checks or remaining failures explicitly. Do not declare success while concealing known validation errors.
 
+Keep pull requests as coherent units of work. Follow-up changes for the same phase or objective should normally reuse its open PR and branch instead of creating a new PR for each small documentation or status update.
+
 Prefer the least irreversible solution when an architectural choice is uncertain. Identify conflicts with established architecture rather than bypassing them. Prefer mechanical enforcement where practical; never weaken typing, tests, validation, security, or observability to make a change pass.
 
 Before adding a dependency, check repository and standard-platform capabilities. Consider maintenance, security, licensing, runtime/bundle cost, and ecosystem maturity. Avoid competing libraries for the same responsibility without a documented reason. Foundational dependencies may require an ADR.
