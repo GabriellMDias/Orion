@@ -133,7 +133,7 @@ Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-
 
 **Codex verification:** Verify versions and runtime accessibility, then execute the relevant repository test command once implemented. Confirm ephemeral database creation, migration application, isolation/cleanup, or browser launch as appropriate. An installed executable alone is insufficient.
 
-**Evidence / blocker:** Node.js 24.13.0 and pnpm 11.25.0 are available, and Phase 1 dependency installation and local checks run without host administration. No Phase 1 human action is needed. Container and browser capabilities remain unassessed until their later phases; do not assume they are missing.
+  **Evidence / blocker (2026-09-24):** Node.js 24.13.0 and pnpm 11.25.0 are available. Codex started the existing Docker Desktop Linux engine without host administration; `docker info` reported Docker 28.4.0 and `docker run --rm postgres:16 postgres --version` succeeded (PostgreSQL 16.10). A fresh `postgres:16` container accepted connections, and `prisma migrate deploy` applied the committed Phase 5 migration. `pnpm --filter @orion/api test` passed the Testcontainers/migrated-PostgreSQL Fastify suite, including the restricted runtime role. The emitted-process feature smoke also passed using Testcontainers and signed synthetic tokens. No Phase 5 host-level human action is required. Browser capability remains for Phase 6; this conditional checkbox stays open for future host-only needs.
 
 ## H-07
 
@@ -151,7 +151,7 @@ Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-
 
 **Codex verification:** Validate configuration without printing values; perform a bounded non-destructive connectivity or authentication test and the relevant integration flow. For identity, test intended redirects and claims plus denial/revocation behavior where required. Use provider evidence if Codex cannot inspect account settings and record outstanding technical verification separately.
 
-**Evidence / blocker:** H-05 selected a provider-agnostic token boundary but no concrete identity provider. No service-specific provisioning request or variable name exists yet; this action remains conditional.
+  **Evidence / blocker (2026-09-24):** Phase 5 implements a provider-independent JWT access-token verifier configured by `ORION_TOKEN_ISSUER`, `ORION_TOKEN_AUDIENCE`, and `ORION_TOKEN_JWKS_URL`; a trusted issuer must supply stable `orion_principal_id`, `orion_actor_type=human`, and optional `approval:review` scope. Synthetic signed-token tests use a local JWKS server and no external account. No concrete provider, production issuer/audience/JWKS values, or service-specific provisioning has been selected; H-07 remains conditional and does not block Phase 5. A future concrete provider or deployment must record its exact provisioning and stable-ID mapping here before requesting human action.
 
 ## H-08
 

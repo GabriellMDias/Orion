@@ -1,6 +1,6 @@
 # Technology Decision Map
 
-This is a navigation summary, not an independent technology specification. Each linked ADR owns the decision, exceptions, rationale, and version policy. All eleven records currently state `accepted`; workspace tooling and the Phase 4 API runtime now exist, while business feature capabilities remain unimplemented. Consult [validation availability](../validation.md) before running commands.
+This is a navigation summary, not an independent technology specification. Each linked ADR owns the decision, exceptions, rationale, and version policy. All twelve records currently state `accepted`; workspace tooling and the Phase 5 API feature now exist. Consult [validation availability](../validation.md) before running commands.
 
 ## Selected directions
 
@@ -17,6 +17,7 @@ This is a navigation summary, not an independent technology specification. Each 
 | [ADR-0009](../adr/0009-establish-testing-strategy-and-tooling.md) | Vitest, Testcontainers, Vitest Browser Mode with Playwright, Playwright Test | Real migrated PostgreSQL; browser fidelity where relevant; no initial global coverage threshold. | [Policy](testing-strategy.md) |
 | [ADR-0010](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md) | OpenTelemetry traces/metrics, Pino logs, W3C Trace Context, OTLP | Collector preferred when justified, not mandatory; no global backend/vendor or baseline browser instrumentation. | [Policy](../reliability/observability.md) |
 | [ADR-0011](../adr/0011-establish-continuous-integration-dependency-automation-and-supply-chain-security-strategy.md) | GitHub Actions and Renovate; available GitHub security capabilities | Same validation as local development; immutable action pins; automerge off initially; CI does not select CD. | [Policy](continuous-integration.md) |
+| [ADR-0012](../adr/0012-verify-jwt-access-tokens-at-the-first-api-boundary.md) | Locally verified JWT bearer access tokens for the first API | Provider-independent issuer/audience/JWKS verification and stable Orion principal mapping; no concrete provider selected. | [Policy](../security/authentication.md) |
 
 ## Deliberately unresolved or conditional choices
 

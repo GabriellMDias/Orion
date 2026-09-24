@@ -2,7 +2,7 @@
 
 [Documentation index](../README.md) · [Implementation conventions](approval-request-implementation.md) · [Implementation plan](../implementation-plan.md#phase-3) · [Owner decisions](../human-actions.md#h-04)
 
-This is the canonical business specification for Orion’s Approval Request reference feature. It records the project owner's Phase 3 decision. It does not assert that the feature, API, database schema, or user interface already exists. Architectural and security policies still govern its eventual implementation.
+This is the canonical business specification for Orion’s Approval Request reference feature. It records the project owner's Phase 3 decision. The Phase 5 API and durable schema now implement it; the web interface and concrete identity-provider provisioning remain future work. Architectural and security policies still govern its evolution.
 
 ## Purpose and actors
 
@@ -67,7 +67,7 @@ Authentication failure, insufficient review capability, non-ownership for owner 
 
 ## Data ownership, classification, and lifecycle
 
-Approval Request owns its creator identity, request state, and, when rejected, the rejection reason as business data. The creator identity establishes ownership and must remain associated with the request. Feature-level identifier, clock, schema, and transaction conventions are in the [implementation design](approval-request-implementation.md); exact editable payload fields will be defined with the executable contracts. Access follows the policy above; there is no tenant scope.
+Approval Request owns its creator identity, request state, and, when rejected, the rejection reason as business data. The creator identity establishes ownership and must remain associated with the request. Feature-level identifier, clock, schema, and transaction conventions are in the [implementation design](approval-request-implementation.md); the Phase 5 editable fields and limits are in its [current contract section](approval-request-implementation.md#current-phase-5-contract) and the executable TypeBox contracts. Access follows the policy above; there is no tenant scope.
 
 The owner classifies the intended feature data as ordinary **internal application data**. No secrets, credentials, financial, medical, or other specially sensitive data are intentionally part of this feature. Treat request content and rejection reasons as untrusted input and apply the [data-classification policy](../security/data-classification.md); this classification does not authorize public disclosure or unrestricted telemetry capture.
 
@@ -95,4 +95,4 @@ Creating or changing a request affects its durable internal business data once p
 14. An authorized owner attempting to edit or submit a non-`DRAFT` request, or cancel a terminal request, is denied by the state rule. A reviewer with review capability attempting to decide another owner's `DRAFT` or terminal request is denied by the state rule. An unauthorized principal remains denied regardless of state. Neither kind of denial mutates the request.
 15. Authorization tests use synthetic principals, creator identities, and capabilities; they do not require real external accounts or a selected identity provider.
 
-Acceptance tests for state, concurrency, and persistence belong to later implementation phases. These scenarios are the business source for those tests, not a claim that they currently run.
+Phase 5 Vitest tests exercise state, concurrency, authorization, and persistence against migrated PostgreSQL. These scenarios remain the business source for the tests; later phases may expand failure-recovery and browser coverage.

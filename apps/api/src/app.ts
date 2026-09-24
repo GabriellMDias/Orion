@@ -1,15 +1,14 @@
 import { randomUUID } from "node:crypto";
-import { context, trace } from "@opentelemetry/api";
-import { Type } from "typebox";
 import Fastify, { LogController } from "fastify";
 import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import type { Logger } from "pino";
 import { publicError, type ErrorCode } from "./errors.js";
-import { Lifecycle } from "./lifecycle.js";
-
-const healthSchema = Type.Object({
-  status: Type.Union([Type.Literal("ok"), Type.Literal("unavailable")]),
-});
+import { Lifecycle, withDeadline } from "./lifecycle.js";
+import { registerApprovalRoutes } from "./features/approval-requests/routes.js";
+import type { ApprovalRequestService } from "./features/approval-requests/service.js";
+import type { AccessTokenVerifier } from "./features/approval-requests/authentication.js";
+import { healthOperations } from "./health-contracts.js";
+import { currentTraceId } from "./request-context.js";
 
 class SafeLogController extends LogController {
   constructor() {
@@ -17,12 +16,15 @@ class SafeLogController extends LogController {
   }
 }
 
-function currentTraceId(): string | undefined {
-  const id = trace.getSpan(context.active())?.spanContext().traceId;
-  return id && id !== "00000000000000000000000000000000" ? id : undefined;
-}
-
-export function createApp(logger: Logger, lifecycle = new Lifecycle()) {
+export function createApp(
+  logger: Logger,
+  lifecycle = new Lifecycle(),
+  feature?: {
+    service: ApprovalRequestService;
+    verifier: AccessTokenVerifier;
+    checkReady?: () => Promise<boolean>;
+  },
+) {
   const app = Fastify({
     loggerInstance: logger,
     logController: new SafeLogController(),
@@ -95,28 +97,42 @@ export function createApp(logger: Logger, lifecycle = new Lifecycle()) {
   });
 
   app.get(
-    "/health/startup",
-    { schema: { response: { 200: healthSchema, 503: healthSchema } } },
+    healthOperations[0].url,
+    { schema: healthOperations[0].schema },
     async (_request, reply) => {
       if (!lifecycle.startupOk) reply.code(503);
       return { status: lifecycle.startupOk ? "ok" : "unavailable" } as const;
     },
   );
   app.get(
-    "/health/live",
-    { schema: { response: { 200: healthSchema, 503: healthSchema } } },
+    healthOperations[1].url,
+    { schema: healthOperations[1].schema },
     async (_request, reply) => {
       if (!lifecycle.live) reply.code(503);
       return { status: lifecycle.live ? "ok" : "unavailable" } as const;
     },
   );
   app.get(
-    "/health/ready",
-    { schema: { response: { 200: healthSchema, 503: healthSchema } } },
+    healthOperations[2].url,
+    { schema: healthOperations[2].schema },
     async (_request, reply) => {
-      if (!lifecycle.ready) reply.code(503);
-      return { status: lifecycle.ready ? "ok" : "unavailable" } as const;
+      let ready = lifecycle.ready;
+      if (ready && feature?.checkReady) {
+        try {
+          await withDeadline(
+            feature.checkReady().then((value) => {
+              ready = value;
+            }),
+            500,
+          );
+        } catch {
+          ready = false;
+        }
+      }
+      if (!ready) reply.code(503);
+      return { status: ready ? "ok" : "unavailable" } as const;
     },
   );
+  if (feature) registerApprovalRoutes(app, feature.service, feature.verifier);
   return { app, lifecycle };
 }

@@ -18,14 +18,14 @@ pnpm validate
 | `pnpm typecheck` | Strict TypeScript checking of repository tooling and the API source, tests, and reference generator. |
 | `pnpm architecture` | dependency-cruiser checks resolvable imports, cycles, and applicable repository/application/package boundary rules. Extend rules with real package ownership and public APIs. |
 | `pnpm docs:check` | Checks local Markdown targets and heading anchors, single top-level headings, ADR filenames/metadata/index entries, and reachability from the root README. It does not verify external URLs or the meaning of a document. |
-| `pnpm references:check` | Verifies committed API configuration and error references against their canonical TypeScript sources without rewriting them. |
-| `pnpm test` | Runs the API Vitest configuration, HTTP-boundary, lifecycle, and telemetry tests. |
+| `pnpm references:check` | Regenerates API configuration, errors, and OpenAPI from executable sources; migrates a disposable Testcontainers PostgreSQL, checks every application table/column and custom SQL object against schema metadata, and compares the committed physical database reference without rewriting tracked files. |
+| `pnpm test` | Runs API Vitest unit and HTTP-boundary tests plus migrated PostgreSQL/Testcontainers, synthetic identity, authorization, concurrency, and lifecycle tests. |
 | `pnpm build` | Emits Node-compatible ESM for `apps/api` to ignored `dist/`. |
-| `pnpm smoke` | Starts the emitted API, checks invalid configuration and real HTTP/trace propagation, rejects trace export from a local OTLP test receiver, and confirms the API remains healthy. |
+| `pnpm smoke` | Starts the emitted API for foundation checks and then with migrated Testcontainers PostgreSQL and a local signed-token issuer for a real create/submit/review HTTP workflow; checks invalid configuration, trace propagation, failed OTLP export, and required authorization. |
 
 Use `pnpm format` only when an intentional formatting edit is needed; it writes files and is separate from `pnpm validate`. A formatting failure names the file; type, lint, architecture, and documentation failures report the relevant source location or import/link. Repair the canonical source and rerun the failing script, then the aggregate command.
 
-The Phase 4 API, its tests, and configuration/error reference generators exist. Approval Request business routes, persistence, authentication integration, OpenAPI/client generation, and browser checks do not. A GitHub Actions workflow invokes the same `pnpm validate` command; its execution and required-check settings are tracked in [CI status](architecture/continuous-integration.md). A first-party workspace dependency should use `workspace:` when a real package relationship is introduced.
+The Phase 5 Approval Request server, PostgreSQL/Prisma persistence, provider-independent token boundary, generated OpenAPI, and generated physical database reference exist. `pnpm validate` first generates the ignored Prisma client; both references and tests require a Testcontainers-compatible runtime. A concrete identity provider, generated frontend client, and browser checks are deferred. A GitHub Actions workflow invokes the same `pnpm validate` command; its execution and required-check settings are tracked in [CI status](architecture/continuous-integration.md). A first-party workspace dependency should use `workspace:` when a real package relationship is introduced.
 
 ## Accepted responsibilities
 

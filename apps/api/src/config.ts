@@ -22,6 +22,10 @@ export const serverConfigSchema = Type.Object(
     shutdownTimeoutMs: Type.Integer({ minimum: 100, maximum: 30000 }),
     otlpEndpoint: Type.Optional(Type.String({ format: "uri" })),
     traceSampleRatio: Type.Number({ minimum: 0, maximum: 1 }),
+    databaseUrl: Type.Optional(Type.String({ minLength: 1 })),
+    tokenIssuer: Type.Optional(Type.String({ minLength: 1 })),
+    tokenAudience: Type.Optional(Type.String({ minLength: 1 })),
+    tokenJwksUrl: Type.Optional(Type.String({ minLength: 1 })),
   },
   { additionalProperties: false },
 );
@@ -93,6 +97,44 @@ export const configReference = Object.freeze([
     visibility: "server",
     purpose: "Trace sampling probability.",
   },
+  {
+    key: "databaseUrl",
+    name: "ORION_DATABASE_URL",
+    type: "PostgreSQL URL",
+    required: false,
+    default: "",
+    visibility: "server",
+    purpose:
+      "Runtime database credential; required to activate Approval Request routes.",
+  },
+  {
+    key: "tokenIssuer",
+    name: "ORION_TOKEN_ISSUER",
+    type: "issuer URL",
+    required: false,
+    default: "",
+    visibility: "server",
+    purpose:
+      "Expected access-token issuer; configure with audience and JWKS URL.",
+  },
+  {
+    key: "tokenAudience",
+    name: "ORION_TOKEN_AUDIENCE",
+    type: "nonempty string",
+    required: false,
+    default: "",
+    visibility: "server",
+    purpose: "Expected API access-token audience.",
+  },
+  {
+    key: "tokenJwksUrl",
+    name: "ORION_TOKEN_JWKS_URL",
+    type: "http(s) URL",
+    required: false,
+    default: "",
+    visibility: "server",
+    purpose: "Trusted issuer public-key endpoint.",
+  },
 ] as const);
 
 function numberFromEnv(value: string | undefined, fallback: number): number {
@@ -114,6 +156,18 @@ export function parseServerConfig(
       ? {}
       : { otlpEndpoint: env.ORION_OTLP_ENDPOINT }),
     traceSampleRatio: numberFromEnv(env.ORION_TRACE_SAMPLE_RATIO, 1),
+    ...(env.ORION_DATABASE_URL === undefined
+      ? {}
+      : { databaseUrl: env.ORION_DATABASE_URL }),
+    ...(env.ORION_TOKEN_ISSUER === undefined
+      ? {}
+      : { tokenIssuer: env.ORION_TOKEN_ISSUER }),
+    ...(env.ORION_TOKEN_AUDIENCE === undefined
+      ? {}
+      : { tokenAudience: env.ORION_TOKEN_AUDIENCE }),
+    ...(env.ORION_TOKEN_JWKS_URL === undefined
+      ? {}
+      : { tokenJwksUrl: env.ORION_TOKEN_JWKS_URL }),
   };
   if (!Value.Check(serverConfigSchema, candidate)) {
     throw new Error("Invalid API configuration");
@@ -135,10 +189,67 @@ export function parseServerConfig(
       throw new Error("Invalid API configuration: /otlpEndpoint");
     }
   }
+  const authValues = [
+    candidate.tokenIssuer,
+    candidate.tokenAudience,
+    candidate.tokenJwksUrl,
+  ];
+  if (
+    authValues.some(Boolean) &&
+    (!candidate.databaseUrl || authValues.some((value) => !value))
+  )
+    throw new Error(
+      "Invalid API configuration: incomplete Approval Request runtime",
+    );
+  if (candidate.databaseUrl && authValues.some((value) => !value))
+    throw new Error(
+      "Invalid API configuration: incomplete Approval Request runtime",
+    );
+  for (const value of [
+    candidate.databaseUrl,
+    candidate.tokenIssuer,
+    candidate.tokenJwksUrl,
+  ]) {
+    if (!value) continue;
+    let parsed: URL;
+    try {
+      parsed = new URL(value);
+    } catch {
+      throw new Error("Invalid API configuration: URL");
+    }
+    const protocols =
+      value === candidate.databaseUrl
+        ? ["postgres:", "postgresql:"]
+        : ["http:", "https:"];
+    if (!protocols.includes(parsed.protocol))
+      throw new Error("Invalid API configuration: URL protocol");
+    if (value !== candidate.databaseUrl && parsed.protocol !== "https:") {
+      if (
+        candidate.environment === "production" ||
+        !["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname)
+      )
+        throw new Error("Invalid API configuration: token URL must use HTTPS");
+    }
+    if (
+      !parsed.hostname ||
+      (value !== candidate.databaseUrl &&
+        (parsed.username || parsed.password || parsed.search || parsed.hash))
+    )
+      throw new Error("Invalid API configuration: URL components");
+  }
+  if (
+    candidate.tokenAudience !== undefined &&
+    candidate.tokenAudience.trim() === ""
+  )
+    throw new Error("Invalid API configuration: token audience");
+  if (candidate.environment === "production" && !candidate.databaseUrl)
+    throw new Error(
+      "Invalid API configuration: Approval Request runtime required",
+    );
   return Object.freeze(candidate);
 }
 
-// No browser-consumable API configuration exists in Phase 4. This projection
+// No browser-consumable API configuration exists in Phase 5. This projection
 // prevents server settings from leaking into a future client configuration.
 export function clientConfigFrom(config: ServerConfig): ClientConfig {
   void config;

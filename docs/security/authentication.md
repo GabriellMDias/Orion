@@ -29,7 +29,7 @@ Its goals are to ensure that identity is:
 
 This document is technology-agnostic.
 
-Specific identity providers, authentication libraries, token formats, session stores, cryptographic mechanisms, and platform integrations will be selected later through explicit architectural decisions.
+Specific identity providers, session stores, and platform integrations remain future decisions. For the first API's Approval Request boundary, [ADR-0012](../adr/0012-verify-jwt-access-tokens-at-the-first-api-boundary.md) selects locally verified JWT bearer access tokens without selecting a provider; other applications' mechanisms remain requirement-driven.
 
 This document complements:
 
