@@ -8,6 +8,7 @@ Choose the route relevant to the change. Policy pages provide section links for 
 | --- | --- |
 | Execute or track implementation phases | [Living implementation plan](implementation-plan.md) |
 | Resolve owner decisions, external access, or other human prerequisites | [Human-action checklist](human-actions.md) |
+| Understand the reference feature's business rules and acceptance scenarios | [Approval Request](domains/approval-request.md) |
 | Evaluate architectural tradeoffs or exceptions | [Principles](architecture/principles.md) |
 | Find selected technology decisions | [Technology decisions](architecture/technology-decisions.md) |
 | Place code or create an application/package | [Repository structure](architecture/repository-structure.md), [application boundaries](architecture/application-boundaries.md) |
@@ -64,4 +65,4 @@ Choose the route relevant to the change. Policy pages provide section links for 
 - [Contributing](contributing.md): change workflow, documentation ownership, canonical sources, maintenance, and review.
 - [Global agent instructions](../AGENTS.md): invariants, command availability, and conditional routes.
 
-Current policies describe current architectural expectations. ADRs preserve decision history; runbooks describe real current procedures; Git preserves development history. Generated reference and domain/application documentation will be added when real sources and owners exist, not as empty placeholders.
+Current policies describe current architectural expectations. ADRs preserve decision history; runbooks describe real current procedures; Git preserves development history. Additional domain/application documentation and generated reference will be added when real sources and owners exist, not as empty placeholders.

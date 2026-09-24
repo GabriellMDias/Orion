@@ -53,7 +53,7 @@ This table owns phase-level status; the tables within each phase own task-level 
 | --- | --- | --- | --- | --- |
 | [1](#phase-1) | Reproducible workspace and local validation | completed | None | Frozen install and `pnpm validate` pass; validation changed zero source files. |
 | [2](#phase-2) | CI and dependency security | completed | 1 | [H-01](human-actions.md#h-01), [H-02](human-actions.md#h-02), and [H-03](human-actions.md#h-03) are complete. On [PR #3 CI run #6](https://github.com/GabriellMDias/Orion/actions/runs/36009789640), validation, Dependency Review with `DEPENDENCY_REVIEW_ENABLED=true`, and the aggregate gate all passed. All applicable Phase 2 acceptance criteria are satisfied. |
-| [3](#phase-3) | Reference feature and immediate decisions | pending | 1-2; discovery may begin earlier | Not started; owner inputs tracked in H-04 and H-05. |
+| [3](#phase-3) | Reference feature and immediate decisions | in progress | 1-2; discovery may begin earlier | [Approval Request](domains/approval-request.md) selected and specified under H-04; H-05 identity/access/tenancy decision remains pending. P3.3-P3.6 remain open. |
 | [4](#phase-4) | Observable API runtime | pending | 1-3 | Not started. |
 | [5](#phase-5) | Secure persistence-backed API feature | pending | 3-4 and CI | Not started. |
 | [6](#phase-6) | Generated client and complete web workflow | pending | 5 | Not started. |
@@ -135,9 +135,9 @@ This table owns phase-level status; the tables within each phase own task-level 
 
 | Task | Main work | Status | Evidence / dependency |
 | --- | --- | --- | --- |
-| P3.1 | Select the reference feature with the project owner; orders/payments in existing examples are not product requirements. | pending | [H-04](human-actions.md#h-04). |
-| P3.2 | Define actors, use cases, ownership, invariants, state transitions, expected failures, side effects, and acceptance scenarios. | pending | [H-04](human-actions.md#h-04). |
-| P3.3 | Specify data classifications/lifecycle and determine required authentication, authorization, tenancy, audit history, and integrations. | pending | [H-04](human-actions.md#h-04), [H-05](human-actions.md#h-05). |
+| P3.1 | Select the reference feature with the project owner; orders/payments in existing examples are not product requirements. | completed | Owner selected [Approval Request](domains/approval-request.md); [H-04](human-actions.md#h-04). |
+| P3.2 | Define actors, use cases, ownership, invariants, state transitions, expected failures, side effects, and acceptance scenarios. | completed | Canonical [business specification and acceptance scenarios](domains/approval-request.md); ownership enforcement explicitly deferred to H-05. |
+| P3.3 | Specify data classifications/lifecycle and determine required authentication, authorization, tenancy, audit history, and integrations. | blocked | H-04 portion recorded in [data ownership, classification, and lifecycle](domains/approval-request.md#data-ownership-classification-and-lifecycle) and [side-effect boundary](domains/approval-request.md#side-effect-boundary). Authentication, authorization, tenancy, ownership enforcement, and self-review remain [H-05](human-actions.md#h-05). |
 | P3.4 | Resolve feature placement, identifiers, timestamps, transaction ownership, schema metadata, API errors, and pagination where applicable. | pending | Implementation decisions after requirements are known. |
 | P3.5 | Decide backend development/build execution and generated-artifact storage conventions. | pending | Not started. |
 | P3.6 | Record significant new architectural choices through the ADR process; keep ordinary conventions near their owners. | pending | Not started. |

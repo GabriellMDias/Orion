@@ -6,7 +6,7 @@
 
 This checklist records implementation prerequisites that require a project-owner decision, human-controlled account action, unavailable privilege, or securely supplied external configuration. Codex must maintain it throughout implementation and must never silently skip work because human intervention is needed.
 
-Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; branch protection and conditional security settings remain open below. Conditional items become necessary only when their trigger applies. There are currently no implemented application configuration schemas or `.env` variable names.
+Phases 1 and 2 are complete. The Phase 3 Approval Request owner decision is recorded in H-04; identity and access decisions remain open in H-05. Conditional items become necessary only when their trigger applies. There are currently no implemented application configuration schemas or `.env` variable names.
 
 ## How Codex maintains this checklist
 
@@ -83,9 +83,9 @@ Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; bran
 
 ## H-04
 
-- [ ] **Define the reference feature and its business acceptance criteria.**
+- [x] **Define the reference feature and its business acceptance criteria.**
 
-**Status:** pending. **Owner:** project owner.
+**Status:** completed. **Owner:** project owner.
 
 **What needs to be done:** Choose the reference capability and supply its business meaning: actors, supported operations, invariants, state transitions, failures, side effects, data ownership, classification, lifecycle/retention needs, and acceptance scenarios. Codex should present bounded options or identify the specific missing decisions rather than ask the owner to design the entire implementation.
 
@@ -97,7 +97,7 @@ Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; bran
 
 **Codex verification:** Link the owner's recorded decision to the feature specification and acceptance scenarios. Check that every implemented business rule traces to the specification and explicitly list any remaining ambiguity. Do not require an additional ceremonial sign-off when the existing user instruction already supplies the decision.
 
-**Evidence / blocker:** No reference business feature has been selected in the documentation.
+**Evidence / verification (2026-09-24):** The project owner selected **Approval Request** and supplied its purpose, logical actors, five states, operations, transition constraints, rejection-reason requirement, concurrency and repeat-operation guarantees, internal data classification, persistence direction, and lack of default external integrations, legal retention duration, automatic deletion, or authoritative business-audit requirement. The canonical [feature specification](domains/approval-request.md) records these as use cases, invariants, valid/invalid transitions, expected failures, lifecycle and side-effect boundaries, and acceptance scenarios including stale/concurrent writes. [P3.1 and P3.2](implementation-plan.md#phase-3) are complete; the H-04 portion of P3.3 is recorded. Identity, authorization, tenancy, ownership enforcement, and self-review were explicitly deferred to [H-05](#h-05), so P3.3 and Phase 3 remain open. No credentials or `.env` values are needed for H-04.
 
 ## H-05
 
@@ -115,7 +115,7 @@ Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; bran
 
 **Codex verification:** Link the recorded decision and any required ADR; trace protected operations to enforceable policies and allow/deny tests. Verify the implementation respects anonymous behavior and denied resource/tenant access where applicable.
 
-**Evidence / blocker:** Product identity and access requirements remain unresolved.
+**Evidence / blocker:** The owner explicitly deferred authentication provider, authorization model, tenancy, ownership enforcement, and whether a requester may review their own request to H-05. Public versus protected operations and enforceable actor access remain unresolved; [P3.3](implementation-plan.md#phase-3) is blocked on this decision.
 
 ## H-06
 
