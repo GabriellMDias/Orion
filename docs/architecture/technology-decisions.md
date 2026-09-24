@@ -1,6 +1,6 @@
 # Technology Decision Map
 
-This is a navigation summary, not an independent technology specification. Each linked ADR owns the decision, exceptions, rationale, and version policy. All eleven records currently state `accepted`; workspace and local validation tooling now exist, while application capabilities remain unimplemented. Consult [validation availability](../validation.md) before running commands.
+This is a navigation summary, not an independent technology specification. Each linked ADR owns the decision, exceptions, rationale, and version policy. All eleven records currently state `accepted`; workspace tooling and the Phase 4 API runtime now exist, while business feature capabilities remain unimplemented. Consult [validation availability](../validation.md) before running commands.
 
 ## Selected directions
 
@@ -20,7 +20,7 @@ This is a navigation summary, not an independent technology specification. Each 
 
 ## Deliberately unresolved or conditional choices
 
-- The first API's [development/build convention](backend-execution-and-generated-artifacts.md#api-development-and-build) is recorded for future implementation. `tsc` is already the type-checking authority; the application and its scripts do not yet exist. Task orchestration and TypeScript project references are not initial requirements. Advanced unused-code analysis is not an initial baseline requirement.
+- The first API's [development/build convention](backend-execution-and-generated-artifacts.md#api-development-and-build) is implemented for its Phase 4 foundation. Task orchestration and TypeScript project references are not initial requirements. Advanced unused-code analysis is not an initial baseline requirement.
 - UI/design systems, styling, accessibility primitives, charts, grids, and forms depend on product needs. No general global-state library or full-stack web framework is selected by default.
 - GraphQL, tRPC, gRPC, rich SDK generators, and other-language clients require a concrete consumer or boundary. They do not replace the accepted interoperable API by implication.
 - [Approval Request identity and authorization](../domains/approval-request.md#identity-and-authorization-boundary) is selected for the reference feature; its concrete provider and provider-specific session/refresh/revocation behavior remain deferred. Other applications' authorization and tenancy choices and AI delegation mechanisms depend on their requirements. Existing security policies still apply.

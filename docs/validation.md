@@ -15,13 +15,17 @@ pnpm validate
 | --- | --- |
 | `pnpm format:check` | Prettier checks source and configuration files. Existing authored Markdown is covered by structural checks below, not a repository-wide Prettier baseline. |
 | `pnpm lint` | ESLint Flat Config checks JavaScript and TypeScript; TypeScript uses typescript-eslint's type-aware rules. |
-| `pnpm typecheck` | Strict TypeScript checking of the current repository tooling. Extend project coverage as applications and packages are added. |
+| `pnpm typecheck` | Strict TypeScript checking of repository tooling and the API source, tests, and reference generator. |
 | `pnpm architecture` | dependency-cruiser checks resolvable imports, cycles, and applicable repository/application/package boundary rules. Extend rules with real package ownership and public APIs. |
 | `pnpm docs:check` | Checks local Markdown targets and heading anchors, single top-level headings, ADR filenames/metadata/index entries, and reachability from the root README. It does not verify external URLs or the meaning of a document. |
+| `pnpm references:check` | Verifies committed API configuration and error references against their canonical TypeScript sources without rewriting them. |
+| `pnpm test` | Runs the API Vitest configuration, HTTP-boundary, lifecycle, and telemetry tests. |
+| `pnpm build` | Emits Node-compatible ESM for `apps/api` to ignored `dist/`. |
+| `pnpm smoke` | Starts the emitted API, checks invalid configuration and real HTTP/trace propagation, rejects trace export from a local OTLP test receiver, and confirms the API remains healthy. |
 
 Use `pnpm format` only when an intentional formatting edit is needed; it writes files and is separate from `pnpm validate`. A formatting failure names the file; type, lint, architecture, and documentation failures report the relevant source location or import/link. Repair the canonical source and rerun the failing script, then the aggregate command.
 
-There are still no applications, runtime packages, test suites, or generators. Build and test commands are therefore unavailable; `pnpm validate` must not be interpreted as exercising them. A GitHub Actions workflow now invokes this same command; its execution and required-check settings are tracked in [CI status](architecture/continuous-integration.md). A first-party workspace dependency should use `workspace:` when a real package relationship is introduced.
+The Phase 4 API, its tests, and configuration/error reference generators exist. Approval Request business routes, persistence, authentication integration, OpenAPI/client generation, and browser checks do not. A GitHub Actions workflow invokes the same `pnpm validate` command; its execution and required-check settings are tracked in [CI status](architecture/continuous-integration.md). A first-party workspace dependency should use `workspace:` when a real package relationship is introduced.
 
 ## Accepted responsibilities
 

@@ -1,6 +1,6 @@
 # Documentation Task Index
 
-Choose the route relevant to the change. Policy pages provide section links for focused reading; related policies apply when the change crosses their boundaries. The repository has documentation and local validation tooling, but no applications yet. [Selected technologies](architecture/technology-decisions.md) are not proof of [implemented commands](validation.md).
+Choose the route relevant to the change. Policy pages provide section links for focused reading; related policies apply when the change crosses their boundaries. The repository has an API runtime foundation; feature and persistence capabilities remain planned. [Selected technologies](architecture/technology-decisions.md) are not proof of [implemented commands](validation.md).
 
 ## Architecture and implementation
 
@@ -21,6 +21,7 @@ Choose the route relevant to the change. Policy pages provide section links for 
 | Handle delivery, retries, and external side effects | [Delivery and side effects](architecture/delivery-and-side-effects.md) |
 | Implement CI or dependency automation | [Continuous integration](architecture/continuous-integration.md) |
 | Build the first API or regenerate derived references | [Backend execution and generated artifacts](architecture/backend-execution-and-generated-artifacts.md) |
+| Run or extend the current API foundation | [API runtime](../apps/api/README.md), [API-local instructions](../apps/api/AGENTS.md) |
 
 ## APIs and data
 

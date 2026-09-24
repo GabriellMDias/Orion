@@ -9,11 +9,19 @@ export default defineConfig(
       "coverage/**",
       "playwright-report/**",
       "test-results/**",
+      "**/dist/**",
     ],
   },
   {
     files: ["**/*.{mjs,cjs,js,jsx}"],
     extends: [js.configs.recommended],
+    languageOptions: {
+      globals: {
+        process: "readonly",
+        fetch: "readonly",
+        AbortSignal: "readonly",
+      },
+    },
   },
   {
     files: ["**/*.{ts,tsx}"],

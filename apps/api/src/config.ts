@@ -1,0 +1,146 @@
+import { Type, type Static } from "typebox";
+import { Value } from "typebox/value";
+
+// This is the only application module that interprets environment values.
+export const serverConfigSchema = Type.Object(
+  {
+    environment: Type.Union([
+      Type.Literal("development"),
+      Type.Literal("test"),
+      Type.Literal("production"),
+    ]),
+    host: Type.String({ minLength: 1 }),
+    port: Type.Integer({ minimum: 0, maximum: 65535 }),
+    logLevel: Type.Union([
+      Type.Literal("fatal"),
+      Type.Literal("error"),
+      Type.Literal("warn"),
+      Type.Literal("info"),
+      Type.Literal("debug"),
+      Type.Literal("trace"),
+    ]),
+    shutdownTimeoutMs: Type.Integer({ minimum: 100, maximum: 30000 }),
+    otlpEndpoint: Type.Optional(Type.String({ format: "uri" })),
+    traceSampleRatio: Type.Number({ minimum: 0, maximum: 1 }),
+  },
+  { additionalProperties: false },
+);
+
+export type ServerConfig = Readonly<Static<typeof serverConfigSchema>>;
+export type ClientConfig = Readonly<Record<string, never>>;
+
+export const configReference = Object.freeze([
+  {
+    key: "environment",
+    name: "ORION_ENV",
+    type: "development | test | production",
+    required: true,
+    default: "",
+    visibility: "server",
+    purpose: "Runtime environment.",
+  },
+  {
+    key: "host",
+    name: "ORION_API_HOST",
+    type: "nonempty string",
+    required: false,
+    default: "127.0.0.1",
+    visibility: "server",
+    purpose: "Listen address; loopback by default.",
+  },
+  {
+    key: "port",
+    name: "ORION_API_PORT",
+    type: "integer 0..65535",
+    required: false,
+    default: "3000",
+    visibility: "server",
+    purpose: "Listen port; zero selects an ephemeral port.",
+  },
+  {
+    key: "logLevel",
+    name: "ORION_LOG_LEVEL",
+    type: "Pino level",
+    required: false,
+    default: "info",
+    visibility: "server",
+    purpose: "Structured log threshold.",
+  },
+  {
+    key: "shutdownTimeoutMs",
+    name: "ORION_SHUTDOWN_TIMEOUT_MS",
+    type: "integer 100..30000",
+    required: false,
+    default: "5000",
+    visibility: "server",
+    purpose: "Total graceful shutdown deadline.",
+  },
+  {
+    key: "otlpEndpoint",
+    name: "ORION_OTLP_ENDPOINT",
+    type: "http(s) URL",
+    required: false,
+    default: "",
+    visibility: "server",
+    purpose: "Optional OTLP HTTP collector base URL.",
+  },
+  {
+    key: "traceSampleRatio",
+    name: "ORION_TRACE_SAMPLE_RATIO",
+    type: "number 0..1",
+    required: false,
+    default: "1",
+    visibility: "server",
+    purpose: "Trace sampling probability.",
+  },
+] as const);
+
+function numberFromEnv(value: string | undefined, fallback: number): number {
+  if (value === undefined) return fallback;
+  if (value.trim() === "") return Number.NaN;
+  return Number(value);
+}
+
+export function parseServerConfig(
+  env: Readonly<Record<string, string | undefined>>,
+): ServerConfig {
+  const candidate = {
+    environment: env.ORION_ENV,
+    host: env.ORION_API_HOST ?? "127.0.0.1",
+    port: numberFromEnv(env.ORION_API_PORT, 3000),
+    logLevel: env.ORION_LOG_LEVEL ?? "info",
+    shutdownTimeoutMs: numberFromEnv(env.ORION_SHUTDOWN_TIMEOUT_MS, 5000),
+    ...(env.ORION_OTLP_ENDPOINT === undefined
+      ? {}
+      : { otlpEndpoint: env.ORION_OTLP_ENDPOINT }),
+    traceSampleRatio: numberFromEnv(env.ORION_TRACE_SAMPLE_RATIO, 1),
+  };
+  if (!Value.Check(serverConfigSchema, candidate)) {
+    throw new Error("Invalid API configuration");
+  }
+  if (candidate.otlpEndpoint !== undefined) {
+    let endpoint: URL;
+    try {
+      endpoint = new URL(candidate.otlpEndpoint);
+    } catch {
+      throw new Error("Invalid API configuration: /otlpEndpoint");
+    }
+    if (
+      !["http:", "https:"].includes(endpoint.protocol) ||
+      endpoint.username ||
+      endpoint.password ||
+      endpoint.search ||
+      endpoint.hash
+    ) {
+      throw new Error("Invalid API configuration: /otlpEndpoint");
+    }
+  }
+  return Object.freeze(candidate);
+}
+
+// No browser-consumable API configuration exists in Phase 4. This projection
+// prevents server settings from leaking into a future client configuration.
+export function clientConfigFrom(config: ServerConfig): ClientConfig {
+  void config;
+  return Object.freeze({});
+}

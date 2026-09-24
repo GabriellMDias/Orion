@@ -1,0 +1,61 @@
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+import { configReference } from "../src/config.js";
+import { errorRegistry } from "../src/errors.js";
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+const generated = [
+  {
+    path: resolve(root, "docs/generated/configuration/api.md"),
+    content: [
+      "# API Configuration Reference",
+      "",
+      "<!-- Generated from apps/api/src/config.ts. Run pnpm --filter @orion/api references:write; do not edit. -->",
+      "",
+      "[Configuration policy](../../architecture/configuration.md) · [API runtime](../../../apps/api/README.md)",
+      "",
+      "No values are currently eligible for client exposure. Only `ORION_ENV` is required; all other values have safe defaults.",
+      "",
+      "| Environment variable | Type | Required | Default | Visibility | Purpose |",
+      "| --- | --- | --- | --- | --- | --- |",
+      ...configReference.map(
+        (item) =>
+          `| \`${item.name}\` | ${item.type.replaceAll("|", "\\|")} | ${item.required ? "yes" : "no"} | ${item.default ? `\`${item.default}\`` : "—"} | ${item.visibility} | ${item.purpose} |`,
+      ),
+      "",
+    ].join("\n"),
+  },
+  {
+    path: resolve(root, "docs/generated/api/errors.md"),
+    content: [
+      "# API Error Registry",
+      "",
+      "<!-- Generated from apps/api/src/errors.ts. Run pnpm --filter @orion/api references:write; do not edit. -->",
+      "",
+      "[Error contract](../../api/error-contract.md) · [API runtime](../../../apps/api/README.md)",
+      "",
+      "| Code | HTTP status | Category | Retryable | Public message |",
+      "| --- | --- | --- | --- | --- |",
+      ...Object.entries(errorRegistry).map(
+        ([code, item]) =>
+          `| \`${code}\` | ${item.status} | ${item.category} | ${item.retryable ? "yes" : "no"} | ${item.message} |`,
+      ),
+      "",
+    ].join("\n"),
+  },
+];
+
+const write = process.argv[2] === "--write";
+if (!write && process.argv[2] !== "--check")
+  throw new Error("Expected --check or --write");
+for (const artifact of generated) {
+  if (write) {
+    await mkdir(dirname(artifact.path), { recursive: true });
+    await writeFile(artifact.path, artifact.content);
+  } else {
+    const actual = await readFile(artifact.path, "utf8").catch(() => "");
+    if (actual !== artifact.content)
+      throw new Error(`Generated reference drift: ${artifact.path}`);
+  }
+}

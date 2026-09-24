@@ -11,10 +11,14 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,yaml,yml}\" \".*.mjs\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,yaml,yml}\" \".*.mjs\"",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && pnpm --filter @orion/api typecheck",
+    "test": "pnpm --filter @orion/api test",
+    "build": "pnpm --filter @orion/api build",
+    "smoke": "node apps/api/scripts/smoke.mjs",
+    "references:check": "pnpm --filter @orion/api references:check",
     "architecture": "depcruise --config .dependency-cruiser.mjs --include-only \"^(apps|packages|tooling|infra)/|^(eslint\\.config|\\.dependency-cruiser)\" .",
     "docs:check": "node tooling/validate/docs.ts",
-    "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm architecture && pnpm docs:check"
+    "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm architecture && pnpm docs:check && pnpm references:check && pnpm test && pnpm build && pnpm smoke"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

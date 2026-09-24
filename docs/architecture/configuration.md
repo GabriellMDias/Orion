@@ -964,7 +964,7 @@ Descriptions should explain semantics, not merely repeat the name.
 
 ## Configuration Documentation
 
-Configuration documentation should be generated from the canonical schema where practical.
+Configuration documentation should be generated from the canonical schema where practical. The current API has a [generated configuration reference](../generated/configuration/api.md) from its TypeBox bootstrap schema and metadata.
 
 A future generated reference may contain:
 
