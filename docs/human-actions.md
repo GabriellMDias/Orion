@@ -47,21 +47,21 @@ Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; bran
 
 ## H-02
 
-- [ ] **Make the private repository eligible for branch protection and require Orion's CI gate.**
+- [x] **Protect Orion's default branch and require its CI gate.**
 
-**Status:** blocked. **Owner:** repository owner/account administrator for the entitlement decision; Codex can apply settings after eligibility is available.
+**Status:** completed. **Owner:** repository owner/account administrator.
 
-**What needs to be done:** Decide how to make this currently private repository eligible for GitHub branch protection or rulesets. GitHub Pro (or another eligible plan) preserves privacy; making the repository public is a separate visibility decision and must not be assumed. Once eligible and after the check appears on a real run, require `Orion required gate` on `main` before normal merge, with no ordinary bypass. Codex will apply or verify the settings using existing admin access where possible.
+**What needs to be done:** Configure and verify an active ruleset for the default branch that requires pull requests and the `Orion required gate`, blocks branch deletion and force pushes, and has no bypass actors. Orion is now public, making repository rulesets available.
 
 **Why:** Required validation must be enforced outside the workflow; a successful workflow definition does not prevent merging unvalidated changes.
 
 **When / dependency:** [Phase 2](implementation-plan.md#phase-2), P2.3 and P2.6, after the aggregate check exists.
 
-**Values / configuration:** Repository `GabriellMDias/Orion` (currently private); primary branch `main`; exact required check `Orion required gate` from `.github/workflows/ci.yml`; no application `.env` variables. Record any actual ruleset/protection ID and approved exceptional bypass after setup.
+**Values / configuration:** Repository `GabriellMDias/Orion` (public); default branch `main`; ruleset `Protect main` (ID `23941496`); exact required check `Orion required gate` from `.github/workflows/ci.yml`; no bypass actors; no application `.env` variables.
 
 **Codex verification:** Read the effective protection/ruleset settings and confirm the correct check is required on the correct branch. Use a safe test PR or platform evidence to verify a failing required check prevents normal merge; do not weaken protection to test it.
 
-**Evidence / blocker:** The workflow now defines the aggregate gate. GitHub returned HTTP 403 for both `GET /branches/main/protection` and `GET /rulesets?includes_parents=true`: “Upgrade to GitHub Pro or make this repository public to enable this feature.” The repository is private. Codex cannot purchase a plan or change visibility without an owner decision, so enforcement cannot yet be configured or verified.
+**Evidence / verification (2026-09-24):** GitHub repository metadata reports `visibility=public` and `default_branch=main`. The authenticated GitHub REST API returned active repository ruleset `Protect main` (ID `23941496`, source `GabriellMDias/Orion`) with condition `ref_name.include=["~DEFAULT_BRANCH"]`; its rules include `pull_request`, `deletion`, `non_fast_forward`, and `required_status_checks`. The required check context is `Orion required gate` from GitHub Actions, and `bypass_actors` is empty. The check is registered and passed on the current `main` commit (`3543ca4393411e914428b5224c265dff5aa50dcf`; [run #3](https://github.com/GabriellMDias/Orion/actions/runs/36004323007)). The active effective rule configuration is platform evidence that normal merges require the PR and status check; no failing test PR was created.
 
 ## H-03
 
