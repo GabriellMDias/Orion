@@ -65,11 +65,11 @@ Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; bran
 
 ## H-03
 
-- [ ] **Verify Orion's enabled GitHub security features in the repository and CI.**
+- [x] **Verify Orion's enabled GitHub security features in the repository and CI.**
 
-**Status:** in progress. **Owner:** repository owner/account administrator; Codex verifies effective settings and CI behavior.
+**Status:** completed. **Owner:** repository owner/account administrator; Codex verified effective settings and CI behavior.
 
-**What needs to be done:** Confirm the effective public-repository settings for CodeQL default setup, secret scanning, push protection, and dependency review. Confirm that the repository Actions variable `DEPENDENCY_REVIEW_ENABLED=true` causes the dependency-review job to execute and pass in PR CI. The owner reports that these features and the variable have been enabled; verification is underway.
+**What needs to be done:** Enable applicable code and dependency security features for the public repository and verify that `DEPENDENCY_REVIEW_ENABLED=true` causes the dependency-review job to execute in PR CI. This action and verification are complete.
 
 **Why:** Accepted supply-chain controls include platform settings that may require administrative privileges or depend on repository visibility and entitlement.
 
@@ -79,7 +79,7 @@ Phase 1 local tooling is complete. Phase 2 Renovate activation is verified; bran
 
 **Codex verification:** Read the repository security configuration and CodeQL default-setup API, confirm secret scanning and push-protection status and the exact Actions variable value, then inspect a PR workflow run showing Dependency Review completed successfully. For unavailable features, record feature-specific evidence and qualified applicability rather than reporting the feature enabled. Split entries if some settings remain outstanding; do not check the whole item while an applicable requirement is unresolved.
 
-**Evidence / blocker:** On 2026-09-24 GitHub repository metadata confirmed `visibility=public` and `default_branch=main`. `GET /code-scanning/default-setup` returned HTTP 200 with `state=configured`, languages `actions,javascript,javascript-typescript,typescript`, and weekly schedule. Repository security settings report `secret_scanning=enabled` and `secret_scanning_push_protection=enabled`; `GET /secret-scanning/alerts` returned HTTP 200. `GET /actions/variables/DEPENDENCY_REVIEW_ENABLED` returned the exact value `true`. The last PR run before that variable was set skipped Dependency Review; a fresh run on this branch is required to verify the enabled path before completion.
+**Evidence / verification (2026-09-24):** GitHub repository metadata confirms `visibility=public` and `default_branch=main`. `GET /code-scanning/default-setup` returned HTTP 200 with `state=configured`, languages `actions,javascript,javascript-typescript,typescript`, and weekly schedule. Repository security settings report `secret_scanning=enabled` and `secret_scanning_push_protection=enabled`; `GET /secret-scanning/alerts` returned HTTP 200. `GET /actions/variables/DEPENDENCY_REVIEW_ENABLED` returned the exact value `true`. Dependency graph, Dependabot alerts, and vulnerability alerts endpoints returned HTTP 200. On [PR #3 CI run #6](https://github.com/GabriellMDias/Orion/actions/runs/36009789640), Dependency Review executed with `fail-on-severity: high`, completed successfully, and reported no newly introduced high-or-higher vulnerable packages; validation and `Orion required gate` also succeeded. This verifies the enabled workflow path and the configured severity threshold.
 
 ## H-04
 
