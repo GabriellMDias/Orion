@@ -10,6 +10,8 @@ The dependency-review job is prepared for pull requests and blocks newly introdu
 
 The root `renovate.json` selects Renovate's recommended baseline, Dependency Dashboard, weekly routine cadence, grouped compatible TypeScript/lint updates, visible majors requiring dashboard approval, SHA-pin maintenance, and no automerge. Renovate vulnerability-remediation pull requests are not held to the routine schedule. Repository configuration does not install the Renovate GitHub App; [H-01](../human-actions.md#h-01) tracks its activation. [H-02](../human-actions.md#h-02) tracks effective protection of `main` by the exact aggregate check. Neither workflow source nor a local pass proves these external settings are active.
 
+The first [pull-request run](https://github.com/GabriellMDias/Orion/actions/runs/35983764305) passed validation and the aggregate gate on the same revision that passed locally. GitHub's dependency graph and vulnerability alerts are active. GitHub rejected inspection of branch protection and rulesets for this private repository with an explicit GitHub Pro/public-visibility requirement, so `main` is not yet confirmed protected. Code scanning and secret scanning are disabled; [H-03](../human-actions.md#h-03) tracks their conditional entitlement and activation. The current Phase 2 status is in the [living plan](../implementation-plan.md#phase-2).
+
 ## Read for this change
 
 | Change | Governing decision section |

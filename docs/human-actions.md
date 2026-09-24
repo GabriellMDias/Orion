@@ -67,7 +67,7 @@ Phase 1 local tooling is complete. Phase 2 repository configuration is in progre
 
 - [ ] **Enable available GitHub security features or document verified entitlement limitations.**
 
-**Status:** in progress. **Owner:** repository/organization administrator where settings or entitlements are unavailable to Codex.
+**Status:** blocked. **Owner:** repository/organization administrator where settings or entitlements are unavailable to Codex.
 
 **What needs to be done:** Confirm whether GitHub Code Security and Secret Protection are available for this private repository. If available, enable dependency review, CodeQL default setup, secret scanning, and push protection as applicable; set repository Actions variable `DEPENDENCY_REVIEW_ENABLED=true` only when dependency review is available so the PR gate requires it. If unavailable, record the feature-specific entitlement limits. Codex has already verified the dependency graph and enabled vulnerability alerts.
 
