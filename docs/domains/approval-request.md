@@ -1,12 +1,27 @@
 # Approval Request: Reference Feature
 
-[Documentation index](../README.md) · [Implementation plan](../implementation-plan.md#phase-3) · [Human decisions](../human-actions.md#h-04)
+[Documentation index](../README.md) · [Implementation plan](../implementation-plan.md#phase-3) · [Owner decisions](../human-actions.md#h-04)
 
 This is the canonical business specification for Orion’s Approval Request reference feature. It records the project owner's Phase 3 decision. It does not assert that the feature, API, database schema, or user interface already exists. Architectural and security policies still govern its eventual implementation.
 
 ## Purpose and actors
 
-A **Requester** creates an approval request, can edit it while it is a draft, can submit it for a decision, and can cancel it while it is a draft or submitted. A **Reviewer** decides a submitted request by approving or rejecting it. These are logical actors and capabilities, not yet an authentication provider, role model, or enforceable ownership rule. [H-05](../human-actions.md#h-05) must resolve public versus protected access, identity, authorization, tenancy, resource ownership, and whether a requester may review their own request before protected behavior is exposed.
+A **Requester** is an authenticated human who creates an approval request. The creator owns that request. An owner may view, edit, submit, or cancel their request within the state limits below. A **Reviewer** is an authenticated human with the review capability. A reviewer may view requests relevant to review and decide a submitted request they do not own. These are overlapping capabilities, not mutually exclusive roles: a user may own requests and possess review capability, but can never approve or reject their own request.
+
+## Identity and authorization boundary
+
+Every business operation requires an authenticated human principal; there are no anonymous or machine/service operations for this feature. Authentication uses a provider-agnostic OIDC/OAuth 2.0 bearer access-token boundary. The trusted authentication boundary validates the token, including expiration, and supplies a provider-independent principal and capabilities to application code. Application and domain code must not depend on provider-specific claims or identity types. The API does not maintain passwords, refresh tokens, login flows, or its own session store. A concrete identity provider and its session, refresh, and revocation behavior have not been selected; provider provisioning and configuration remain conditional under [H-07](../human-actions.md#h-07).
+
+The following is the feature's authorization policy. Owner checks use the request's trusted creator identity, not a caller-supplied owner field. The review capability must come from trusted authorization context, not a client assertion. No tenant, organization, or workspace boundary exists in this reference feature, and there is no administrative or superuser business-authorization override. General enforcement rules remain in [authentication](../security/authentication.md) and [authorization](../security/authorization.md).
+
+| Operation | Authorized principal and resource scope |
+| --- | --- |
+| Create | Any authenticated human; the creator becomes the owner. |
+| Get/list | An owner may view their own requests. A principal with review capability may view requests relevant to review. Results must be limited to authorized requests; the exact review-relevance query is a later API design detail. |
+| Edit draft, submit, cancel | The request owner only, subject to the state rules below. |
+| Approve, reject | A principal with review capability who is **not** the request owner, subject to the state and rejection-reason rules below. |
+
+Authorization and domain validity are both required. A principal cannot gain a forbidden action because the request happens to be in a valid state, nor gain an invalid transition because they own the request or have review capability. The implementation must avoid leaking unauthorized request details; exact response semantics belong to later API design.
 
 ## Use cases and invariants
 
@@ -14,7 +29,7 @@ A **Requester** creates an approval request, can edit it while it is a draft, ca
 | --- | --- |
 | Create | Create a request in `DRAFT`. |
 | Edit draft | Change a request only while it is `DRAFT`. |
-| Get and list | Read requests without changing their state. Visibility and filtering by actor or ownership await H-05 and later API design. |
+| Get and list | Read authorized requests without changing their state. |
 | Submit | Move a `DRAFT` request to `SUBMITTED`. |
 | Approve | Move a `SUBMITTED` request to `APPROVED`. |
 | Reject | Move a `SUBMITTED` request to `REJECTED` with a required reason. |
@@ -23,7 +38,7 @@ A **Requester** creates an approval request, can edit it while it is a draft, ca
 - A request has exactly one of the five states below. `APPROVED`, `REJECTED`, and `CANCELLED` are terminal: no later edit or state transition is valid.
 - State changes and draft edits must be conditional on the current state. A stale or concurrent operation must report a conflict instead of silently overwriting newer state. The winning state and any required rejection reason remain consistent.
 - Repeated or competing operations must not create inconsistent effects. A retry may be reported as a conflict or handled as a safe replay; exact retry and response semantics remain an implementation decision. One request must not acquire multiple terminal outcomes.
-- Read operations do not mutate a request. No actor visibility or self-review policy is inferred from the logical actor names.
+- Read operations do not mutate a request. Owner and reviewer visibility follows the authorization policy above; self-review is prohibited even when a user holds both capabilities.
 
 ## State transitions
 
@@ -48,11 +63,11 @@ All other state-changing combinations are invalid. In particular, an edit or sub
 | A stale edit or transition loses a race to another write | Report a conflict and preserve the winning write; do not silently overwrite it. |
 | A duplicate or competing action arrives | Preserve one consistent result and report a safe replay or conflict as appropriate; do not apply a second inconsistent outcome. |
 
-Transport status codes, error identifiers, validation shapes, and conflict/replay mechanics will be specified with the API and persistence design. Authentication and authorization failures depend on [H-05](../human-actions.md#h-05) and are not specified here.
+Authentication failure, insufficient review capability, non-ownership for owner operations, and attempted self-review are expected denials. They must leave the request unchanged. Transport status codes, error identifiers, validation shapes, denial response details, and conflict/replay mechanics will be specified with the API and persistence design.
 
 ## Data ownership, classification, and lifecycle
 
-Approval Request owns its request state and, when rejected, the rejection reason as business data. Exact editable fields, identifiers, timestamps, schema metadata, and transaction ownership remain for [P3.4](../implementation-plan.md#phase-3). Requester identity, ownership enforcement, tenant scope, and who may read or review each request remain for H-05; the logical Requester actor does not settle those rules.
+Approval Request owns its creator identity, request state, and, when rejected, the rejection reason as business data. The creator identity establishes ownership and must remain associated with the request. Exact editable fields, identifiers, timestamps, schema metadata, and transaction ownership remain for [P3.4](../implementation-plan.md#phase-3). Access follows the policy above; there is no tenant scope.
 
 The owner classifies the intended feature data as ordinary **internal application data**. No secrets, credentials, financial, medical, or other specially sensitive data are intentionally part of this feature. Treat request content and rejection reasons as untrusted input and apply the [data-classification policy](../security/data-classification.md); this classification does not authorize public disclosure or unrestricted telemetry capture.
 
@@ -64,15 +79,20 @@ Creating or changing a request affects its durable internal business data once p
 
 ## Acceptance scenarios
 
-1. Creating a request yields a `DRAFT` request; getting or listing it reads without changing state, subject to access rules decided under H-05.
+1. An authenticated human creates a request and becomes its owner; the request is `DRAFT`. Getting or listing authorized requests reads without changing state. An anonymous caller cannot create, read, list, or perform any other business operation.
 2. Editing a current `DRAFT` changes its draft data and leaves it `DRAFT`. Editing after submit or after a terminal outcome fails without changing it.
 3. Submitting a current `DRAFT` yields `SUBMITTED`. Repeating submission after that transition cannot create a second transition or overwrite a later outcome.
 4. Approving a `SUBMITTED` request yields `APPROVED`; rejecting a `SUBMITTED` request with a reason yields `REJECTED` with that reason. Approving or rejecting a `DRAFT`, or acting after a terminal outcome, fails without mutation.
 5. Rejecting a `SUBMITTED` request without a usable reason fails and leaves it `SUBMITTED`.
-6. A Requester can cancel a `DRAFT` or `SUBMITTED` request, yielding `CANCELLED`; cancellation after a terminal outcome fails without mutation. Who qualifies as that Requester for a particular request awaits H-05.
+6. The owner can cancel a `DRAFT` or `SUBMITTED` request, yielding `CANCELLED`; cancellation after a terminal outcome fails without mutation.
 7. If a draft edit races with submission, a stale edit cannot restore or overwrite the newly `SUBMITTED` request; the stale operation reports a conflict.
 8. If approval, rejection, and/or cancellation race on a `SUBMITTED` request, exactly one valid terminal outcome persists. Losing operations report conflicts or safe replays and cannot replace that outcome or attach a conflicting rejection reason.
 9. A write based on a stale version or previously observed state fails visibly when the request has since changed, including a stale edit against a newer draft revision. The newer data remains intact.
 10. Repeating a successful operation cannot duplicate or contradict its business effect. No scenario expects an external integration or authoritative audit record.
+11. An owner can get and list their own requests. A non-owner without review capability cannot view, edit, submit, or cancel that request. A non-owner with review capability may view it only when relevant to review, but cannot perform owner operations.
+12. A reviewer with review capability may approve or reject another owner's `SUBMITTED` request. A principal without review capability cannot decide it, even if the principal owns it or the request is `SUBMITTED`.
+13. A reviewer cannot approve or reject their own request, including when they also hold review capability. There is no administrative override. The request remains unchanged.
+14. An authorized owner attempting to edit or submit a non-`DRAFT` request, or cancel a terminal request, is denied by the state rule. A reviewer with review capability attempting to decide another owner's `DRAFT` or terminal request is denied by the state rule. An unauthorized principal remains denied regardless of state. Neither kind of denial mutates the request.
+15. Authorization tests use synthetic principals, creator identities, and capabilities; they do not require real external accounts or a selected identity provider.
 
 Acceptance tests for state, concurrency, and persistence belong to later implementation phases. These scenarios are the business source for those tests, not a claim that they currently run.
