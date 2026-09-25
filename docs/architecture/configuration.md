@@ -4,6 +4,8 @@
 
 Governing decisions: [ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md). Accepted choices are distinct from implemented tooling.
 
+The current API parses its environment through a [TypeBox configuration schema](../../apps/api/src/config.ts) and produces a [generated safe reference](../generated/configuration/api.md). Deployment-specific values and secrets are not selected here.
+
 ## Read for this change
 
 - [Canonical Configuration Schema](#canonical-configuration-schema)

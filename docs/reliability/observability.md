@@ -4,6 +4,8 @@
 
 Governing decisions: [ADR-0010](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md). Accepted choices are distinct from implemented tooling.
 
+The current API [initializes Pino and OpenTelemetry](../../apps/api/src/main.ts) before composing Fastify; its [runtime guide](../../apps/api/README.md) and [telemetry-redaction tests](../../apps/api/test/telemetry.test.ts) show the implemented boundary. A collector, dashboard, alert owner, and production service objectives remain conditional.
+
 ## Read for this change
 
 - [Observability Signals](#observability-signals)

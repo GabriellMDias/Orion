@@ -4,6 +4,8 @@
 
 Governing decisions: [ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md). Accepted choices are distinct from implemented tooling.
 
+The current API owns its [machine-readable error registry and public envelope](../../apps/api/src/errors.ts); the [generated error reference](../generated/api/errors.md) lists the implemented codes and HTTP statuses.
+
 ## Read for this change
 
 - [Error Envelope](#error-envelope)
