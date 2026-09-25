@@ -38,7 +38,7 @@ It is a long-lived system of record whose structure, constraints, and behavior d
 
 This document is technology-agnostic.
 
-PostgreSQL and Prisma ORM/Migrate are selected by ADR-0005 and ADR-0006. Hosting and remaining runtime details are deferred; persistence tooling is not implemented.
+PostgreSQL and Prisma ORM/Migrate are implemented for the Approval Request feature under ADR-0005 and ADR-0006. Hosting and deployment-specific runtime details remain deferred. The [generated physical and semantic reference](../generated/database/approval-requests.md) derives from migrated PostgreSQL and schema-adjacent metadata.
 
 This document complements:
 

@@ -6,7 +6,7 @@
 
 This checklist records implementation prerequisites that require a project-owner decision, human-controlled account action, unavailable privilege, or securely supplied external configuration. Codex must maintain it throughout implementation and must never silently skip work because human intervention is needed.
 
-Phases 1-9 are complete. The Approval Request owner decisions are recorded in H-04 and H-05; the API, database, generated SDK, web workflow, and [configuration schema](../apps/api/src/config.ts) are implemented. [Phase 9](implementation-plan.md#phase-9) accepted the development foundation without selecting a concrete identity provider or production environment. Conditional items become necessary only when their stated trigger applies; the [generated configuration reference](generated/configuration/api.md) records current API variable names.
+Phases 1-9 are complete. The Approval Request owner decisions are recorded in H-04 and H-05; the API, database, generated SDK, web workflow, and [configuration schema](../apps/api/src/config.ts) are implemented. Phase 10 owns documentation and [local setup](setup.md); Phase 11 owns the Living Documentation Portal. Neither phase requires a selected identity provider or production environment. Conditional items become necessary only when their stated trigger applies; the [generated configuration reference](generated/configuration/api.md) records current API variable names.
 
 ## How Codex maintains this checklist
 
@@ -137,6 +137,8 @@ Phases 1-9 are complete. The Approval Request owner decisions are recorded in H-
 
 **Phase 9 evidence (2026-09-25):** A fresh checkout installed from the frozen lockfile, generated Prisma, installed Playwright Chromium, started the API and web development servers, served health through the web proxy, regenerated API/database/SDK references without a tracked diff, and passed full `pnpm validate` with migrated PostgreSQL and browser journeys. Docker 28.4.0 was reachable. No host-level intervention is required for foundation acceptance. This checkbox remains open only for a future verified host-only need.
 
+**Phase 10 evidence (2026-09-25):** The first local `pnpm validate` reached `references:check` while Docker Desktop was stopped, so Testcontainers could not find a runtime. Codex started the existing Docker Desktop installation, verified engine version 28.4.0 with `docker info`, and reran validation. This is a local availability issue, not a human prerequisite; H-06 remains conditional.
+
 ## H-07
 
 - [ ] **Provision a required external service and securely supply its configuration, only when selected.**
@@ -147,7 +149,7 @@ Phases 1-9 are complete. The Approval Request owner decisions are recorded in H-
 
 **Why:** Account ownership, consent, billing, and credential creation may require human-controlled interfaces. No external provider or API key is required merely because this checklist mentions one.
 
-**When / dependency:** Phases 4-7 only for selected integrations, especially P5.4/P6.6; Phase 10 for a real deployment service. Local observability, normal CI, and synthetic tests must not be held behind hypothetical service accounts.
+**When / dependency:** Phases 4-7 only for selected integrations, especially P5.4/P6.6; Phase 12 for a real deployment service. Local observability, normal CI, the documentation portal, and synthetic tests must not be held behind hypothetical service accounts.
 
 **Values / configuration:** The implemented API boundary uses server-only `ORION_TOKEN_ISSUER`, `ORION_TOKEN_AUDIENCE`, and `ORION_TOKEN_JWKS_URL`, documented in the [configuration reference](generated/configuration/api.md). No provider values, client ID, redirects, scopes beyond the approved `approval:review` capability, secret destination, or rotation owner have been selected. Record those concrete details before requesting input. Keep secret values out of this document and tracked files.
 
@@ -175,15 +177,15 @@ Phases 1-9 are complete. The Approval Request owner decisions are recorded in H-
 
 ## H-09
 
-- [ ] **Define deployment and operational requirements before activating Phase 10.**
+- [ ] **Define deployment and operational requirements before activating Phase 12.**
 
-**Status:** changed (conditional on Phase 10 activation). **Owner:** project owner and actual operational owners.
+**Status:** changed (conditional on Phase 12 activation). **Owner:** project owner and actual operational owners.
 
 **What needs to be done:** Specify the intended environment/hosting constraints, distribution/release model, workload, consumers, service objectives, recovery objectives, retention obligations, budget constraints, and responsible operators. Resolve actual alert recipients, incident ownership, and access expectations. Codex presents implementation options only after requirements are understood.
 
 **Why:** Orion deliberately does not select a global hosting platform, CD strategy, telemetry vendor, SLO, RPO/RTO, retention duration, or organizational on-call model.
 
-**When / dependency:** [Phase 10](implementation-plan.md#phase-10), P10.1-P10.5. This action does not block Phase 9 foundation completion.
+**When / dependency:** [Phase 12](implementation-plan.md#phase-12), P12.1-P12.5. This action does not block Phases 10-11 or development-foundation completion.
 
 **Values / configuration:** Non-secret environment names, domains/regions when chosen, service/recovery objectives, supported consumers, retention policies, operational owners, release permissions, and selected provider identifiers. Current API variable names are in the [configuration reference](generated/configuration/api.md); additional deployment-specific names are not defined and must come from real schemas and tooling.
 
@@ -201,7 +203,7 @@ Phases 1-9 are complete. The Approval Request owner decisions are recorded in H-
 
 **Why:** External ownership, billing, DNS control, account consent, and privileged resource grants may be outside Codex's available capabilities. Repository definitions alone cannot prove that operational access exists.
 
-**When / dependency:** [Phase 10](implementation-plan.md#phase-10), P10.2-P10.7. Not required for ordinary development or CI.
+**When / dependency:** [Phase 12](implementation-plan.md#phase-12), P12.2-P12.7. Not required for ordinary development, documentation, or CI.
 
 **Values / configuration:** Not defined yet. Populate actual resource IDs, public endpoints, configuration/secret names, OIDC trust requirements where supported, runtime versus migration identity scopes, target environments, backup destinations, alert contacts, and access expiry. Store actual secrets only in the selected secure destination; do not paste connection strings or tokens into the checklist.
 
@@ -219,7 +221,7 @@ Phases 1-9 are complete. The Approval Request owner decisions are recorded in H-
 
 **Why:** No license is currently selected, and accepted CI policy intentionally does not impose a global dependency-license allowlist or denylist.
 
-**When / dependency:** [Phase 10](implementation-plan.md#phase-10), P10.8, or earlier before a distribution/publication that requires this decision. Ordinary internal foundation work need not wait.
+**When / dependency:** [Phase 12](implementation-plan.md#phase-12), P12.8, or earlier before a distribution/publication that requires this decision. Ordinary internal foundation work need not wait.
 
 **Values / configuration:** Chosen license/terms, copyright holder where applicable, intended distribution model, and actual dependency-license restrictions if required. No `.env` variables or credentials.
 

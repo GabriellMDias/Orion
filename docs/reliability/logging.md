@@ -53,7 +53,7 @@ Logs must not become uncontrolled dumps of application state.
 
 This document is technology-agnostic.
 
-ADR-0010 selects Pino, production JSON output, and correlation fields. Collection/storage providers and retention remain deployment-specific; logging infrastructure is not implemented.
+ADR-0010 selects Pino, production JSON output, and correlation fields, implemented in the API runtime. Collection/storage providers and retention remain deployment-specific.
 
 This document complements:
 

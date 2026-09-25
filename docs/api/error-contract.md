@@ -250,7 +250,7 @@ INTERNAL_ERROR
 
 ## Error Code Registry
 
-Orion should eventually maintain a canonical machine-readable error registry.
+The API maintains a canonical machine-readable [`errorRegistry`](../../apps/api/src/errors.ts) and a [generated safe reference](../generated/api/errors.md).
 
 A conceptual entry may contain:
 
@@ -275,7 +275,7 @@ public: true
 retryable: false
 ```
 
-The exact format is deferred.
+The current format is API-owned; other applications should follow the same ownership principle without copying this registry blindly.
 
 ---
 
@@ -1801,7 +1801,7 @@ An SDK may preserve transport cause internally while exposing the Orion error mo
 
 ## Documentation
 
-Every public error code should eventually have generated documentation.
+Current public error codes have a [generated reference](../generated/api/errors.md) from the API registry. New codes must update the registry and generated documentation together.
 
 Potential fields include:
 
@@ -1853,7 +1853,7 @@ Do not manually duplicate error definitions operation by operation when tooling 
 
 ## Operation Error Declarations
 
-Each API operation should eventually make expected public errors discoverable.
+Current TypeBox route contracts declare expected public errors for generated OpenAPI. New operations should make their expected errors discoverable in the same way.
 
 Conceptually:
 
@@ -2004,7 +2004,7 @@ Stable error codes and detail schemas should participate in API compatibility te
 
 ## Generated Registry Validation
 
-CI should eventually verify that:
+Current generation and tests verify registered codes, operation declarations, and reference freshness. Extend CI as needed to verify that:
 
 ```text
 all public error codes are registered
@@ -2329,26 +2329,21 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 15. Expected business failures should not automatically be reported as internal incidents.
 16. Public error codes and details are compatibility-sensitive contracts.
 17. Generated SDKs must preserve structured Orion error semantics.
-18. Public errors should eventually derive from a canonical machine-readable registry.
-19. API operations should eventually declare their expected stable public errors.
+18. Public errors derive from the canonical API-owned machine-readable registry.
+19. API operations declare expected stable public errors in route contract metadata.
 20. Error-contract rules should become mechanically validated where practical.
 
 ---
 
 ## Remaining Implementation Decisions
 
-The accepted choices are linked above. These remaining details are intentionally deferred:
+The API implements a canonical registry, HTTP status mappings, request/trace identifiers, generated OpenAPI errors, and operation-error declarations. These details remain conditional on a concrete requirement:
 
 ```text
-canonical error registry format
-HTTP validation status convention
 error identifier format
-request identifier format
 trace identifier exposure
 retry metadata schema
 SDK error type
-OpenAPI error generation
-operation-error declaration format
 localization strategy
 ```
 
@@ -2358,7 +2353,7 @@ Significant choices should be captured through ADRs.
 
 ---
 
-## Future Documentation
+## Related Documentation
 
 This document should be complemented by:
 

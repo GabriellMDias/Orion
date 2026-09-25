@@ -4,6 +4,8 @@
 
 The Fastify API exposes health routes and the authenticated Approval Request feature. The feature persists its current state in PostgreSQL through Prisma 7. The [web reference workflow](../web/README.md) consumes its generated OpenAPI contract through `@orion/sdk`. There is no login, password, refresh-token, or provider-specific session in the API.
 
+Use the canonical [development setup](../../docs/setup.md) for local environment loading and the full workflow. `dev` reads the ignored root `.env.local` when present; `start` expects its deployment environment and does not read that local file.
+
 From the repository root, install the frozen lockfile and run:
 
 ```sh

@@ -1148,7 +1148,7 @@ Mocked repositories can be useful for focused application tests.
 
 They do not replace real persistence integration tests.
 
-Database semantics must eventually be verified against the real database.
+The current API integration tests verify database semantics against freshly migrated PostgreSQL through Testcontainers. Preserve real-database checks for future persistence behavior.
 
 ---
 

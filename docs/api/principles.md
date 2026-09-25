@@ -40,7 +40,7 @@ It must not be treated as a direct serialization of internal implementation.
 
 This document is technology-agnostic.
 
-Fastify and the HTTP/JSON, TypeBox, generated OpenAPI, and thin SDK strategy are selected in ADR-0004 and ADR-0007. Gateways and other explicitly deferred mechanisms remain application decisions; implementation is pending.
+Fastify, HTTP/JSON, TypeBox, generated OpenAPI, and the thin SDK are implemented for the reference feature under ADR-0004 and ADR-0007. Gateways and other explicitly deferred mechanisms remain application decisions. [Living documentation](../architecture/living-documentation.md) owns the human-facing presentation of the existing machine-readable contract in Phase 11.
 
 This document complements:
 
@@ -330,7 +330,7 @@ It requires deliberate boundary design.
 
 [ADR-0007](../adr/0007-establish-api-contract-openapi-sdk-and-configuration-schema-strategy.md#canonical-contract-schemas) selects wire-oriented TypeBox 1.x schemas plus route metadata, Fastify validation/serialization, generated OpenAPI (3.1.x initially), stable unique `operationId` values, and openapi-typescript with openapi-fetch for the default thin TypeScript client. Generated artifacts remain derived; client-side successful-response revalidation is not enabled automatically. Internal domain types need not become TypeBox schemas.
 
-Orion should eventually maintain machine-readable canonical API contracts.
+The current API maintains executable TypeBox contracts and route metadata; [OpenAPI 3.1](../generated/api/openapi.json) is generated from them and checked for drift.
 
 Potential technologies may include:
 
@@ -2418,7 +2418,7 @@ old enum consumer compatibility
 
 ## Generated Contract Validation
 
-CI should eventually detect when:
+CI checks the current API, generated OpenAPI, SDK, and error documentation for drift. It must continue to detect when:
 
 ```text
 implementation
@@ -2484,11 +2484,7 @@ Examples that do not conform to current contracts should be detected.
 
 ## Contract Ownership
 
-A shared `packages/contracts` package may eventually contain canonical API schemas.
-
-This is a likely structure, not a current requirement.
-
-The exact ownership should follow selected stack and application architecture.
+The API owns its current canonical TypeBox contracts. A shared `packages/contracts` package remains conditional on actual cross-application ownership, not a prerequisite for the [Living Documentation Portal](../architecture/living-documentation.md).
 
 ---
 
