@@ -24,6 +24,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
       - name: Set up pinned Node.js and pnpm; install from frozen lockfile
         uses: pnpm/setup@e0ed22ae4d909f13ed5d2688513f73e1875e46db # v3.0.0
@@ -33,6 +34,8 @@ jobs:
       - name: Install Chromium and system libraries for browser checks
         run: pnpm --filter @orion/web exec playwright install --with-deps chromium
       - name: Run repository validation
+        env:
+          ORION_RELEASE_BASE_REF: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
         run: pnpm validate
 
   dependency-review:

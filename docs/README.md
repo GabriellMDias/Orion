@@ -33,6 +33,7 @@ Choose the route relevant to the change. Policy pages provide section links for 
 | Evolve, deprecate, or retire an API contract | [API versioning](api/versioning.md) |
 | Model persistent data and ownership | [Database principles](database/principles.md) |
 | Change durable schema or migration history | [Migrations](database/migrations.md) |
+| Establish release status, test upgrades, or plan application/database recovery | [Release and evolution workflow](database/release-evolution.md) |
 | Document or generate database reference | [Schema documentation](database/schema-documentation.md) |
 | Inspect the migrated Approval Request schema | [Generated database reference](generated/database/approval-requests.md) |
 | Protect atomicity or concurrent writes | [Transactions and concurrency](database/transactions-and-concurrency.md) |
