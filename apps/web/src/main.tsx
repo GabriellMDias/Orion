@@ -20,6 +20,7 @@ import "./styles.css";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { retry: false, staleTime: 10_000, refetchOnWindowFocus: false },
+    mutations: { retry: false },
   },
 });
 
@@ -240,7 +241,9 @@ function ListPage() {
             >
               {create.isPending ? "Creating…" : "Create draft"}
             </button>
-            {create.isError && <ErrorNotice error={create.error} />}
+            {create.isError && (
+              <ErrorNotice error={create.error} operation="create" />
+            )}
           </form>
         </section>
       </div>
@@ -470,6 +473,7 @@ function DetailPage() {
               {mutation.isError && (
                 <ErrorNotice
                   error={mutation.error}
+                  operation="write"
                   onReload={() => {
                     mutation.reset();
                     void request.refetch();

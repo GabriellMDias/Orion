@@ -32,19 +32,21 @@ await withMigratedDatabase(async (runtimeUrl) => {
   const issuer = "https://synthetic-issuer.example.test/";
   const port = await freePort();
   const executable = resolve(import.meta.dirname, "../dist/main.js");
+  const childEnvironment = {
+    ...process.env,
+    ORION_ENV: "test",
+    ORION_API_PORT: String(port),
+    ORION_DATABASE_URL: runtimeUrl,
+    ORION_TOKEN_ISSUER: issuer,
+    ORION_TOKEN_AUDIENCE: "orion-api",
+    ORION_TOKEN_JWKS_URL: `http://127.0.0.1:${address.port}/jwks`,
+  };
   const child = spawn(process.execPath, [executable], {
     cwd: resolve(import.meta.dirname, ".."),
-    env: {
-      ...process.env,
-      ORION_ENV: "test",
-      ORION_API_PORT: String(port),
-      ORION_DATABASE_URL: runtimeUrl,
-      ORION_TOKEN_ISSUER: issuer,
-      ORION_TOKEN_AUDIENCE: "orion-api",
-      ORION_TOKEN_JWKS_URL: `http://127.0.0.1:${address.port}/jwks`,
-    },
+    env: childEnvironment,
     stdio: ["ignore", "pipe", "pipe"],
   });
+  let restarted: ReturnType<typeof spawn> | undefined;
   let output = "";
   child.stdout.on("data", (chunk: Buffer) => {
     output += chunk.toString();
@@ -111,12 +113,13 @@ await withMigratedDatabase(async (runtimeUrl) => {
     if (!ready) throw new Error(`Feature API did not become ready: ${output}`);
     const ownerToken = await token(ownerId, false);
     const reviewerToken = await token(reviewerId, true);
+    const creationKey = randomUUID();
     const created = await request(
       "POST",
       "/approval-requests",
       ownerToken,
       { title: "Synthetic approval" },
-      randomUUID(),
+      creationKey,
     );
     if (
       created.status !== 201 ||
@@ -153,17 +156,75 @@ await withMigratedDatabase(async (runtimeUrl) => {
       throw new Error(
         `Feature approval failed: ${JSON.stringify(approved.body)}`,
       );
+    // A process can disappear after committing a write. The migrated database
+    // must remain authoritative when a new process takes over the same port.
+    const interrupted = new Promise<void>((resolveExit) =>
+      child.once("exit", () => resolveExit()),
+    );
+    if (!child.kill("SIGKILL"))
+      throw new Error("Could not interrupt feature API");
+    await interrupted;
+    restarted = spawn(process.execPath, [executable], {
+      cwd: resolve(import.meta.dirname, ".."),
+      env: childEnvironment,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    restarted.stdout?.on("data", (chunk: Buffer) => {
+      output += chunk.toString();
+    });
+    restarted.stderr?.on("data", (chunk: Buffer) => {
+      output += chunk.toString();
+    });
+    ready = false;
+    for (let attempt = 0; attempt < 100; attempt++) {
+      if (restarted.exitCode !== null || restarted.signalCode !== null)
+        throw new Error(`Restarted feature API exited: ${output}`);
+      try {
+        const response = await fetch(`http://127.0.0.1:${port}/health/ready`, {
+          signal: AbortSignal.timeout(1000),
+        });
+        if (response.ok) {
+          ready = true;
+          break;
+        }
+      } catch {
+        /* Restart has not opened the listener yet. */
+      }
+      await delay(100);
+    }
+    if (!ready) throw new Error(`Feature API did not restart: ${output}`);
+    const recovered = await request(
+      "GET",
+      `/approval-requests/${id}`,
+      ownerToken,
+    );
+    if (
+      recovered.status !== 200 ||
+      recovered.body.status !== "APPROVED" ||
+      recovered.body.version !== 3
+    )
+      throw new Error("Committed Approval Request was not recovered");
+    const replayed = await request(
+      "POST",
+      "/approval-requests",
+      ownerToken,
+      { title: "Synthetic approval" },
+      creationKey,
+    );
+    if (replayed.status !== 201 || replayed.body.id !== id)
+      throw new Error("Creation intent did not replay after process restart");
     process.stdout.write(
-      "Built Approval Request API, restricted PostgreSQL role, signed-token boundary, and HTTP workflow smoke passed\n",
+      "Built Approval Request API, restricted PostgreSQL role, signed-token boundary, HTTP workflow, and process-interruption recovery smoke passed\n",
     );
   } finally {
-    child.kill();
-    await Promise.race([
-      new Promise<void>((resolveExit) =>
-        child.once("exit", () => resolveExit()),
-      ),
-      delay(5000),
-    ]);
+    const active = restarted ?? child;
+    if (active.exitCode === null && active.signalCode === null) {
+      const stopped = new Promise<void>((resolveExit) =>
+        active.once("exit", () => resolveExit()),
+      );
+      active.kill();
+      await Promise.race([stopped, delay(5000)]);
+    }
     await new Promise<void>((closed) => jwks.close(() => closed()));
   }
 });

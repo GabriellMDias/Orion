@@ -270,6 +270,100 @@ describe("Approval Request on migrated PostgreSQL", () => {
       201, 409,
     ]);
   });
+  it("preserves the committed creation after a caller times out before its response", async () => {
+    const key = randomUUID();
+    let committed!: () => void;
+    let releaseResponse!: () => void;
+    const writeCommitted = new Promise<void>((resolve) => {
+      committed = resolve;
+    });
+    const responseGate = new Promise<void>((resolve) => {
+      releaseResponse = resolve;
+    });
+    const delayed = createApp(
+      createLogger(parseServerConfig({ ORION_ENV: "test" })),
+      undefined,
+      {
+        service: new ApprovalRequestService({
+          create: async (input) => {
+            const result = await repo.create(input);
+            committed();
+            await responseGate;
+            return result;
+          },
+          get: (id) => repo.get(id),
+          list: (filter) => repo.list(filter),
+          compareAndSwap: (input) => repo.compareAndSwap(input),
+        }),
+        verifier: {
+          verify: (authorization) =>
+            Promise.resolve(identities.get(authorization ?? "") ?? null),
+        },
+      },
+    );
+    try {
+      const pending = delayed.app.inject({
+        method: "POST",
+        url: "/approval-requests",
+        headers: { authorization: "Bearer owner", "idempotency-key": key },
+        payload: { title: "Unknown outcome" },
+      });
+      await writeCommitted;
+      await expect(
+        Promise.race([
+          pending.then(() => "response"),
+          Promise.resolve("caller deadline"),
+        ]),
+      ).resolves.toBe("caller deadline");
+      releaseResponse();
+      const first = await pending;
+      expect(first.statusCode).toBe(201);
+      const replay = await call(
+        "POST",
+        "/approval-requests",
+        "owner",
+        { title: "Unknown outcome" },
+        key,
+      );
+      expect(replay.status).toBe(201);
+      expect(replay.body.id).toBe(first.json<{ id: string }>().id);
+      const rows = await repo.db.approvalRequest.count({
+        where: { creatorId: owner, idempotencyKey: key },
+      });
+      expect(rows).toBe(1);
+    } finally {
+      releaseResponse();
+      await delayed.app.close();
+    }
+  });
+  it("rolls back an invalid atomic update without advancing the version", async () => {
+    const item = await create("Rollback candidate");
+    await expect(
+      repo.compareAndSwap({
+        id: item.id,
+        creatorId: owner,
+        expectedVersion: 1,
+        sourceStatus: "DRAFT",
+        nextStatus: "SUBMITTED",
+        title: " ",
+        description: null,
+        requireOwner: true,
+      }),
+    ).rejects.toThrow();
+    const unchanged = await call("GET", `/approval-requests/${item.id}`);
+    expect(unchanged.body).toMatchObject({
+      title: "Rollback candidate",
+      status: "DRAFT",
+      version: 1,
+    });
+    const submitted = await call(
+      "POST",
+      `/approval-requests/${item.id}/submit`,
+      "owner",
+      { expectedVersion: 1 },
+    );
+    expect(submitted.body).toMatchObject({ status: "SUBMITTED", version: 2 });
+  });
   it("enforces owner and review visibility before pagination", async () => {
     const item = await create();
     expect(
@@ -437,6 +531,32 @@ describe("Approval Request on migrated PostgreSQL", () => {
         )
       ).status,
     ).toBe(409);
+  });
+  it("does not repeat a submitted transition after a lost response", async () => {
+    const item = await create("Submit once");
+    const first = await call(
+      "POST",
+      `/approval-requests/${item.id}/submit`,
+      "owner",
+      { expectedVersion: 1 },
+    );
+    expect(first.body).toMatchObject({ status: "SUBMITTED", version: 2 });
+    const repeated = await call(
+      "POST",
+      `/approval-requests/${item.id}/submit`,
+      "owner",
+      { expectedVersion: 1 },
+    );
+    expect(repeated.status).toBe(409);
+    expect((repeated.body.error as { code: string }).code).toBe(
+      "RESOURCE_VERSION_CONFLICT",
+    );
+    expect(
+      (await call("GET", `/approval-requests/${item.id}`)).body,
+    ).toMatchObject({
+      status: "SUBMITTED",
+      version: 2,
+    });
   });
   it("allows only one concurrent conditional write", async () => {
     const item = await create();

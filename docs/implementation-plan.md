@@ -280,12 +280,12 @@ This table owns phase-level status; the tables within each phase own task-level 
 
 | Task | Main work | Status | Evidence / dependency |
 | --- | --- | --- | --- |
-| P7.1 | Exercise concurrent operations, stale updates, duplicate submissions, timeouts, dependency failures, and process interruption. | pending | Not started. |
-| P7.2 | Define retry ownership/limits and unknown-outcome handling; add durable idempotency only where semantics require it. | pending | Not started. |
-| P7.3 | Implement required retention/deletion behavior, including existing derived copies and partial-failure recovery. | pending | Lifecycle requirements from [H-04](human-actions.md#h-04). |
-| P7.4 | Implement dedicated audit persistence if authoritative business audit history is required. | pending | Conditional on feature requirements. |
-| P7.5 | Review automatic instrumentation, redaction, bounded metrics, and expected/unexpected failure classification. | pending | Not started. |
-| P7.6 | Add outbox/inbox, reconciliation, compensation, or workers only if the feature has corresponding durable delivery requirements. | pending | Conditional; record applicability before implementation. |
+| P7.1 | Exercise concurrent operations, stale updates, duplicate submissions, timeouts, dependency failures, and process interruption. | completed | Migrated-PostgreSQL tests cover concurrent/repeated/stale writes, a caller deadline after commit, and failed-statement rollback; the emitted-process smoke verifies recovery after forced API termination and restart. |
+| P7.2 | Define retry ownership/limits and unknown-outcome handling; add durable idempotency only where semantics require it. | completed | [Feature recovery contract](domains/approval-request-implementation.md#failure-recovery-and-retry-ownership), owner-scoped durable create replay, version conflicts for other writes, explicit zero automatic web retries, and operation-specific unknown-outcome guidance with unit tests. |
+| P7.3 | Implement required retention/deletion behavior, including existing derived copies and partial-failure recovery. | changed | Not applicable to the approved reference feature: [H-04](human-actions.md#h-04) defines no automatic deletion or retention duration, and no persisted derived copy exists. Production retention/disposal policy remains conditional under [H-09](human-actions.md#h-09); no deletion workflow can be specified without that requirement. |
+| P7.4 | Implement dedicated audit persistence if authoritative business audit history is required. | changed | Not applicable: [H-04](human-actions.md#h-04) explicitly defines no authoritative business-audit persistence requirement. Operational diagnostics are not an audit trail. |
+| P7.5 | Review automatic instrumentation, redaction, bounded metrics, and expected/unexpected failure classification. | completed | Pino/OTel allowlists and bounded metric labels reviewed; new HTTP failure test asserts one unexpected diagnostic and excludes exception text, credentials, request content, and resource ID from logs/response. Existing span test excludes URLs, headers, exception events, and links. Expected conflict stays a safe `409` without a new diagnostic. |
+| P7.6 | Add outbox/inbox, reconciliation, compensation, or workers only if the feature has corresponding durable delivery requirements. | changed | Not applicable: [H-04](human-actions.md#h-04) defines no external effect or integration; no delivery pipeline, external atomicity claim, or compensating action exists. |
 
 **Expected deliverables:** Tested failure semantics, applicable lifecycle/recovery mechanisms, safe telemetry, and documented limitations.
 
@@ -300,6 +300,8 @@ This table owns phase-level status; the tables within each phase own task-level 
 - Applicable deletion workflows are repeatable and observable; partial completion is not reported as success.
 - Redaction tests cover logs, traces, errors, and diagnostic artifacts.
 - No unsupported exactly-once guarantees.
+
+**Completion evidence (2026-09-24):** `pnpm install --frozen-lockfile` and `pnpm validate` passed locally on Node.js 24.13.0 / pnpm 11.25.0. The gate passed format, lint, strict types, dependency boundaries, documentation links, API/database/SDK reference freshness, 40 API Vitest tests (including real migrated PostgreSQL), two web unit tests, two browser component tests, API/web builds and bundle check, foundation and forced-restart feature smokes, and two Playwright Chromium journeys through the real API and database. The new failure tests prove a committed creation survives a caller deadline and replays under its original key, a constraint failure rolls back the full conditional write, an unexpected adapter failure results in one safe diagnostic and one write attempt, and an expected stale conflict does not create an unexpected-error diagnostic. The forced restart proves committed state and idempotency identity survive process interruption. The [feature recovery contract](domains/approval-request-implementation.md#failure-recovery-and-retry-ownership) records retry ownership and limits; P7.3, P7.4, and P7.6 are explicitly not applicable to current [H-04](human-actions.md#h-04) requirements. Production retention policy remains conditional under [H-09](human-actions.md#h-09), and [H-07](human-actions.md#h-07) remains conditional. Phase 7 is complete; Phase 8 has not started.
 
 **Usable state:** A reference feature with explicit, verified failure and lifecycle behavior.
 

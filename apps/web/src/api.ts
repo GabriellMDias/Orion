@@ -139,7 +139,17 @@ export function approvalApi(token: string) {
   };
 }
 
-export function failureMessage(error: unknown) {
+export function failureMessage(
+  error: unknown,
+  operation: "read" | "create" | "write" = "read",
+) {
+  if (
+    operation !== "read" &&
+    (!(error instanceof ApiFailure) || error.status >= 500)
+  )
+    return operation === "create"
+      ? "Creation outcome is unknown. Check My requests, or retry the same details with the same idempotency key."
+      : "Update outcome is unknown. Reload the request before deciding whether to try again.";
   if (!(error instanceof ApiFailure))
     return "The service could not be reached. Check the connection and try again.";
   switch (error.code) {
