@@ -6,7 +6,7 @@
 
 This checklist records implementation prerequisites that require a project-owner decision, human-controlled account action, unavailable privilege, or securely supplied external configuration. Codex must maintain it throughout implementation and must never silently skip work because human intervention is needed.
 
-Phases 1-9 are complete. The Approval Request owner decisions are recorded in H-04 and H-05; the API, database, generated SDK, web workflow, and [configuration schema](../apps/api/src/config.ts) are implemented. Phase 10 owns documentation and [local setup](setup.md); Phase 11 owns the Living Documentation Portal. Neither phase requires a selected identity provider or production environment. Conditional items become necessary only when their stated trigger applies; the [generated configuration reference](generated/configuration/api.md) records current API variable names.
+Phases 1-10 are complete. The Approval Request owner decisions are recorded in H-04 and H-05; the API, database, generated SDK, web workflow, [configuration schema](../apps/api/src/config.ts), and [local setup](setup.md) are implemented. Phase 11 builds the Living Documentation Portal without a new human prerequisite. A selected identity provider or production environment is not required. Conditional items become necessary only when their stated trigger applies; the [generated configuration reference](generated/configuration/api.md) records current API variable names.
 
 ## How Codex maintains this checklist
 
