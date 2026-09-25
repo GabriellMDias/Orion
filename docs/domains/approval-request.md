@@ -2,7 +2,7 @@
 
 [Documentation index](../README.md) · [Implementation conventions](approval-request-implementation.md) · [Implementation plan](../implementation-plan.md#phase-3) · [Owner decisions](../human-actions.md#h-04)
 
-This is the canonical business specification for Orion’s Approval Request reference feature. It records the project owner's Phase 3 decision. The Phase 5 API and durable schema now implement it; the web interface and concrete identity-provider provisioning remain future work. Architectural and security policies still govern its evolution.
+This is the canonical business specification for Orion’s Approval Request reference feature. It records the project owner's Phase 3 decision. The Phase 5 API and durable schema and Phase 6 web interface now implement it; concrete identity-provider provisioning remains future work. Architectural and security policies still govern its evolution.
 
 ## Purpose and actors
 
@@ -71,7 +71,7 @@ Approval Request owns its creator identity, request state, and, when rejected, t
 
 The owner classifies the intended feature data as ordinary **internal application data**. No secrets, credentials, financial, medical, or other specially sensitive data are intentionally part of this feature. Treat request content and rejection reasons as untrusted input and apply the [data-classification policy](../security/data-classification.md); this classification does not authorize public disclosure or unrestricted telemetry capture.
 
-The lifecycle is creation as `DRAFT`, possible edit and submission, then a terminal decision or cancellation. PostgreSQL will provide durable persistence in the later implementation phase. The owner has defined no legal retention duration, automatic deletion requirement, or authoritative business-audit persistence requirement at this stage. This is not an indefinite-retention decision: applicable retention and disposal rules must be defined before production use under the [data-retention policy](../security/data-retention.md). Ordinary diagnostic logging does not become an authoritative business audit trail.
+The lifecycle is creation as `DRAFT`, possible edit and submission, then a terminal decision or cancellation. PostgreSQL provides durable persistence. The owner has defined no legal retention duration, automatic deletion requirement, or authoritative business-audit persistence requirement at this stage. This is not an indefinite-retention decision: applicable retention and disposal rules must be defined before production use under the [data-retention policy](../security/data-retention.md). Ordinary diagnostic logging does not become an authoritative business audit trail.
 
 ## Side-effect boundary
 

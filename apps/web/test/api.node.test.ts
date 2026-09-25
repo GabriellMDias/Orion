@@ -24,4 +24,20 @@ describe("API error boundary", () => {
       );
     }
   });
+  it("treats a lost mutation response and server failure as unknown outcomes", () => {
+    const networkFailure = new TypeError("synthetic network disconnect");
+    expect(failureMessage(networkFailure, "create")).toContain(
+      "same idempotency key",
+    );
+    expect(failureMessage(networkFailure, "write")).toContain(
+      "Reload the request",
+    );
+    expect(
+      failureMessage(
+        new ApiFailure(503, "SERVICE_UNAVAILABLE", null, "Unavailable"),
+        "write",
+      ),
+    ).toContain("outcome is unknown");
+    expect(failureMessage(networkFailure, "read")).toContain("try again");
+  });
 });

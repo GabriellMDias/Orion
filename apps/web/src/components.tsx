@@ -46,13 +46,15 @@ export function AccessTokenForm({
 export function ErrorNotice({
   error,
   onReload,
+  operation = "read",
 }: {
   error: unknown;
   onReload?: () => void;
+  operation?: "read" | "create" | "write";
 }) {
   return (
     <div role="alert" className="notice notice-error">
-      <strong>{failureMessage(error)}</strong>
+      <strong>{failureMessage(error, operation)}</strong>
       {onReload && (
         <button type="button" onClick={onReload}>
           Reload current request
