@@ -6,7 +6,7 @@
 
 This checklist records implementation prerequisites that require a project-owner decision, human-controlled account action, unavailable privilege, or securely supplied external configuration. Codex must maintain it throughout implementation and must never silently skip work because human intervention is needed.
 
-Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-04 and H-05, with [implementation conventions](domains/approval-request-implementation.md) and [execution/artifact conventions](architecture/backend-execution-and-generated-artifacts.md) ready for later phases. No new human action is required before Phase 4. Conditional items become necessary only when their trigger applies. There are currently no implemented application configuration schemas or `.env` variable names.
+Phases 1-8 are complete. The Approval Request owner decisions are recorded in H-04 and H-05; the API, database, generated SDK, web workflow, and [configuration schema](../apps/api/src/config.ts) are implemented. [Phase 9](implementation-plan.md#phase-9) accepts the development foundation without selecting a concrete identity provider or production environment. Conditional items become necessary only when their stated trigger applies; the [generated configuration reference](generated/configuration/api.md) records current API variable names.
 
 ## How Codex maintains this checklist
 
@@ -121,7 +121,7 @@ Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-
 
 - [ ] **Perform host-level setup only if required tooling cannot be made available autonomously.**
 
-**Status:** pending. **Owner:** developer or host administrator, if needed.
+**Status:** changed (conditional; current tooling is available). **Owner:** developer or host administrator, if needed.
 
 **What needs to be done:** Enable or install required host capabilities when administrator privileges, virtualization settings, a reboot, licensing acceptance, or organization-managed policy prevents Codex from doing so. Inspect availability first. For PostgreSQL integration tests this may concern a Testcontainers-compatible container runtime; browser testing may require supported browser/system dependencies.
 
@@ -133,13 +133,15 @@ Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-
 
 **Codex verification:** Verify versions and runtime accessibility, then execute the relevant repository test command once implemented. Confirm ephemeral database creation, migration application, isolation/cleanup, or browser launch as appropriate. An installed executable alone is insufficient.
 
-    **Evidence / blocker (2026-09-24):** Node.js 24.13.0 and pnpm 11.25.0 are available. Codex started the existing Docker Desktop Linux engine without host administration; `docker info` reported Docker 28.4.0 and `docker run --rm postgres:16 postgres --version` succeeded (PostgreSQL 16.10). A fresh `postgres:16` container accepted connections, and `prisma migrate deploy` applied the committed Phase 5 migration. `pnpm --filter @orion/api test` passed the Testcontainers/migrated-PostgreSQL Fastify suite, including the restricted runtime role. The emitted-process feature smoke also passed using Testcontainers and signed synthetic tokens. For Phase 6, Codex installed Playwright Chromium, directly launched it, ran two Vitest Browser Mode component tests through the installed Windows Edge channel, and passed two Playwright Chromium journeys through a fresh migrated Testcontainers PostgreSQL, emitted API, and web app. [PR #7 CI run #23](https://github.com/GabriellMDias/Orion/actions/runs/36071532760) independently installed Chromium/system libraries and passed the same browser/database validation on Ubuntu. Phase 7's local `pnpm validate` again passed migrated-PostgreSQL tests, the forced API-process restart smoke, browser component tests, and Chromium journeys. No Phase 5-7 host-level human action is required. This conditional checkbox remains open only for future host-only needs.
+**Evidence / blocker (2026-09-24):** Node.js 24.13.0 and pnpm 11.25.0 are available. Codex started the existing Docker Desktop Linux engine without host administration; `docker info` reported Docker 28.4.0 and `docker run --rm postgres:16 postgres --version` succeeded (PostgreSQL 16.10). A fresh `postgres:16` container accepted connections, and `prisma migrate deploy` applied the committed Phase 5 migration. `pnpm --filter @orion/api test` passed the Testcontainers/migrated-PostgreSQL Fastify suite, including the restricted runtime role. The emitted-process feature smoke also passed using Testcontainers and signed synthetic tokens. For Phase 6, Codex installed Playwright Chromium, directly launched it, ran two Vitest Browser Mode component tests through the installed Windows Edge channel, and passed two Playwright Chromium journeys through a fresh migrated Testcontainers PostgreSQL, emitted API, and web app. [PR #7 CI run #23](https://github.com/GabriellMDias/Orion/actions/runs/36071532760) independently installed Chromium/system libraries and passed the same browser/database validation on Ubuntu. Phase 7's local `pnpm validate` again passed migrated-PostgreSQL tests, the forced API-process restart smoke, browser component tests, and Chromium journeys. No Phase 5-7 host-level human action was required.
+
+**Phase 9 evidence (2026-09-25):** A fresh checkout installed from the frozen lockfile, generated Prisma, installed Playwright Chromium, started the API and web development servers, served health through the web proxy, regenerated API/database/SDK references without a tracked diff, and passed full `pnpm validate` with migrated PostgreSQL and browser journeys. Docker 28.4.0 was reachable. No host-level intervention is required for foundation acceptance. This checkbox remains open only for a future verified host-only need.
 
 ## H-07
 
 - [ ] **Provision a required external service and securely supply its configuration, only when selected.**
 
-**Status:** pending. **Owner:** service account owner or administrator, if the action cannot be delegated within existing authorization.
+**Status:** changed (conditional; no external provider is selected). **Owner:** service account owner or administrator, if the action cannot be delegated within existing authorization.
 
 **What needs to be done:** For an actually required identity provider or other external integration, create/authorize the application or service, configure callback/origin settings, and create scoped credentials when necessary. Split this item by provider and environment before execution. Codex first prepares the integration, exact configuration contract, minimum scopes, and verification path.
 
@@ -147,17 +149,17 @@ Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-
 
 **When / dependency:** Phases 4-7 only for selected integrations, especially P5.4/P6.6; Phase 10 for a real deployment service. Local observability, normal CI, and synthetic tests must not be held behind hypothetical service accounts.
 
-**Values / configuration:** Not defined yet. Before requesting input, record the exact schema-defined `.env`/configuration names, provider/resource name, environment, endpoint/issuer/audience/client ID as applicable, redirect URLs, scopes, secret destination, and rotation owner. Keep secret values out of this document and tracked files.
+**Values / configuration:** The implemented API boundary uses server-only `ORION_TOKEN_ISSUER`, `ORION_TOKEN_AUDIENCE`, and `ORION_TOKEN_JWKS_URL`, documented in the [configuration reference](generated/configuration/api.md). No provider values, client ID, redirects, scopes beyond the approved `approval:review` capability, secret destination, or rotation owner have been selected. Record those concrete details before requesting input. Keep secret values out of this document and tracked files.
 
 **Codex verification:** Validate configuration without printing values; perform a bounded non-destructive connectivity or authentication test and the relevant integration flow. For identity, test intended redirects and claims plus denial/revocation behavior where required. Use provider evidence if Codex cannot inspect account settings and record outstanding technical verification separately.
 
-    **Evidence / blocker (2026-09-24):** Phase 5 implements a provider-independent JWT access-token verifier configured by `ORION_TOKEN_ISSUER`, `ORION_TOKEN_AUDIENCE`, and `ORION_TOKEN_JWKS_URL`; a trusted issuer must supply stable `orion_principal_id`, `orion_actor_type=human`, and optional `approval:review` scope. Phase 6's browser reference workflow accepts an already-issued bearer token in memory and uses a local synthetic signed-token issuer for E2E tests; it does not select an identity provider, create login/session/refresh behavior, or require an external account. Phase 7 failure/recovery work adds no external integration. No concrete provider, production issuer/audience/JWKS values, or service-specific provisioning has been selected. H-07 remains conditional and does not block Phase 7. A future concrete provider or deployment must record its exact provisioning and stable-ID mapping here before requesting human action.
+**Evidence / blocker (2026-09-24):** Phase 5 implements a provider-independent JWT access-token verifier configured by `ORION_TOKEN_ISSUER`, `ORION_TOKEN_AUDIENCE`, and `ORION_TOKEN_JWKS_URL`; a trusted issuer must supply stable `orion_principal_id`, `orion_actor_type=human`, and optional `approval:review` scope. Phase 6's browser reference workflow accepts an already-issued bearer token in memory and uses a local synthetic signed-token issuer for E2E tests; it does not select an identity provider, create login/session/refresh behavior, or require an external account. Phase 7 failure/recovery work adds no external integration. No concrete provider, production issuer/audience/JWKS values, or service-specific provisioning has been selected. H-07 remains conditional and does not block Phase 9 development-foundation acceptance. A future concrete provider or deployment must record its exact provisioning and stable-ID mapping here before requesting human action.
 
 ## H-08
 
 - [ ] **Identify durable release boundaries and support obligations when they first exist.**
 
-**Status:** pending. **Owner:** project/release owner or environment operator, only for facts Codex cannot verify independently.
+**Status:** changed (conditional; no durable release or independently released consumer is evidenced). **Owner:** project/release owner or environment operator, only for facts Codex cannot verify independently.
 
 **What needs to be done:** Identify which environments have permanent migration history and which released consumers, contracts, and rollback/support windows must remain compatible. Codex first inspects available release and deployment evidence. If there has been no release, record that fact instead of inventing historical baselines.
 
@@ -175,7 +177,7 @@ Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-
 
 - [ ] **Define deployment and operational requirements before activating Phase 10.**
 
-**Status:** pending. **Owner:** project owner and actual operational owners.
+**Status:** changed (conditional on Phase 10 activation). **Owner:** project owner and actual operational owners.
 
 **What needs to be done:** Specify the intended environment/hosting constraints, distribution/release model, workload, consumers, service objectives, recovery objectives, retention obligations, budget constraints, and responsible operators. Resolve actual alert recipients, incident ownership, and access expectations. Codex presents implementation options only after requirements are understood.
 
@@ -183,7 +185,7 @@ Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-
 
 **When / dependency:** [Phase 10](implementation-plan.md#phase-10), P10.1-P10.5. This action does not block Phase 9 foundation completion.
 
-**Values / configuration:** Non-secret environment names, domains/regions when chosen, service/recovery objectives, supported consumers, retention policies, operational owners, release permissions, and selected provider identifiers. `.env`/configuration names are not defined yet; derive them from real schemas and deployment tooling rather than from this checklist.
+**Values / configuration:** Non-secret environment names, domains/regions when chosen, service/recovery objectives, supported consumers, retention policies, operational owners, release permissions, and selected provider identifiers. Current API variable names are in the [configuration reference](generated/configuration/api.md); additional deployment-specific names are not defined and must come from real schemas and tooling.
 
 **Codex verification:** Link recorded requirements and any required ADRs; map deployment, alert, backup, recovery, and access work to those requirements. Confirm there are no invented thresholds, owners, or service guarantees before planning operational acceptance tests.
 
@@ -193,7 +195,7 @@ Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-
 
 - [ ] **Enable selected deployment resources, identities, and operational access that Codex cannot provision within its authority.**
 
-**Status:** pending. **Owner:** environment/account administrator and named operational owners.
+**Status:** changed (conditional on selected deployment resources). **Owner:** environment/account administrator and named operational owners.
 
 **What needs to be done:** After [H-09](#h-09), create or authorize required accounts/resources, DNS or domain control, secret-store entries, deployment/workload identities, protected-environment settings, backup access, telemetry destinations, and notification integrations only where the selected design needs them. Split into concrete resource/environment actions. Codex prepares deployable definitions, least-privilege requirements, and exact settings before requesting manual steps.
 
@@ -211,7 +213,7 @@ Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-
 
 - [ ] **Determine repository/product licensing before distribution requires it.**
 
-**Status:** pending. **Owner:** project owner, with legal input when needed.
+**Status:** changed (conditional on distribution requiring a license decision). **Owner:** project owner, with legal input when needed.
 
 **What needs to be done:** Choose the intended repository/product license and distribution model, and identify any resulting dependency-license constraints. Codex may prepare implementation after the owner supplies the decision; it must not choose a legal/distribution policy by assumption.
 

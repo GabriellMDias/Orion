@@ -63,7 +63,7 @@ All other state-changing combinations are invalid. In particular, an edit or sub
 | A stale edit or transition loses a race to another write | Report a conflict and preserve the winning write; do not silently overwrite it. |
 | A duplicate or competing action arrives | Preserve one consistent result and report a safe replay or conflict as appropriate; do not apply a second inconsistent outcome. |
 
-Authentication failure, insufficient review capability, non-ownership for owner operations, and attempted self-review are expected denials. They must leave the request unchanged. The [implementation conventions](approval-request-implementation.md#api-failures-and-canonical-metadata) specify planned transport mappings; executable contract shapes and safe denial details will be created with the API.
+Authentication failure, insufficient review capability, non-ownership for owner operations, and attempted self-review are expected denials. They must leave the request unchanged. The [implementation conventions](approval-request-implementation.md#api-failures-and-canonical-metadata) explain the transport mappings; [executable contracts](../../apps/api/src/features/approval-requests/contracts.ts) and the [generated error registry](../generated/api/errors.md) provide current wire details.
 
 ## Data ownership, classification, and lifecycle
 
@@ -95,4 +95,4 @@ Creating or changing a request affects its durable internal business data once p
 14. An authorized owner attempting to edit or submit a non-`DRAFT` request, or cancel a terminal request, is denied by the state rule. A reviewer with review capability attempting to decide another owner's `DRAFT` or terminal request is denied by the state rule. An unauthorized principal remains denied regardless of state. Neither kind of denial mutates the request.
 15. Authorization tests use synthetic principals, creator identities, and capabilities; they do not require real external accounts or a selected identity provider.
 
-Phase 5 Vitest tests exercise state, concurrency, authorization, and persistence against migrated PostgreSQL. Phase 6 browser journeys cover the owner/reviewer workflow and a stale mutation through the actual API. These scenarios remain the business source for the tests; Phase 7 may expand failure-recovery coverage.
+Vitest tests exercise state, concurrency, authorization, failure recovery, and persistence against migrated PostgreSQL. Browser journeys cover the owner/reviewer workflow and a stale mutation through the actual API. These scenarios remain the business source for the tests; [implementation conventions](approval-request-implementation.md#failure-recovery-and-retry-ownership) record the verified retry and recovery boundaries.

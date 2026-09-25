@@ -59,7 +59,7 @@ This table owns phase-level status; the tables within each phase own task-level 
 | [6](#phase-6) | Generated client and complete web workflow | completed | 5 | Generated SDK and web workflow pass local and [PR #7 CI](https://github.com/GabriellMDias/Orion/actions/runs/36071532760); [Phase 6 evidence](#phase-6). H-07 remains conditional. |
 | [7](#phase-7) | Failure recovery, concurrency, and data lifecycle | completed | 5-6 | Failure and restart behavior pass local and [PR #8 CI](https://github.com/GabriellMDias/Orion/actions/runs/36083980169); [Phase 7 evidence](#phase-7). Conditional and non-applicable work is recorded there. |
 | [8](#phase-8) | Safe evolution and reproducible artifacts | completed | 5-7; actual baselines where applicable | Release-aware migration guard and clean-clone validation pass local and [PR #9 CI](https://github.com/GabriellMDias/Orion/actions/runs/36087095948); [Phase 8 evidence](#phase-8). Historical baselines and H-08 remain conditional. |
-| [9](#phase-9) | Foundation acceptance and contributor handoff | pending | 1-8 | Not started. |
+| [9](#phase-9) | Foundation acceptance and contributor handoff | in progress | 1-8 | Auditing onboarding, implemented boundaries, documentation, and the full validation gate on the Phase 9 branch. |
 | [10](#phase-10) | Deployment-specific operationalization | pending | 9 and concrete deployment requirements | Conditional; no deployment selected. |
 
 ## Phase 1
@@ -350,13 +350,13 @@ This table owns phase-level status; the tables within each phase own task-level 
 
 | Task | Main work | Status | Evidence / dependency |
 | --- | --- | --- | --- |
-| P9.1 | Exercise clean-environment onboarding: install, configure, initialize data, run apps, validate, regenerate, and build. | pending | Not started. |
-| P9.2 | Verify the reference feature demonstrates established patterns without becoming a generic framework. | pending | Not started. |
-| P9.3 | Review public APIs, ownership, dependency enforcement, and local documentation. | pending | Not started. |
-| P9.4 | Keep root instructions concise and add scoped instructions only for distinct implemented obligations. | pending | Not started. |
-| P9.5 | Complete navigation among feature behavior, contracts, schema, errors, tests, telemetry, and real procedures. | pending | Not started. |
-| P9.6 | Reconcile implementation availability and stale references without changing architectural decisions. | pending | Not started. |
-| P9.7 | Review remaining gaps against applicable policies and produce an evidence-backed acceptance report. | pending | Required human actions must be resolved or explicitly scoped out with rationale. |
+| P9.1 | Exercise clean-environment onboarding: install, configure, initialize data, run apps, validate, regenerate, and build. | completed | [Onboarding](development-onboarding.md) was exercised in a clean checkout: frozen install, Prisma/Chromium setup, API readiness and Vite proxy, disposable migrated PostgreSQL/reference generation, SDK generation with no tracked diff, builds, and full `pnpm validate`. |
+| P9.2 | Verify the reference feature demonstrates established patterns without becoming a generic framework. | completed | [Acceptance map](foundation-acceptance.md#reference-feature-evidence-map) traces domain, service, adapter, contracts, SDK, web, tests, and telemetry. Only the thin SDK is shared; no generic domain/database framework was added. |
+| P9.3 | Review public APIs, ownership, dependency enforcement, and local documentation. | completed | [SDK public API](../packages/sdk/README.md) is documented; API owns its schema/contracts, web consumes SDK, and `pnpm architecture` found zero violations across 55 modules/58 dependencies. Existing API/web guides remain local owners. |
+| P9.4 | Keep root instructions concise and add scoped instructions only for distinct implemented obligations. | completed | Root `AGENTS.md` remains focused; API, web, and docs instructions were reviewed, and [SDK-local instructions](../packages/sdk/AGENTS.md) now cover its distinct generated-client/public-surface obligations. |
+| P9.5 | Complete navigation among feature behavior, contracts, schema, errors, tests, telemetry, and real procedures. | completed | The [documentation task index](README.md) routes to the [acceptance evidence map](foundation-acceptance.md#reference-feature-evidence-map), onboarding, generated references, tests, telemetry, and the real migration-evolution procedure. Link validation passed. |
+| P9.6 | Reconcile implementation availability and stale references without changing architectural decisions. | completed | Root README, task index, contributor/error/configuration/observability routes, feature docs, and human-action introduction now describe implemented capabilities and conditional future work. ADRs and policy decisions were unchanged. |
+| P9.7 | Review remaining gaps against applicable policies and produce an evidence-backed acceptance report. | in progress | [Acceptance report](foundation-acceptance.md) maps criteria and conditional H-06–H-11. Local full gate passed; Phase 9 PR CI/required gate remains to be verified before completion. |
 
 **Expected deliverables:** Self-contained development foundation, executable reference feature, complete validation gate, current documentation, and acceptance evidence.
 

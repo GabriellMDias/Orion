@@ -1,12 +1,14 @@
 # Documentation Task Index
 
-Choose the route relevant to the change. Policy pages provide section links for focused reading; related policies apply when the change crosses their boundaries. The repository has the Approval Request server, PostgreSQL persistence, generated SDK, and Phase 6 web workflow. [Selected technologies](architecture/technology-decisions.md) are not proof of [implemented commands](validation.md).
+Choose the route relevant to the change. Policy pages provide section links for focused reading; related policies apply when the change crosses their boundaries. The repository has the Approval Request server, PostgreSQL persistence, generated SDK, and web workflow. [Selected technologies](architecture/technology-decisions.md) are not proof of [implemented commands](validation.md).
 
 ## Architecture and implementation
 
 | Task | Authoritative policy |
 | --- | --- |
 | Execute or track implementation phases | [Living implementation plan](implementation-plan.md) |
+| Reproduce development setup, local execution, and the validation gate | [Development onboarding](development-onboarding.md) |
+| Review completed foundation capabilities and limitations | [Foundation acceptance](foundation-acceptance.md) |
 | Resolve owner decisions, external access, or other human prerequisites | [Human-action checklist](human-actions.md) |
 | Understand the reference feature's business rules and acceptance scenarios | [Approval Request](domains/approval-request.md) |
 | Implement the reference feature's persistence, concurrency, access, and list contracts | [Approval Request implementation conventions](domains/approval-request-implementation.md) |
@@ -23,6 +25,8 @@ Choose the route relevant to the change. Policy pages provide section links for 
 | Build the first API or regenerate derived references | [Backend execution and generated artifacts](architecture/backend-execution-and-generated-artifacts.md) |
 | Run or extend the current API feature | [API runtime](../apps/api/README.md), [API-local instructions](../apps/api/AGENTS.md), [generated OpenAPI](generated/api/openapi.json) |
 | Run or extend the web workflow or generated SDK | [Web workflow](../apps/web/README.md), [web-local instructions](../apps/web/AGENTS.md), [SDK source](../packages/sdk/src/index.ts) |
+| Change the SDK public surface or generated types | [SDK package guide](../packages/sdk/README.md), [SDK-local instructions](../packages/sdk/AGENTS.md) |
+| Trace the reference feature through business rules, contracts, data, errors, tests, and telemetry | [Foundation acceptance map](foundation-acceptance.md#reference-feature-evidence-map) |
 
 ## APIs and data
 
@@ -71,4 +75,4 @@ Choose the route relevant to the change. Policy pages provide section links for 
 - [Contributing](contributing.md): change workflow, documentation ownership, canonical sources, maintenance, and review.
 - [Global agent instructions](../AGENTS.md): invariants, command availability, and conditional routes.
 
-Current policies describe current architectural expectations. ADRs preserve decision history; runbooks describe real current procedures; Git preserves development history. Additional domain/application documentation and generated reference will be added when real sources and owners exist, not as empty placeholders.
+Current policies describe current architectural expectations. ADRs preserve decision history; the [development onboarding](development-onboarding.md) and [release evolution workflow](database/release-evolution.md) describe real procedures. No production runbook exists without a selected environment. Git preserves development history; generated references exist for the current API, configuration, errors, and database.
