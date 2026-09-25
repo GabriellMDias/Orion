@@ -74,15 +74,15 @@ test("documentation previews keep synthetic input local and remain usable on a n
     preview.getByRole("button", { name: "Use local owner" }),
   ).toHaveCount(0);
   await preview
-    .getByRole("textbox", { name: "Access token" })
+    .getByLabel("Access token", { exact: true })
     .fill("non-secret-example");
   await preview
     .getByRole("button", { name: "Connect", exact: true })
     .press("Enter");
   await expect(preview.getByRole("status")).toContainText("discarded");
-  await expect(
-    preview.getByRole("textbox", { name: "Access token" }),
-  ).toHaveValue("");
+  await expect(preview.getByLabel("Access token", { exact: true })).toHaveValue(
+    "",
+  );
   await expect(page).not.toHaveURL(/non-secret-example/);
   expect(
     await page.evaluate(() => localStorage.length + sessionStorage.length),
