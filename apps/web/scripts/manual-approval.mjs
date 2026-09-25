@@ -1,44 +1,38 @@
-import { mkdir, rm, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
 import setup from "../test/e2e/setup.ts";
 
-const tokenDirectory = resolve(import.meta.dirname, "../../../.orion-local");
-const ownerTokenFile = resolve(tokenDirectory, "owner-token.txt");
-const reviewerTokenFile = resolve(tokenDirectory, "reviewer-token.txt");
-
-const stop = await setup({
-  apiEnvironment: "development",
-  tokenLifetime: "1h",
+let reportExit;
+const serviceExit = new Promise((resolve) => {
+  reportExit = resolve;
 });
+let interrupt;
+const interrupted = new Promise((resolve) => {
+  interrupt = () => resolve(null);
+});
+process.on("SIGINT", interrupt);
+process.on("SIGTERM", interrupt);
 
+let stop;
 try {
-  await mkdir(tokenDirectory, { recursive: true, mode: 0o700 });
-  await writeFile(ownerTokenFile, process.env.ORION_E2E_OWNER_TOKEN, {
-    mode: 0o600,
-  });
-  await writeFile(reviewerTokenFile, process.env.ORION_E2E_REVIEWER_TOKEN, {
-    mode: 0o600,
+  stop = await setup({
+    apiEnvironment: "development",
+    tokenLifetime: "1h",
+    onUnexpectedExit: reportExit,
   });
   process.stdout.write(
     `Approval Request web: ${process.env.ORION_E2E_WEB_URL}\n` +
       `Approval Request API: ${process.env.ORION_E2E_API_URL}\n` +
-      `Owner token file: ${ownerTokenFile}\n` +
-      `Reviewer token file: ${reviewerTokenFile}\n` +
+      "Use the local owner/reviewer buttons in the web app.\n" +
       "Synthetic tokens expire after one hour. Press Ctrl+C to stop.\n",
   );
-  await new Promise((done) => {
-    process.once("SIGINT", done);
-    process.once("SIGTERM", done);
-  });
+  const failure = await Promise.race([interrupted, serviceExit]);
+  if (failure) throw failure;
+} catch (error) {
+  process.stderr.write(
+    `${error instanceof Error ? error.message : String(error)}\n`,
+  );
+  process.exitCode = 1;
 } finally {
-  delete process.env.ORION_E2E_OWNER_TOKEN;
-  delete process.env.ORION_E2E_REVIEWER_TOKEN;
-  try {
-    await Promise.all([
-      rm(ownerTokenFile, { force: true }),
-      rm(reviewerTokenFile, { force: true }),
-    ]);
-  } finally {
-    await stop();
-  }
+  process.off("SIGINT", interrupt);
+  process.off("SIGTERM", interrupt);
+  await stop?.();
 }

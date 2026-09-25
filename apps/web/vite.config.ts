@@ -10,6 +10,16 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
+      ...(process.env.ORION_WEB_LOCAL_IDENTITY_TARGET
+        ? {
+            "/__orion_local_identity": {
+              target: process.env.ORION_WEB_LOCAL_IDENTITY_TARGET,
+              changeOrigin: true,
+              rewrite: (path: string) =>
+                path.replace(/^\/__orion_local_identity/, "/local-identity"),
+            },
+          }
+        : {}),
     },
   },
 });
