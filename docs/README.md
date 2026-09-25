@@ -1,6 +1,6 @@
 # Documentation Task Index
 
-Choose the route relevant to the change. Policy pages provide section links for focused reading; related policies apply when the change crosses their boundaries. The repository has the Phase 5 Approval Request server and persistence feature; web and frontend-client capabilities remain planned. [Selected technologies](architecture/technology-decisions.md) are not proof of [implemented commands](validation.md).
+Choose the route relevant to the change. Policy pages provide section links for focused reading; related policies apply when the change crosses their boundaries. The repository has the Approval Request server, PostgreSQL persistence, generated SDK, and Phase 6 web workflow. [Selected technologies](architecture/technology-decisions.md) are not proof of [implemented commands](validation.md).
 
 ## Architecture and implementation
 
@@ -22,6 +22,7 @@ Choose the route relevant to the change. Policy pages provide section links for 
 | Implement CI or dependency automation | [Continuous integration](architecture/continuous-integration.md) |
 | Build the first API or regenerate derived references | [Backend execution and generated artifacts](architecture/backend-execution-and-generated-artifacts.md) |
 | Run or extend the current API feature | [API runtime](../apps/api/README.md), [API-local instructions](../apps/api/AGENTS.md), [generated OpenAPI](generated/api/openapi.json) |
+| Run or extend the web workflow or generated SDK | [Web workflow](../apps/web/README.md), [web-local instructions](../apps/web/AGENTS.md), [SDK source](../packages/sdk/src/index.ts) |
 
 ## APIs and data
 

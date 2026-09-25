@@ -2,7 +2,7 @@
 
 [Phase 5 plan](../../docs/implementation-plan.md#phase-5) · [Approval Request specification](../../docs/domains/approval-request.md) · [OpenAPI](../../docs/generated/api/openapi.json) · [Configuration reference](../../docs/generated/configuration/api.md) · [Error registry](../../docs/generated/api/errors.md)
 
-The Fastify API exposes health routes and the authenticated Approval Request feature. The feature persists its current state in PostgreSQL through Prisma 7. There is no login, password, refresh-token, provider-specific session, web application, or generated frontend client.
+The Fastify API exposes health routes and the authenticated Approval Request feature. The feature persists its current state in PostgreSQL through Prisma 7. The [web reference workflow](../web/README.md) consumes its generated OpenAPI contract through `@orion/sdk`. There is no login, password, refresh-token, or provider-specific session in the API.
 
 From the repository root, install the frozen lockfile and run:
 

@@ -1,6 +1,6 @@
 # Technology Decision Map
 
-This is a navigation summary, not an independent technology specification. Each linked ADR owns the decision, exceptions, rationale, and version policy. All twelve records currently state `accepted`; workspace tooling and the Phase 5 API feature now exist. Consult [validation availability](../validation.md) before running commands.
+This is a navigation summary, not an independent technology specification. Each linked ADR owns the decision, exceptions, rationale, and version policy. All twelve records currently state `accepted`; workspace tooling, the Phase 5 API feature, and the Phase 6 generated SDK/web workflow now exist. Consult [validation availability](../validation.md) before running commands.
 
 ## Selected directions
 

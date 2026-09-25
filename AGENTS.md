@@ -13,7 +13,7 @@
 
 ## Commands and current state
 
-The pnpm workspace, local validation tooling, CI workflow configuration, and Phase 5 `apps/api` Approval Request runtime, PostgreSQL/Prisma persistence, and generated OpenAPI exist. A concrete authentication provider, web application, and generated frontend client do not yet exist. Use Node.js 24.13.0 and pnpm 11.25.0; run `pnpm install --frozen-lockfile` to install dependencies and `pnpm validate` before considering substantial work complete. Run individual checks through the scripts in `package.json`. See [validation availability and responsibilities](docs/validation.md) and [CI status](docs/architecture/continuous-integration.md); do not claim a remote check or future capability has run without evidence.
+The pnpm workspace, local validation tooling, CI configuration, Approval Request API/PostgreSQL feature, generated OpenAPI/SDK, and `apps/web` reference workflow exist. A concrete authentication provider has not been selected. Use Node.js 24.13.0 and pnpm 11.25.0; run `pnpm install --frozen-lockfile` to install dependencies and `pnpm validate` before considering substantial work complete. Run individual checks through the scripts in `package.json`. See [validation availability and responsibilities](docs/validation.md) and [CI status](docs/architecture/continuous-integration.md); do not claim a remote check or future capability has run without evidence.
 
 ## Conditional reading routes
 

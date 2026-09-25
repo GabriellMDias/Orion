@@ -19,7 +19,7 @@ jobs:
   validate:
     name: Validate
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -30,6 +30,8 @@ jobs:
         with:
           cache: true
           require-lockfile: true
+      - name: Install Chromium and system libraries for browser checks
+        run: pnpm --filter @orion/web exec playwright install --with-deps chromium
       - name: Run repository validation
         run: pnpm validate
 

@@ -95,4 +95,4 @@ Creating or changing a request affects its durable internal business data once p
 14. An authorized owner attempting to edit or submit a non-`DRAFT` request, or cancel a terminal request, is denied by the state rule. A reviewer with review capability attempting to decide another owner's `DRAFT` or terminal request is denied by the state rule. An unauthorized principal remains denied regardless of state. Neither kind of denial mutates the request.
 15. Authorization tests use synthetic principals, creator identities, and capabilities; they do not require real external accounts or a selected identity provider.
 
-Phase 5 Vitest tests exercise state, concurrency, authorization, and persistence against migrated PostgreSQL. These scenarios remain the business source for the tests; later phases may expand failure-recovery and browser coverage.
+Phase 5 Vitest tests exercise state, concurrency, authorization, and persistence against migrated PostgreSQL. Phase 6 browser journeys cover the owner/reviewer workflow and a stale mutation through the actual API. These scenarios remain the business source for the tests; Phase 7 may expand failure-recovery coverage.
