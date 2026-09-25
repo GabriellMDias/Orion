@@ -21,7 +21,11 @@ try {
     resolve(root, "src/generated/api-types.ts"),
     "utf8",
   );
-  if (readFileSync(output, "utf8") !== committed)
+  const normalizeLineEndings = (value) => value.replace(/\r\n?/g, "\n");
+  if (
+    normalizeLineEndings(readFileSync(output, "utf8")) !==
+    normalizeLineEndings(committed)
+  )
     throw new Error(
       "Generated SDK types are stale. Run pnpm --filter @orion/sdk generate.",
     );

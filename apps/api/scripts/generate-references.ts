@@ -56,6 +56,7 @@ const generated = [
 const write = process.argv[2] === "--write";
 if (!write && process.argv[2] !== "--check")
   throw new Error("Expected --check or --write");
+const normalizeLineEndings = (value: string) => value.replace(/\r\n?/g, "\n");
 generated.push({
   path: resolve(root, "docs/generated/database/approval-requests.md"),
   content: await withMigratedDatabase((_runtimeUrl, migrationUrl) =>
@@ -68,7 +69,7 @@ for (const artifact of generated) {
     await writeFile(artifact.path, artifact.content);
   } else {
     const actual = await readFile(artifact.path, "utf8").catch(() => "");
-    if (actual !== artifact.content)
+    if (normalizeLineEndings(actual) !== normalizeLineEndings(artifact.content))
       throw new Error(`Generated reference drift: ${artifact.path}`);
   }
 }
