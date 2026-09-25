@@ -73,7 +73,7 @@ Observability should support both humans and AI agents.
 
 ## Observability Signals
 
-The [accepted server-side implementation direction](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md#decision) uses OpenTelemetry for traces and metrics, Pino JSON logs, W3C Trace Context, and OTLP. A Collector is preferred when justified, not mandatory. Backend/vendor choice remains deployment-specific; browser instrumentation and the OpenTelemetry Logs SDK are not initial defaults. Dedicated error reporting is optional and operational telemetry is not authoritative business audit history. Implementation is pending.
+The [accepted server-side implementation direction](../adr/0010-establish-observability-logging-tracing-metrics-and-error-reporting-strategy.md#decision) uses OpenTelemetry for traces and metrics, Pino JSON logs, W3C Trace Context, and OTLP. The API implements those boundaries and centralized redaction. A Collector is preferred when justified, not mandatory. Backend/vendor choice remains deployment-specific; browser instrumentation and the OpenTelemetry Logs SDK are not initial defaults. Dedicated error reporting is optional and operational telemetry is not authoritative business audit history.
 
 Orion recognizes four primary observability signals:
 

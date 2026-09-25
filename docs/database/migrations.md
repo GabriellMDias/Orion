@@ -1365,7 +1365,7 @@ The selected method must remain deterministic.
 
 ## Fresh Database Test
 
-CI should eventually verify that a fresh database can reach the current schema.
+CI verifies that a fresh Testcontainers PostgreSQL reaches the current schema by replaying committed migrations. Preserve this check as migrations evolve.
 
 This detects:
 
@@ -1609,7 +1609,7 @@ Such checks must not leak database credentials or internal details through publi
 
 ## Migrations in CI
 
-CI should eventually validate:
+CI currently validates fresh-database migration, generated physical references, and release-history integrity. As real released baselines and risks appear, validate:
 
 ```text
 migration syntax

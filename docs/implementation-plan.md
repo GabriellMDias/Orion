@@ -4,11 +4,11 @@
 
 ## Purpose and current baseline
 
-This is the living execution plan for Orion, based on the repository review and ten-phase plan. It tracks implementation progress; it does not replace current architectural policy or accepted ADRs. Preserve accepted decisions, rationale, exceptions, and technology responsibilities.
+This is Orion's living execution plan. It tracks implementation progress; it does not replace current architectural policy or accepted ADRs. Preserve accepted decisions, rationale, exceptions, and technology responsibilities.
 
 Orion now contains documentation, a pnpm workspace, local validation tooling and CI, plus the Approval Request API, PostgreSQL persistence, generated OpenAPI/client, and web reference workflow. `pnpm validate` runs the checks listed in [validation](validation.md). A concrete identity provider and production deployment remain conditional future work. The phase tables below record the implementation history and current status.
 
-The documented destination is a reusable engineering foundation demonstrated by a complete reference feature: persistence, domain/application behavior, API contracts, generated client, web UI, tests, telemetry, and documentation. A particular business product and production environment have not been defined. Foundation completion is Phase 9; Phase 10 is conditional on concrete deployment requirements.
+The foundation includes a complete reference feature—persistence, domain/application behavior, API contracts, generated client, web UI, tests, and telemetry—and [living documentation](architecture/living-documentation.md) for its API, database/data dictionary, and frontend components. Human navigation must coexist with AI-readable canonical and generated artifacts. Phase 9 accepted the implemented reference vertical slice; Phases 10 and 11 finish the foundation's documentation and developer experience. Deployment-specific operation is conditional Phase 12. A particular business product and production environment have not been defined.
 
 The [README](../README.md), [principles](architecture/principles.md), [technology map](architecture/technology-decisions.md), and [accepted ADRs](adr/README.md) govern implementation. Later accepted decisions resolve older deferred wording; genuine conflicts must be surfaced rather than silently bypassed. The sequence below is an execution plan, not a new architectural decision.
 
@@ -59,8 +59,10 @@ This table owns phase-level status; the tables within each phase own task-level 
 | [6](#phase-6) | Generated client and complete web workflow | completed | 5 | Generated SDK and web workflow pass local and [PR #7 CI](https://github.com/GabriellMDias/Orion/actions/runs/36071532760); [Phase 6 evidence](#phase-6). H-07 remains conditional. |
 | [7](#phase-7) | Failure recovery, concurrency, and data lifecycle | completed | 5-6 | Failure and restart behavior pass local and [PR #8 CI](https://github.com/GabriellMDias/Orion/actions/runs/36083980169); [Phase 7 evidence](#phase-7). Conditional and non-applicable work is recorded there. |
 | [8](#phase-8) | Safe evolution and reproducible artifacts | completed | 5-7; actual baselines where applicable | Release-aware migration guard and clean-clone validation pass local and [PR #9 CI](https://github.com/GabriellMDias/Orion/actions/runs/36087095948); [Phase 8 evidence](#phase-8). Historical baselines and H-08 remain conditional. |
-| [9](#phase-9) | Foundation acceptance and contributor handoff | completed | 1-8 | [Acceptance report](foundation-acceptance.md), clean-checkout onboarding, local full gate, and [PR #10 CI run #33](https://github.com/GabriellMDias/Orion/actions/runs/36120843908) satisfy applicable criteria. H-06–H-11 remain conditional. |
-| [10](#phase-10) | Deployment-specific operationalization | pending | 9 and concrete deployment requirements | Conditional; no deployment selected. |
+| [9](#phase-9) | Reference vertical-slice acceptance and contributor handoff | completed | 1-8 | [Acceptance report](foundation-acceptance.md), clean-checkout onboarding, local full gate, and [PR #10 CI run #33](https://github.com/GabriellMDias/Orion/actions/runs/36120843908) satisfy Phase 9 criteria. |
+| [10](#phase-10) | Documentation architecture, simplification, and developer setup | completed | 9 | Canonical [setup](setup.md), [living-documentation boundary](architecture/living-documentation.md), policy/index review, schema-checked `.env.example`, local full gate, and [PR #11 CI run #36](https://github.com/GabriellMDias/Orion/actions/runs/36135591982) satisfy Phase 10 criteria. |
+| [11](#phase-11) | Living Documentation Portal | pending | 10 | Required foundation work: navigable API, data dictionary, and component references with reproducible AI-readable artifacts. |
+| [12](#phase-12) | Deployment-specific operationalization | pending | 11 and concrete deployment requirements | Conditional; no deployment selected. |
 
 ## Phase 1
 
@@ -344,13 +346,13 @@ This table owns phase-level status; the tables within each phase own task-level 
 
 ## Phase 9
 
-### Foundation acceptance and contributor handoff
+### Reference vertical-slice acceptance and contributor handoff
 
-**Objective:** Complete the reusable foundation described by the repository.
+**Objective:** Accept the implemented reference vertical slice and its contributor handoff against the Phase 9 criteria.
 
 | Task | Main work | Status | Evidence / dependency |
 | --- | --- | --- | --- |
-| P9.1 | Exercise clean-environment onboarding: install, configure, initialize data, run apps, validate, regenerate, and build. | completed | [Onboarding](development-onboarding.md) was exercised in a clean checkout: frozen install, Prisma/Chromium setup, API readiness and Vite proxy, disposable migrated PostgreSQL/reference generation, SDK generation with no tracked diff, builds, and full `pnpm validate`. |
+| P9.1 | Exercise clean-environment onboarding: install, configure, initialize data, run apps, validate, regenerate, and build. | completed | [Setup](setup.md) was exercised in a clean checkout: frozen install, Prisma/Chromium setup, API readiness and Vite proxy, disposable migrated PostgreSQL/reference generation, SDK generation with no tracked diff, builds, and full `pnpm validate`. |
 | P9.2 | Verify the reference feature demonstrates established patterns without becoming a generic framework. | completed | [Acceptance map](foundation-acceptance.md#reference-feature-evidence-map) traces domain, service, adapter, contracts, SDK, web, tests, and telemetry. Only the thin SDK is shared; no generic domain/database framework was added. |
 | P9.3 | Review public APIs, ownership, dependency enforcement, and local documentation. | completed | [SDK public API](../packages/sdk/README.md) is documented; API owns its schema/contracts, web consumes SDK, and `pnpm architecture` found zero violations across 55 modules/58 dependencies. Existing API/web guides remain local owners. |
 | P9.4 | Keep root instructions concise and add scoped instructions only for distinct implemented obligations. | completed | Root `AGENTS.md` remains focused; API, web, and docs instructions were reviewed, and [SDK-local instructions](../packages/sdk/AGENTS.md) now cover its distinct generated-client/public-surface obligations. |
@@ -358,7 +360,7 @@ This table owns phase-level status; the tables within each phase own task-level 
 | P9.6 | Reconcile implementation availability and stale references without changing architectural decisions. | completed | Root README, task index, contributor/error/configuration/observability routes, feature docs, and human-action introduction now describe implemented capabilities and conditional future work. ADRs and policy decisions were unchanged. |
 | P9.7 | Review remaining gaps against applicable policies and produce an evidence-backed acceptance report. | completed | [Acceptance report](foundation-acceptance.md) maps each criterion, canonical owner, mechanical protection, and conditional H-06–H-11. Local full gate and [PR #10 required CI gate](https://github.com/GabriellMDias/Orion/actions/runs/36120843908) passed. |
 
-**Expected deliverables:** Self-contained development foundation, executable reference feature, complete validation gate, current documentation, and acceptance evidence.
+**Expected deliverables:** Executable reference vertical slice, complete validation gate for implemented responsibilities, contributor handoff, and Phase 9 acceptance evidence.
 
 **Dependencies:** Phases 1-8, including applicable external prerequisites. Conditional future work is not automatically required for foundation acceptance.
 
@@ -368,16 +370,78 @@ This table owns phase-level status; the tables within each phase own task-level 
 - Full `pnpm validate` passes locally and through the required CI gate.
 - Generated artifacts are current; builds/tests are reproducible.
 - Architectural violations, important denial paths, and sensitive-data leaks have appropriate mechanical protection.
-- Required capabilities are implemented and conditional capabilities explicitly identified.
+- Required Phase 9 reference-vertical-slice capabilities are implemented and conditional capabilities explicitly identified; the living documentation portal remains Phase 11 work.
 - No speculative package, mandatory external vendor, or undocumented setup step is needed.
 
-**Completion evidence (2026-09-25):** A fresh checkout of the Phase 8 tree passed frozen installation, Prisma generation, Chromium installation, API readiness and Vite proxy requests, migrated-PostgreSQL API/database reference regeneration, SDK regeneration with zero tracked diff, and full `pnpm validate`. The Phase 9 branch then passed full `pnpm validate` locally: formatting, lint, strict types, dependency rules, 76 Markdown files/1242 links/12 ADRs, release-history and generated-reference checks, 40 API tests, two web unit and two browser component tests, API/web builds and bundle screening, both process smokes, and two Playwright Chromium journeys. [PR #10 CI run #33](https://github.com/GabriellMDias/Orion/actions/runs/36120843908) passed Validate, Dependency Review, and `Orion required gate`; the [CodeQL PR check](https://github.com/GabriellMDias/Orion/runs/108025860595) reported no new alerts in changed code. [Foundation acceptance](foundation-acceptance.md) records the feature map, limits, and remaining conditional H-06–H-11 triggers. No current human action blocks the development foundation. Phase 9 is complete; Phase 10 has not started.
+**Completion evidence (2026-09-25):** A fresh checkout of the Phase 8 tree passed frozen installation, Prisma generation, Chromium installation, API readiness and Vite proxy requests, migrated-PostgreSQL API/database reference regeneration, SDK regeneration with zero tracked diff, and full `pnpm validate`. The Phase 9 branch then passed full `pnpm validate` locally: formatting, lint, strict types, dependency rules, 76 Markdown files/1242 links/12 ADRs, release-history and generated-reference checks, 40 API tests, two web unit and two browser component tests, API/web builds and bundle screening, both process smokes, and two Playwright Chromium journeys. [PR #10 CI run #33](https://github.com/GabriellMDias/Orion/actions/runs/36120843908) passed Validate, Dependency Review, and `Orion required gate`; the [CodeQL PR check](https://github.com/GabriellMDias/Orion/runs/108025860595) reported no new alerts in changed code. [Phase 9 acceptance](foundation-acceptance.md) records the feature map and limits. Phase 9 is complete; the living documentation portal is planned in Phase 11.
 
-**Usable state:** The completed documented foundation. This does not imply production deployment.
+**Usable state:** A validated and usable reference vertical slice. This does not imply the living documentation portal or production deployment exists.
 
 **Governing sources:** [Contributing](contributing.md), [principles](architecture/principles.md), [repository structure](architecture/repository-structure.md), [runbook authoring](runbooks/authoring.md).
 
 ## Phase 10
+
+### Documentation architecture, simplification, and developer setup
+
+**Objective:** Make current requirements and setup easy to find and reason about, and define the canonical-to-generated documentation flow before building the portal.
+
+| Task | Main work | Status | Evidence / dependency |
+| --- | --- | --- | --- |
+| P10.1 | Audit the full documentation tree for current scope, navigation, stale wording, duplicate onboarding, and overly verbose policy. Preserve normative meaning and accepted ADR rationale. | completed | Inventoried all 68 pre-change `docs/*.md` files, reviewed their heading routes, scanned current-policy stale claims and repeated paragraphs, and ran the repository link/reachability checker. No ADR content changed. |
+| P10.2 | Establish one canonical `docs/setup.md` and a safe `.env.example` checked against configuration schema/reference metadata; document actual API/web/migration loading boundaries. | completed | [Setup](setup.md) is the sole onboarding owner. `.env.example` derives its names/defaults from API metadata verified against the TypeBox schema; `pnpm env:example:check` passes. The copied ignored `.env.local` started `pnpm --filter @orion/api dev`; readiness returned `200 {"status":"ok"}`. |
+| P10.3 | Simplify and reconnect policy and index pages where this reduces local context without hiding ownership, constraints, or conditional requirements. | completed | Root [README](../README.md), [task index](README.md), [principles](architecture/principles.md), and affected API/database/configuration/reliability policies now route to current owners; all 50 principles and their anchors remain while repeated exposition was condensed. |
+| P10.4 | Specify living-documentation ownership, generation, navigation, safety, freshness, and acceptance for API, data dictionary, and components. | completed | [Living documentation](architecture/living-documentation.md) maps canonical sources, derived artifacts, safety, navigation, and checks; Phase 11 lists implementation and browser/CI acceptance tasks without selecting portal technology. |
+| P10.5 | Align plan, human actions, and validation with the intended foundation scope; run the full applicable gate and review the final documentation diff. | completed | Phase 12 owns H-09–H-11; no new human action is required. Local full `pnpm validate` passed after Codex started the existing Docker engine. [PR #11 CI run #36](https://github.com/GabriellMDias/Orion/actions/runs/36135591982) passed Validate, Dependency Review, and `Orion required gate`. Final diff has no unrelated or generated-artifact changes. |
+
+**Expected deliverables:** One setup route, mechanically checked safe environment example, simpler discoverable current documentation, living-documentation architecture, and an executable Phase 11 plan.
+
+**Dependencies:** Phase 9 reference vertical slice and current canonical/generated sources. No external owner action or deployed environment is required.
+
+**Validation/acceptance criteria:**
+
+- A new contributor can find setup, current policies, generated API/data references, and the future portal boundary from the README and task index.
+- Setup commands load configuration as documented; `.env.example` contains no credentials and fails validation on drift from the API configuration reference.
+- Documentation links/anchors and normative requirements remain intact; accepted ADR decisions and rationale are unchanged.
+- `pnpm validate` passes locally and in the Phase 10 PR; no Phase 11 portal implementation is claimed.
+
+**Completion evidence (2026-09-25):** The copied ignored `.env.local` started the API through its documented development command and readiness returned `200 {"status":"ok"}`. The full local gate passed formatting, lint, strict types, dependency boundaries, 77 Markdown files/1326 local links/12 ADRs, environment-example and release-history checks, API/database/SDK reference freshness, 40 API tests, two web unit and two browser component tests, API/web builds and bundle screening, two process smokes, and two Chromium journeys. [PR #11 CI run #36](https://github.com/GabriellMDias/Orion/actions/runs/36135591982) passed all three repository jobs. No ADR was required because this phase records existing documentation intent and ordinary setup conventions without selecting a new architecture or portal technology. H-06 remained conditional: Docker Desktop was initially stopped, then started by Codex without host intervention.
+
+**Usable state:** The existing application remains usable, with a simpler canonical documentation and setup path ready for portal implementation.
+
+**Governing sources:** [Contributing](contributing.md), [configuration](architecture/configuration.md), [schema documentation](database/schema-documentation.md), [API principles](api/principles.md), and [living documentation](architecture/living-documentation.md).
+
+## Phase 11
+
+### Living Documentation Portal
+
+**Objective:** Deliver the human-facing, navigable living documentation required by Orion's foundation while retaining reproducible AI-readable artifacts.
+
+| Task | Main work | Status | Evidence / dependency |
+| --- | --- | --- | --- |
+| P11.1 | Choose the smallest coherent portal/component-documentation implementation within existing application/package boundaries; record a new ADR only if the ADR policy requires one. | pending | Phase 10 architecture and actual dependency review. |
+| P11.2 | Render the current TypeBox/OpenAPI operations, schemas, authentication, and stable public errors from canonical/generated API sources. | pending | API contract and error registry; no independent endpoint prose. |
+| P11.3 | Render the migrated PostgreSQL structure and schema-adjacent data dictionary, including ownership, classification, null semantics, lifecycle, and constraints as recorded. | pending | Current generated database reference and schema metadata. |
+| P11.4 | Add component-owned examples/metadata and a generated AI-readable component reference for real web components; show states, accessibility, and usage in the human interface. | pending | Existing `apps/web` components; no speculative component catalog. |
+| P11.5 | Provide clear navigation and links among API, data, components, domain policy, and canonical artifacts; make the portal reachable from the README and docs index. | pending | P11.2-P11.4. |
+| P11.6 | Add deterministic generation/freshness, missing-metadata, link, and sensitive-content checks to the shared local/CI validation path; document regeneration commands. | pending | P11.2-P11.5. |
+| P11.7 | Exercise a clean setup, portal build/serve, browser navigation and representative pages, accessibility at the relevant UI boundary, generated-artifact drift failures, and the full gate; report acceptance evidence. | pending | P11.1-P11.6. |
+
+**Expected deliverables:** Navigable Living Documentation Portal, generated API/data/component references, documented ownership and regeneration, and browser/CI acceptance evidence.
+
+**Dependencies:** Phase 10 and the implemented API, database, and web reference feature. A concrete identity provider or production deployment is not required to document current behavior.
+
+**Validation/acceptance criteria:**
+
+- Humans can navigate the API, database/data dictionary, and frontend components in a working local interface, with links to their canonical and AI-readable sources.
+- No page invents business semantics or exposes real secrets/data; API and database pages reflect current generated artifacts, and component pages reflect actual source/examples.
+- Generated representations are reproducible from documented inputs, and `pnpm validate`/CI fail on stale output or missing required metadata.
+- Clean-checkout setup, portal build/serve, representative browser flows, and full validation pass with evidence. The foundation is complete only after these criteria pass.
+
+**Usable state:** The complete development foundation, including a navigable living documentation interface and machine-readable references, without requiring a deployed product.
+
+**Governing sources:** [Living documentation](architecture/living-documentation.md), [API principles](api/principles.md), [schema documentation](database/schema-documentation.md), [contributing](contributing.md), and [validation](validation.md).
+
+## Phase 12
 
 ### Deployment-specific operationalization
 
@@ -385,18 +449,18 @@ This table owns phase-level status; the tables within each phase own task-level 
 
 | Task | Main work | Status | Evidence / dependency |
 | --- | --- | --- | --- |
-| P10.1 | Establish hosting, release model, supported consumers, workload, service/recovery objectives, and operational owners. | pending | [H-09](human-actions.md#h-09). |
-| P10.2 | Select deployment-specific secrets, identity, database hosting, telemetry storage, and access mechanisms. | pending | [H-09](human-actions.md#h-09), [H-10](human-actions.md#h-10). |
-| P10.3 | Introduce deployment definitions/CD after requirements exist; configure migrations, rollout order, readiness/draining, release identity, and recovery. | pending | [H-10](human-actions.md#h-10) for unavailable external administration. |
-| P10.4 | Establish backups, retention, deletion-after-restore handling, and access separation. | pending | [H-09](human-actions.md#h-09), [H-10](human-actions.md#h-10). |
-| P10.5 | Add dashboards and actionable alerts grounded in real service objectives or operational limits. | pending | [H-09](human-actions.md#h-09), [H-10](human-actions.md#h-10). |
-| P10.6 | Create real runbooks for implemented failures, deployment/migration recovery, credential exposure, and restore. | pending | Not started. |
-| P10.7 | Exercise staging deployment, restore, credential rotation, failure response, and the critical user journey. | pending | Environment/access prerequisites from [H-10](human-actions.md#h-10). |
-| P10.8 | Resolve licensing before distribution where necessary; no license has been selected. | pending | [H-11](human-actions.md#h-11). |
+| P12.1 | Establish hosting, release model, supported consumers, workload, service/recovery objectives, and operational owners. | pending | [H-09](human-actions.md#h-09). |
+| P12.2 | Select deployment-specific secrets, identity, database hosting, telemetry storage, and access mechanisms. | pending | [H-09](human-actions.md#h-09), [H-10](human-actions.md#h-10). |
+| P12.3 | Introduce deployment definitions/CD after requirements exist; configure migrations, rollout order, readiness/draining, release identity, and recovery. | pending | [H-10](human-actions.md#h-10) for unavailable external administration. |
+| P12.4 | Establish backups, retention, deletion-after-restore handling, and access separation. | pending | [H-09](human-actions.md#h-09), [H-10](human-actions.md#h-10). |
+| P12.5 | Add dashboards and actionable alerts grounded in real service objectives or operational limits. | pending | [H-09](human-actions.md#h-09), [H-10](human-actions.md#h-10). |
+| P12.6 | Create real runbooks for implemented failures, deployment/migration recovery, credential exposure, and restore. | pending | Not started. |
+| P12.7 | Exercise staging deployment, restore, credential rotation, failure response, and the critical user journey. | pending | Environment/access prerequisites from [H-10](human-actions.md#h-10). |
+| P12.8 | Resolve licensing before distribution where necessary; no license has been selected. | pending | [H-11](human-actions.md#h-11). |
 
 **Expected deliverables:** Environment-specific infrastructure, release procedures/automation, access configuration, dashboards/alerts, exercised runbooks, and release evidence.
 
-**Dependencies:** Phase 9 plus explicit product, deployment, and organizational requirements. A future deployment is not a prerequisite for Phase 9.
+**Dependencies:** The completed development foundation through Phase 11 plus explicit product, deployment, and organizational requirements. A future deployment is not a prerequisite for foundation completion.
 
 **Validation/acceptance criteria:**
 
@@ -424,5 +488,4 @@ Keep this section concise. Task evidence above owns current progress; Git owns d
 
 | Entry | Change | Evidence / effect |
 | --- | --- | --- |
-| Initial workflow | Saved the ten-phase plan and established linked human-action tracking. | Documentation only; every implementation phase and task remains pending. |
-| Phase 1 | Added pinned pnpm/TypeScript/ESM tooling and non-mutating local validation, without creating applications or CI. | Frozen installation and aggregate validation pass; deliberate formatting, type, link, and boundary violations fail. H-06 was unnecessary for this phase and remains conditional for later runtime needs. |
+| Phase 1 | Added pinned pnpm/TypeScript/ESM tooling and non-mutating local validation. | Frozen installation and aggregate validation pass; deliberate formatting, type, link, and boundary violations fail. |

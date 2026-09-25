@@ -40,7 +40,7 @@ Applications should not depend on undocumented environment state.
 
 This document is technology-agnostic.
 
-TypeBox is the accepted bootstrap schema system under ADR-0007. Runtime integration is not implemented; remaining deployment-specific mechanisms are still deferred.
+TypeBox is the accepted bootstrap schema system under ADR-0007 and is implemented for the API. The safe root [`.env.example`](../../.env.example) is mechanically checked against API configuration reference metadata by `pnpm env:example:check`; the [setup guide](../setup.md) owns local loading. Remaining deployment-specific mechanisms are deferred.
 
 This document complements:
 
@@ -2068,28 +2068,13 @@ independently when one can derive the other.
 
 ## Generated Example Files
 
-Example environment files may eventually be generated from configuration schemas.
-
-For example:
-
-```text
-.env.example
-```
-
-could contain:
-
-```text
-REQUEST_TIMEOUT_MS=5000
-DATABASE_URL=<required-secret>
-```
-
-without storing actual credentials.
+The root [`.env.example`](../../.env.example) is mechanically checked against the API's TypeBox configuration reference metadata by `pnpm env:example:check`. It activates only safe local development values; secret-bearing keys appear as comments without values. [Setup](../setup.md) owns the actual local loading workflow. A new application needs its own schema and explicit example/check when it introduces configuration.
 
 ---
 
 ## Generated Documentation
 
-A canonical configuration schema may eventually generate:
+A canonical configuration schema can drive:
 
 ```text
 reference tables
@@ -2099,7 +2084,7 @@ deployment validation metadata
 AI-readable configuration descriptions
 ```
 
-This reinforces the single-source-of-truth principle.
+The current API already generates a [safe reference](../generated/configuration/api.md) and checks the local example. Deployment validation metadata remains conditional on a selected environment.
 
 ---
 

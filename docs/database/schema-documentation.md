@@ -9,7 +9,7 @@ Governing decisions: [ADR-0006](../adr/0006-select-prisma-orm-for-database-acces
 - [Table Documentation](#table-documentation)
 - [Column Documentation](#column-documentation)
 - [Generated Reference](#generated-reference)
-- [Initial Schema Documentation Policy](#initial-schema-documentation-policy)
+- [Schema Documentation Requirements](#schema-documentation-requirements)
 - [Database Documentation](#database-documentation)
 
 ## Purpose
@@ -1249,20 +1249,7 @@ Do not include an example hash copied from production.
 
 ## Generated Reference
 
-Orion should eventually generate a navigable database reference.
-
-Potential structure:
-
-```text
-docs/generated/database/
-├── README.md
-├── tables/
-├── views/
-├── functions/
-└── relationships/
-```
-
-The exact output format is deferred.
+The current [generated Markdown reference](../generated/database/approval-requests.md) contains the migrated Approval Request schema and its semantic metadata. The [Living Documentation Portal](../architecture/living-documentation.md) must present it as navigable human documentation in Phase 11 while preserving the AI-readable generated file. Portal page layout is an implementation detail, not a second schema source.
 
 ---
 
@@ -1278,7 +1265,7 @@ Do not manually edit generated database reference files.
 
 ## Generated Table Reference
 
-A generated table page may eventually include:
+A generated table page can include:
 
 ```text
 description
@@ -1573,7 +1560,7 @@ Such links should derive from reliable metadata or code analysis.
 
 ## Schema Documentation Completeness
 
-Orion should eventually validate that required documentation exists.
+The current reference generator validates required metadata for application-owned tables, columns, enums, constraints, and indexes against freshly migrated PostgreSQL. Extend that check when new object types or semantics are introduced.
 
 Potential requirements include:
 
@@ -1651,7 +1638,7 @@ and pretend the schema is documented.
 
 ## Documentation Validation
 
-CI should eventually validate database documentation.
+CI validates the current database documentation through `pnpm references:check` and must retain this protection as the portal is added.
 
 Potential checks include:
 
@@ -2062,9 +2049,9 @@ Avoid when semantic meaning cannot be inferred safely.
 
 ---
 
-## Initial Schema Documentation Policy
+## Schema Documentation Requirements
 
-Until stack-specific implementation exists, Orion adopts the following requirements:
+The current PostgreSQL/Prisma implementation follows these requirements. Apply them to new application-owned objects as they appear:
 
 1. Every application-owned table requires canonical documentation.
 2. Every application-owned column requires canonical documentation.
@@ -2073,7 +2060,7 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 5. Semantic descriptions should live close to the canonical schema where practical.
 6. Nullable fields should document non-obvious null semantics.
 7. Quantitative fields should document units when ambiguous.
-8. Sensitive fields should eventually have machine-readable data classification.
+8. Fields need schema-adjacent machine-readable classification; strengthen controls for newly sensitive classes according to security policy.
 9. Every application-owned view and materialized view requires documented purpose.
 10. Every application-owned function and procedure requires documented purpose.
 11. Every application-owned trigger requires documented activation and side effects.
@@ -2084,25 +2071,19 @@ Until stack-specific implementation exists, Orion adopts the following requireme
 16. Complex architectural rationale should live in authored docs or ADRs rather than schema comments alone.
 17. Database documentation examples must use synthetic data.
 18. Schema changes and corresponding semantic documentation should change together.
-19. Missing database documentation should eventually fail repository validation.
+19. Missing application-owned object documentation must fail repository validation where the current generator covers that object type; extend coverage with new types.
 20. Database documentation should be optimized for both human navigation and machine-readable AI investigation.
 
 ---
 
-## Future Implementation Decisions
+## Remaining Implementation Decisions
 
-The following decisions are intentionally deferred:
+The current [schema metadata](../../apps/api/prisma/schema-metadata.json), Markdown [generated output](../generated/database/approval-requests.md), PostgreSQL-backed generator, output location, and completeness checks are implemented. The remaining optional mechanisms depend on real needs:
 
 ```text
-schema metadata format
 database-native comment strategy
-structured classification metadata
-generated documentation format
 schema manifest format
 ER diagram tooling
-documentation generator
-CI completeness rules
-database documentation output location
 code-to-schema linking
 ```
 
@@ -2112,21 +2093,9 @@ Significant decisions should be captured through ADRs.
 
 ---
 
-## Future Documentation
+## Related Documentation
 
-This document may later be complemented by generated references such as:
-
-```text
-docs/generated/database/
-```
-
-and domain-specific documentation such as:
-
-```text
-docs/domains/<domain>/
-```
-
-when actual domains exist.
+The [current generated reference](../generated/database/approval-requests.md) and [Approval Request business specification](../domains/approval-request.md) complement this policy. [Living documentation](../architecture/living-documentation.md) defines the navigable human presentation required in Phase 11.
 
 Implementation-specific database documentation should reference this policy rather than redefine documentation requirements independently.
 
@@ -2295,7 +2264,7 @@ Where practical, CI should validate generated documentation against the canonica
 
 ## Database Introspection
 
-AI agents and humans should eventually be able to inspect current database structure through machine-readable schema sources.
+AI agents can inspect current database structure through the migrated schema, schema metadata, and generated Markdown. Phase 11 adds the navigable human interface without replacing those sources.
 
 The intended investigation flow is:
 
