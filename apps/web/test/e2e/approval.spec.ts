@@ -8,6 +8,40 @@ async function connect(page: Page, token: string) {
   await page.getByRole("button", { name: "Connect", exact: true }).click();
 }
 
+test("local synthetic identities connect without persisting bearer tokens", async ({
+  page,
+}) => {
+  const withoutOrigin = await page.request.post(
+    `${webUrl()}/__orion_local_identity/owner`,
+  );
+  expect(withoutOrigin.status()).toBe(403);
+  const localResponse = await page.request.post(
+    `${webUrl()}/__orion_local_identity/owner`,
+    { headers: { origin: webUrl() } },
+  );
+  expect(localResponse.status()).toBe(200);
+  expect(localResponse.headers()["cache-control"]).toBe("no-store");
+  await page.goto(webUrl());
+  await page.getByRole("button", { name: "Use local owner" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Approval requests" }),
+  ).toBeVisible();
+  await expect(page).not.toHaveURL(/eyJ[A-Za-z0-9_-]+/);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: /Connect with/ }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Use local reviewer" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Approval requests" }),
+  ).toBeVisible();
+  const storage = await page.evaluate(() => ({
+    local: localStorage.length,
+    session: sessionStorage.length,
+  }));
+  expect(storage).toEqual({ local: 0, session: 0 });
+});
+
 test("owner creates, edits, submits and a different reviewer approves through PostgreSQL", async ({
   page,
 }) => {

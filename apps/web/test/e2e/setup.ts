@@ -24,19 +24,54 @@ async function freePort() {
   return address.port;
 }
 
-async function waitFor(url: string, child: ChildProcess) {
+function watchService(name: string, child: ChildProcess, secrets: string[]) {
   let diagnostics = "";
-  child.stdout?.on("data", (chunk: Buffer) => {
-    diagnostics = (diagnostics + chunk.toString()).slice(-12_000);
-  });
-  child.stderr?.on("data", (chunk: Buffer) => {
-    diagnostics = (diagnostics + chunk.toString()).slice(-12_000);
-  });
-  for (let attempt = 0; attempt < 300; attempt++) {
-    if (child.exitCode !== null)
-      throw new Error(
-        `Test service exited before ${url} became ready. ${diagnostics}`,
+  let failure: Error | undefined;
+  let onFailure: ((error: Error) => void) | undefined;
+  function append(chunk: Buffer) {
+    diagnostics = (diagnostics + chunk.toString()).slice(-8_000);
+  }
+  function safeDiagnostics() {
+    let safeOutput = diagnostics;
+    for (const secret of secrets)
+      safeOutput = safeOutput.replaceAll(secret, "[redacted]");
+    return safeOutput
+      .replace(/postgres(?:ql)?:\/\/\S+/gi, "[redacted database URL]")
+      .replace(/Bearer\s+\S+/gi, "Bearer [redacted]")
+      .replace(
+        /eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g,
+        "[redacted token]",
       );
+  }
+  function fail(reason: string) {
+    if (failure) return;
+    const safeOutput = safeDiagnostics();
+    failure = new Error(
+      `${name} ${reason}${safeOutput ? `\nRecent output:\n${safeOutput}` : ""}`,
+    );
+    onFailure?.(failure);
+  }
+  child.stdout?.on("data", append);
+  child.stderr?.on("data", append);
+  child.once("error", (error) => fail(`failed to start: ${error.message}`));
+  child.once("close", (code, signal) =>
+    fail(`exited (code ${code ?? "none"}, signal ${signal ?? "none"})`),
+  );
+  return {
+    get failure() {
+      return failure;
+    },
+    safeDiagnostics,
+    onFailure(callback: (error: Error) => void) {
+      onFailure = callback;
+      if (failure) callback(failure);
+    },
+  };
+}
+
+async function waitFor(url: string, service: ReturnType<typeof watchService>) {
+  for (let attempt = 0; attempt < 300; attempt++) {
+    if (service.failure) throw service.failure;
     try {
       const response = await fetch(url, { signal: AbortSignal.timeout(1_000) });
       if (response.ok) return;
@@ -45,10 +80,21 @@ async function waitFor(url: string, child: ChildProcess) {
     }
     await delay(100);
   }
-  throw new Error(`Test service did not become ready: ${url}. ${diagnostics}`);
+  const output = service.safeDiagnostics();
+  throw new Error(
+    `Test service did not become ready: ${url}.${output ? `\nRecent output:\n${output}` : ""}`,
+  );
 }
 
-export default async function setup() {
+export default async function setup({
+  tokenLifetime = "15m",
+  apiEnvironment = "test",
+  onUnexpectedExit,
+}: {
+  tokenLifetime?: string;
+  apiEnvironment?: "development" | "test";
+  onUnexpectedExit?: (error: Error) => void;
+} = {}) {
   const container = await new GenericContainer("postgres:16")
     .withEnvironment({
       POSTGRES_USER: "postgres",
@@ -63,6 +109,31 @@ export default async function setup() {
   let jwks: Server | undefined;
   let api: ChildProcess | undefined;
   let web: ChildProcess | undefined;
+  let shuttingDown = false;
+  let cleanupTask: Promise<void> | undefined;
+  function stopResources() {
+    cleanupTask ??= (async () => {
+      shuttingDown = true;
+      delete process.env.ORION_E2E_OWNER_TOKEN;
+      delete process.env.ORION_E2E_REVIEWER_TOKEN;
+      web?.kill();
+      api?.kill();
+      const results = await Promise.allSettled([
+        jwks
+          ? new Promise<void>((done, fail) =>
+              jwks!.close((error) => (error ? fail(error) : done())),
+            )
+          : Promise.resolve(),
+        container.stop(),
+      ]);
+      const failures: unknown[] = [];
+      for (const result of results)
+        if (result.status === "rejected") failures.push(result.reason);
+      if (failures.length)
+        throw new AggregateError(failures, "Local resource cleanup failed.");
+    })();
+    return cleanupTask;
+  }
   try {
     const host = container.getHost();
     const port = container.getMappedPort(5432);
@@ -100,13 +171,48 @@ export default async function setup() {
 
     const { publicKey, privateKey } = await generateKeyPair("RS256");
     const jwk = await exportJWK(publicKey);
-    jwks = createServer((_request, response) =>
-      response.setHeader("content-type", "application/json").end(
-        JSON.stringify({
-          keys: [{ ...jwk, alg: "RS256", kid: "e2e", use: "sig" }],
-        }),
-      ),
-    );
+    const webPort = await freePort();
+    const browserOrigin = `http://127.0.0.1:${webPort}`;
+    let ownerToken = "";
+    let reviewerToken = "";
+    jwks = createServer((request, response) => {
+      response.setHeader("content-type", "application/json");
+      response.setHeader("cache-control", "no-store");
+      response.setHeader("x-content-type-options", "nosniff");
+      if (request.method === "GET" && request.url === "/jwks") {
+        response.end(
+          JSON.stringify({
+            keys: [{ ...jwk, alg: "RS256", kid: "e2e", use: "sig" }],
+          }),
+        );
+      } else if (
+        request.method === "GET" &&
+        request.url === "/local-identity/available"
+      ) {
+        response.end(JSON.stringify({ available: true }));
+      } else if (
+        request.method === "POST" &&
+        (request.url === "/local-identity/owner" ||
+          request.url === "/local-identity/reviewer")
+      ) {
+        if (request.headers.origin !== browserOrigin) {
+          response.statusCode = 403;
+          response.end(JSON.stringify({ error: "Forbidden" }));
+          return;
+        }
+        response.end(
+          JSON.stringify({
+            accessToken:
+              request.url === "/local-identity/owner"
+                ? ownerToken
+                : reviewerToken,
+          }),
+        );
+      } else {
+        response.statusCode = 404;
+        response.end(JSON.stringify({ error: "Not found" }));
+      }
+    });
     await new Promise<void>((ready) => jwks!.listen(0, "127.0.0.1", ready));
     const address = jwks.address();
     if (!address || typeof address === "string")
@@ -123,17 +229,17 @@ export default async function setup() {
         .setIssuer(issuer)
         .setAudience("orion-api")
         .setIssuedAt()
-        .setExpirationTime("15m")
+        .setExpirationTime(tokenLifetime)
         .sign(privateKey);
     }
-    process.env.ORION_E2E_OWNER_TOKEN = await token(randomUUID(), false);
-    process.env.ORION_E2E_REVIEWER_TOKEN = await token(randomUUID(), true);
+    ownerToken = await token(randomUUID(), false);
+    reviewerToken = await token(randomUUID(), true);
     const apiPort = await freePort();
     api = spawn(process.execPath, [resolve(apiRoot, "dist/main.js")], {
       cwd: apiRoot,
       env: {
         ...process.env,
-        ORION_ENV: "test",
+        ORION_ENV: apiEnvironment,
         ORION_API_PORT: String(apiPort),
         ORION_DATABASE_URL: runtimeUrl,
         ORION_TOKEN_ISSUER: issuer,
@@ -142,8 +248,14 @@ export default async function setup() {
       },
       stdio: ["ignore", "pipe", "pipe"],
     });
-    await waitFor(`http://127.0.0.1:${apiPort}/health/ready`, api);
-    const webPort = await freePort();
+    const sensitiveValues = [
+      migrationUrl,
+      runtimeUrl,
+      ownerToken,
+      reviewerToken,
+    ];
+    const apiService = watchService("API", api, sensitiveValues);
+    await waitFor(`http://127.0.0.1:${apiPort}/health/ready`, apiService);
     web = spawn(
       process.execPath,
       [
@@ -159,24 +271,35 @@ export default async function setup() {
         env: {
           ...process.env,
           ORION_WEB_API_TARGET: `http://127.0.0.1:${apiPort}`,
+          ORION_WEB_LOCAL_IDENTITY_TARGET: `http://127.0.0.1:${address.port}`,
         },
         stdio: ["ignore", "pipe", "pipe"],
       },
     );
-    await waitFor(`http://127.0.0.1:${webPort}/`, web);
+    const webService = watchService("Web", web, sensitiveValues);
+    await waitFor(`http://127.0.0.1:${webPort}/`, webService);
+    if (onUnexpectedExit) {
+      const report = (error: Error) => {
+        if (!shuttingDown) onUnexpectedExit(error);
+      };
+      apiService.onFailure(report);
+      webService.onFailure(report);
+    }
+    process.env.ORION_E2E_OWNER_TOKEN = ownerToken;
+    process.env.ORION_E2E_REVIEWER_TOKEN = reviewerToken;
     process.env.ORION_E2E_WEB_URL = `http://127.0.0.1:${webPort}`;
     process.env.ORION_E2E_API_URL = `http://127.0.0.1:${apiPort}`;
-    return async () => {
-      web?.kill();
-      api?.kill();
-      if (jwks) await new Promise<void>((done) => jwks!.close(() => done()));
-      await container.stop();
-    };
+    return stopResources;
   } catch (error) {
-    web?.kill();
-    api?.kill();
-    if (jwks) await new Promise<void>((done) => jwks!.close(() => done()));
-    await container.stop();
+    try {
+      await stopResources();
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [error, cleanupError],
+        "Setup and cleanup failed.",
+        { cause: cleanupError },
+      );
+    }
     throw error;
   }
 }

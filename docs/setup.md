@@ -16,7 +16,7 @@ pnpm --filter @orion/web exec playwright install chromium
 
 On Linux, use `pnpm --filter @orion/web exec playwright install --with-deps chromium` if the browser's system libraries are absent. Windows browser component tests use the installed Edge channel; Playwright end-to-end tests use Chromium. Do not put credentials in tracked files.
 
-## Load local configuration and run the applications
+## Load local configuration
 
 Copy the safe, schema-checked [example](../.env.example) into an ignored root `.env.local` file. The example activates only `ORION_ENV=development`; uncomment and fill an optional setting only when needed. The API `dev` script uses Node's `--env-file-if-exists` to load this file before `src/main.ts` parses and validates configuration. Existing shell environment variables take precedence over file values. The same command works in PowerShell and POSIX shells:
 
@@ -33,11 +33,25 @@ Start the web development server in another terminal:
 pnpm --filter @orion/web dev
 ```
 
-Open the URL printed by Vite, normally `http://127.0.0.1:5173`. Vite forwards `/api` to the local API by default and loads its own `apps/web/.env.local` if web-specific `VITE_` values are needed. Do not copy the root API `.env.local` into the web app: server-only values must not enter a browser build. Without an already-issued bearer token and complete feature configuration, the reference UI stays disconnected; it does not implement login. [API configuration](generated/configuration/api.md) names the four settings required together for the feature. A real provider and user-facing token acquisition remain conditional under [H-07](human-actions.md#h-07); do not create test credentials in the repository to simulate one.
+Open the URL printed by Vite, normally `http://127.0.0.1:5173`. Vite forwards `/api` to the local API by default and loads its own `apps/web/.env.local` if web-specific `VITE_` values are needed. Do not copy the root API `.env.local` into the web app: server-only values must not enter a browser build. This health-only mode leaves the reference UI disconnected. [API configuration](generated/configuration/api.md) names the four settings required together for the feature.
+
+## Manually exercise Approval Requests
+
+With Docker running, use the one-command local workflow from the repository root:
+
+```sh
+pnpm dev:approval
+```
+
+It generates the Prisma client, builds the API, starts a disposable PostgreSQL container, applies the committed migrations with a migration credential, grants a separate restricted runtime role, and starts the real API and Vite server on available loopback ports. It generates an ephemeral signing key and serves its public JWKS on loopback. The API verifies signed bearer tokens, ownership, and review capability exactly as in the automated browser journey; authentication is never bypassed. This command supplies its own temporary feature configuration and does not read the root `.env.local`. No external identity provider, permanent database, or seed data is needed.
+
+Open the printed web URL and choose **Use local owner**. Create a draft, edit it, and submit it; trying **Approve** with this owner identity should be denied. Choose **Disconnect**, then **Use local reviewer**. Under **For review**, open the submitted request and approve or reject it. The reviewer cannot decide their own requests, and the owner can inspect the terminal result after reconnecting. Reloading the page clears the in-memory token; use the appropriate local button again.
+
+The local buttons appear only when the development server is paired with this synthetic issuer. They fetch a signed token through a same-origin, no-store development route and hand it directly to the existing in-memory credential state. Tokens are never written to files, URLs, browser storage, or terminal output; the real API still verifies every business request. The tokens expire after one hour. Restart the command for fresh identities and an empty database. Press Ctrl+C to stop the servers and database. If either service exits unexpectedly, the runner reports a bounded, redacted diagnostic and stops the remaining services and container. The `.env.local` file remains a safe development default for the separate health-only command above. A real provider and user-facing token acquisition remain conditional under [H-07](human-actions.md#h-07).
 
 ## Initialize and exercise feature data
 
-The executable feature workflow provisions a fresh disposable PostgreSQL, applies the committed migration using a migration credential, creates a separate restricted runtime role, and uses a local signed-token issuer with synthetic human principals. No seed data or external account is needed:
+The automated feature workflows use the same disposable database and synthetic identity boundaries. No seed data or external account is needed:
 
 ```sh
 pnpm build

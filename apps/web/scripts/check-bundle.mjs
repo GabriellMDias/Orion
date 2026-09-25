@@ -13,6 +13,7 @@ const forbidden = [
   "postgresql://",
   "runtime_test",
   "node:fs",
+  "__orion_local_identity",
 ];
 for (const name of scripts) {
   const content = readFileSync(resolve(assets, name), "utf8");
