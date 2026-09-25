@@ -18,6 +18,7 @@ pnpm validate
 | `pnpm typecheck` | Strict TypeScript checking of repository tooling, API, generated SDK wrapper, web source, and browser/E2E test code. |
 | `pnpm architecture` | dependency-cruiser checks resolvable imports, cycles, and applicable repository/application/package boundary rules. Extend rules with real package ownership and public APIs. |
 | `pnpm docs:check` | Checks local Markdown targets and heading anchors, single top-level headings, ADR filenames/metadata/index entries, and reachability from the root README. It does not verify external URLs or the meaning of a document. |
+| `pnpm release:check` / `pnpm release:test` | Verifies recorded durable migration SQL and append-only release history against Git; fixture tests prove tampering fails and unrecorded migrations remain refinable. An empty registry records no release but does not certify that no private durable environment exists. |
 | `pnpm references:check` | Checks API configuration, errors, OpenAPI, and migrated-PostgreSQL references; independently regenerates SDK types from the committed OpenAPI and compares without changing tracked files. |
 | `pnpm test` | Runs API Vitest tests against migrated PostgreSQL and web component tests in a real Chromium-family browser through Vitest Browser Mode/Playwright. |
 | `pnpm build` | Emits Node-compatible ESM for `apps/api` and a static Vite production build for `apps/web` to ignored `dist/` directories, then checks browser assets for known server-only markers. |
@@ -25,6 +26,8 @@ pnpm validate
 | `pnpm test:e2e` | Runs Playwright Test in Chromium against the emitted API, actual Vite web app, signed synthetic identities, and a fresh migrated Testcontainers PostgreSQL with a separate restricted runtime role. |
 
 Use `pnpm format` only when an intentional formatting edit is needed; it writes files and is separate from `pnpm validate`. A formatting failure names the file; type, lint, architecture, and documentation failures report the relevant source location or import/link. Repair the canonical source and rerun the failing script, then the aggregate command.
+
+`pnpm release:checksums <full-deployed-commit-sha>` prints candidate migration source hashes for the [release recording workflow](database/release-evolution.md); it does not record a release or verify what a database applied.
 
 The Phase 5 API and Phase 6 generated SDK/web reference workflow exist. `pnpm validate` first generates the ignored Prisma client; API references, integration tests, and browser E2E require a Testcontainers-compatible runtime. Browser tests require Playwright Chromium (the local Windows Vitest provider can use installed Edge); CI installs Chromium and its system libraries before running the same validation command. A concrete identity provider remains conditional under [H-07](human-actions.md#h-07). A GitHub Actions workflow invokes `pnpm validate`; its execution and required-check settings are tracked in [CI status](architecture/continuous-integration.md). First-party workspace dependencies use `workspace:`.
 

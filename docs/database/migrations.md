@@ -15,6 +15,8 @@ Governing decisions: [ADR-0006](../adr/0006-select-prisma-orm-for-database-acces
 
 Related policy: [versioning and compatibility](../architecture/versioning-and-compatibility.md), [schema documentation](schema-documentation.md).
 
+The current [release and evolution workflow](release-evolution.md) and [release registry](../../apps/api/prisma/release-history.json) provide implementation-specific release recording and validation. The registry is empty until a durable release is verified; an empty registry does not certify an existing migration as unreleased.
+
 ## Purpose
 
 This document defines the database migration policy used by Orion.

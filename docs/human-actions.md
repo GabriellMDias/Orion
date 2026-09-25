@@ -169,7 +169,7 @@ Phases 1-3 are complete. The Approval Request owner decisions are recorded in H-
 
 **Codex verification:** Correlate the owner's information with release/deployment metadata and migration state where accessible; record immutable baseline references. Run applicable migration/contract compatibility checks once implemented. Mark history-dependent work conditional when no released baseline exists.
 
-**Evidence / blocker:** No application or persistent released database exists in the current repository.
+**Evidence / blocker (2026-09-24):** The public Git repository has no tags (`git ls-remote --tags origin`), GitHub Releases, deployment records, or configured GitHub environments; `.github/workflows/ci.yml` runs validation but no deployment. Current Testcontainers databases are disposable. These observations provide no released migration or independently deployed API baseline. They do not prove that an unlisted persistent environment cannot exist, so the existing migration is not being edited and this action remains conditional before its history is refined or a first durable release is recorded. Phase 8 adds an empty [durable-release registry](../apps/api/prisma/release-history.json), a [recording and verification workflow](database/release-evolution.md), and a validation guard that checks recorded release commits, complete migration sets, SQL hashes, and append-only release entries. No release entry is fabricated. No environment identifiers, applied migration records, supported consumer versions, or rollback windows have been supplied; a real durable release or independently evolving consumer will activate the action.
 
 ## H-09
 

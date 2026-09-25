@@ -20,7 +20,10 @@
     "references:check": "pnpm --filter @orion/api references:check && pnpm --filter @orion/sdk references:check",
     "architecture": "depcruise --config .dependency-cruiser.mjs --include-only \"^(apps|packages|tooling|infra)/|^(eslint\\.config|\\.dependency-cruiser)\" .",
     "docs:check": "node tooling/validate/docs.ts",
-    "validate": "pnpm db:generate && pnpm format:check && pnpm lint && pnpm typecheck && pnpm architecture && pnpm docs:check && pnpm references:check && pnpm test && pnpm build && pnpm smoke && pnpm test:e2e"
+    "release:check": "node tooling/validate/release-history.ts",
+    "release:checksums": "node tooling/validate/release-history.ts --print-checksums",
+    "release:test": "node --test tooling/validate/release-history.test.ts",
+    "validate": "pnpm db:generate && pnpm format:check && pnpm lint && pnpm typecheck && pnpm architecture && pnpm docs:check && pnpm release:check && pnpm release:test && pnpm references:check && pnpm test && pnpm build && pnpm smoke && pnpm test:e2e"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
