@@ -48,7 +48,13 @@ async function waitFor(url: string, child: ChildProcess) {
   throw new Error(`Test service did not become ready: ${url}. ${diagnostics}`);
 }
 
-export default async function setup() {
+export default async function setup({
+  tokenLifetime = "15m",
+  apiEnvironment = "test",
+}: {
+  tokenLifetime?: string;
+  apiEnvironment?: "development" | "test";
+} = {}) {
   const container = await new GenericContainer("postgres:16")
     .withEnvironment({
       POSTGRES_USER: "postgres",
@@ -123,17 +129,17 @@ export default async function setup() {
         .setIssuer(issuer)
         .setAudience("orion-api")
         .setIssuedAt()
-        .setExpirationTime("15m")
+        .setExpirationTime(tokenLifetime)
         .sign(privateKey);
     }
-    process.env.ORION_E2E_OWNER_TOKEN = await token(randomUUID(), false);
-    process.env.ORION_E2E_REVIEWER_TOKEN = await token(randomUUID(), true);
+    const ownerToken = await token(randomUUID(), false);
+    const reviewerToken = await token(randomUUID(), true);
     const apiPort = await freePort();
     api = spawn(process.execPath, [resolve(apiRoot, "dist/main.js")], {
       cwd: apiRoot,
       env: {
         ...process.env,
-        ORION_ENV: "test",
+        ORION_ENV: apiEnvironment,
         ORION_API_PORT: String(apiPort),
         ORION_DATABASE_URL: runtimeUrl,
         ORION_TOKEN_ISSUER: issuer,
@@ -164,6 +170,8 @@ export default async function setup() {
       },
     );
     await waitFor(`http://127.0.0.1:${webPort}/`, web);
+    process.env.ORION_E2E_OWNER_TOKEN = ownerToken;
+    process.env.ORION_E2E_REVIEWER_TOKEN = reviewerToken;
     process.env.ORION_E2E_WEB_URL = `http://127.0.0.1:${webPort}`;
     process.env.ORION_E2E_API_URL = `http://127.0.0.1:${apiPort}`;
     return async () => {

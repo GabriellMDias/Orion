@@ -15,6 +15,7 @@
     "typecheck": "pnpm db:generate && tsc --noEmit && pnpm --filter @orion/api typecheck && pnpm --filter @orion/sdk typecheck && pnpm --filter @orion/web typecheck",
     "test": "pnpm db:generate && pnpm --filter @orion/api test && pnpm --filter @orion/web test:unit && pnpm --filter @orion/web test:browser",
     "build": "pnpm db:generate && pnpm --filter @orion/api build && pnpm --filter @orion/web build && pnpm --filter @orion/web bundle:check",
+    "dev:approval": "pnpm db:generate && pnpm --filter @orion/api build && pnpm --filter @orion/web dev:approval",
     "smoke": "node apps/api/scripts/smoke.mjs && pnpm --filter @orion/api feature:smoke",
     "test:e2e": "pnpm --filter @orion/web test:e2e",
     "references:check": "pnpm --filter @orion/api references:check && pnpm --filter @orion/sdk references:check",
