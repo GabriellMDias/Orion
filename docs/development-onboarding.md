@@ -39,11 +39,12 @@ Open the URL printed by Vite, normally `http://127.0.0.1:5173`. The web server f
 The executable feature workflow provisions a fresh disposable PostgreSQL, applies the committed migration using a migration credential, creates a separate restricted runtime role, and uses a local signed-token issuer with synthetic human principals. No seed data or external account is needed:
 
 ```sh
+pnpm build
 pnpm --filter @orion/api feature:smoke
 pnpm test:e2e
 ```
 
-The feature smoke exercises the emitted API and a create/submit/review flow, including process interruption; run `pnpm build` first if `dist/` does not exist. The browser test builds and runs the API and web app against its own migrated PostgreSQL and verifies the owner/reviewer journey. These fixtures are disposable and are not release or production data.
+The feature smoke exercises the emitted API and a create/submit/review flow, including process interruption. The browser test builds and runs the API and web app against its own migrated PostgreSQL and verifies the owner/reviewer journey. These fixtures are disposable and are not release or production data.
 
 If using a separate **local** PostgreSQL for manual development, create distinct migration and restricted runtime credentials before enabling the feature. Set `ORION_MIGRATION_DATABASE_URL` only for `pnpm --filter @orion/api db:migrate:deploy`; set `ORION_DATABASE_URL` only for the API runtime. Also configure the trusted token issuer, audience, and JWKS URL together as described in the [API runtime guide](../apps/api/README.md). The repository does not select or provision that issuer. Do not copy Testcontainers' synthetic credentials into a persistent environment.
 
