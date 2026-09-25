@@ -27,6 +27,8 @@ pnpm validate
 
 Use `pnpm format` only when an intentional formatting edit is needed; it writes files and is separate from `pnpm validate`. A formatting failure names the file; type, lint, architecture, and documentation failures report the relevant source location or import/link. Repair the canonical source and rerun the failing script, then the aggregate command.
 
+Clean checkouts use LF for tracked text through `.gitattributes`, so Windows `core.autocrlf` does not make Prettier reject otherwise unchanged files. Existing checkouts may need files rechecked out or intentionally formatted after this rule is introduced; do not hide content drift by regenerating tracked references.
+
 `pnpm release:checksums <full-deployed-commit-sha>` prints candidate migration source hashes for the [release recording workflow](database/release-evolution.md); it does not record a release or verify what a database applied.
 
 The Phase 5 API and Phase 6 generated SDK/web reference workflow exist. `pnpm validate` first generates the ignored Prisma client; API references, integration tests, and browser E2E require a Testcontainers-compatible runtime. Browser tests require Playwright Chromium (the local Windows Vitest provider can use installed Edge); CI installs Chromium and its system libraries before running the same validation command. A concrete identity provider remains conditional under [H-07](human-actions.md#h-07). A GitHub Actions workflow invokes `pnpm validate`; its execution and required-check settings are tracked in [CI status](architecture/continuous-integration.md). First-party workspace dependencies use `workspace:`.
