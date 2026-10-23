@@ -4,6 +4,15 @@
     "title": "Start and Upgrade a Project from Orion",
     "group": "Project guides",
     "kind": "repository",
+    "heading": "Provenance and foundation upgrades",
+    "anchor": "provenance-and-foundation-upgrades",
+    "text": "Provenance and foundation upgrades\nProvenance is what makes upgrades possible. Initialization records the Orion commit in both `foundation.initializedFromCommit`, which never changes, and `foundation.baselineCommit`. Because the project keeps Orion's history, Git can compute what changed upstream since the baseline and merge it with a normal three-way merge. Each upgrade merges a newer Orion commit with its history and then records it as the new baseline; `pnpm orion:check` verifies that the baseline is an ancestor of `HEAD`, and `pnpm orion:status` compares it with a fetched `orion-upstream`. The derivation contract travels with every upgrade, and `pnpm orion:prune` reapplies it, so the project stays free of foundation-only content and keeps its own package scope. [Stable semantic tags](versioning.md) make released foundation points easier to identify: a project may be described as derived from a tagged Orion release when its initialization commit matches that tag, while the manifest continues to record the exact commit SHA.\n"
+  },
+  {
+    "id": "repository/docs/project-derivation",
+    "title": "Start and Upgrade a Project from Orion",
+    "group": "Project guides",
+    "kind": "repository",
     "heading": "Inspect provenance",
     "anchor": "inspect-provenance",
     "text": "Inspect provenance\npnpm orion:status\n\nIt prints the project identity and package scope, the initialization and recorded baseline commits, whether `orion-upstream` is configured and fetch-only, and, after `git fetch orion-upstream`, how many upstream commits follow the baseline and whether integrated commits are not yet recorded. It does not fetch or change anything.\n`pnpm orion:check` runs in `pnpm validate`.\nIn Orion, it validates the manifest and derivation contract, requires every foundation-only path and template to exist, and rejects shared tracked files that link to, import, name, or mention foundation-only content. Derivation tooling, ADRs, this guide, and generated output are exempt.\nIn a project, it validates the manifest and contract, requires the project plan and human actions and the root package name of the recorded scope, rejects any foundation-only path and any remaining reference to the foundation package scope in code or configuration, requires both recorded commits to exist with the initialization commit an ancestor of the baseline and the baseline an ancestor of `HEAD`, and applies the [remote rules](#remote-rules). It needs full history; CI already uses `fetch-depth: 0`.\n"
@@ -889,14 +898,5 @@
     "heading": "Authentication",
     "anchor": "authentication",
     "text": "Authentication\nThis policy owns trusted identity, credential, and session requirements. [Authorization](authorization.md) owns permission decisions; [secrets management](secrets-management.md) owns credential lifecycle and [redaction](telemetry-redaction.md) owns telemetry handling. Start with the [task index](../README.md) for other concerns.\n"
-  },
-  {
-    "id": "repository/docs/security/authentication",
-    "title": "Authentication",
-    "group": "Security",
-    "kind": "repository",
-    "heading": "Current implementation and scope",
-    "anchor": "current-implementation-and-scope",
-    "text": "Current implementation and scope\nThe API verifies JWT bearer access tokens according to [ADR-0012](../adr/0012-verify-jwt-access-tokens-at-the-first-api-boundary.md) when token settings are configured. The shared [verifier](../../apps/api/src/authentication.ts) is the executable source for accepted claims and algorithms; it yields a principal ID and issuer scopes, and each module maps scopes to its own capabilities. The [API README](../../apps/api/README.md) describes configuration and the current token contract; the [web README](../../apps/web/README.md) describes the in-memory credential boundary.\nA concrete identity provider, login/recovery flows, persistent sessions, and authentication mechanisms for other applications have not been selected. Requirements below apply when those capabilities are introduced; they do not imply implementation. Do not reopen the accepted JWT decision by treating the first API's token format or verification library as undecided.\nThe current verifier rejects invalid credentials without disclosing token details. Key retrieval, malformed trusted JWKS data, and unexpected verifier failures raise a separate availability error; the API returns a safe 503 and records bounded diagnostics. This distinguishes an authentication infrastructure failure from a routine invalid token while still failing closed. Provider login, refresh, and revocation remain conditional on a provider decision recorded as a human action in the repository's human-action checklist (linked from the README's [Current state](../../README.md#current-state)).\n"
   }
 ]

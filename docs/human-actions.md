@@ -213,9 +213,9 @@ External settings below were verified on the stated dates. They are evidence of 
 
 ## H-16
 
-- [ ] **Complete authorized publication and separately authorize subsequent product upgrades.**
+- [x] **Publish the reviewed foundation release and retain independent authorization for product upgrades.**
 
-**Status:** publication authorized and in progress; actual product upgrades remain conditional. **Owner:** repository/project owner. **Dependency / trigger:** [RR4](implementation-plan.md#maintaining-this-plan), local review completion and explicit authorization of each operation.
+**Status:** foundation publication completed; actual product upgrades remain conditional. **Owner:** repository/project owner. **Dependency / trigger:** [RR4](implementation-plan.md#maintaining-this-plan), local review completion and explicit authorization of each operation.
 
 **Request and reason:** The owner authorized the complete GitHub CLI publication process, including security corrections, PR merges, an immutable annotated tag and the GitHub Release. Require CI on the actual candidate before merging and publishing. IA-MNS and Teluni still require separate instructions before any changes; their current provenance, adopted behavior and released migrations must be inspected first.
 
@@ -223,7 +223,7 @@ External settings below were verified on the stated dates. They are evidence of 
 
 **Verification:** Record the reviewed commit, required remote CI, merged revision, immutable annotated tag and matching Release. For each later product upgrade, retain product code/identity/docs, validate its actual gates, record the verified SHA baseline with ancestry, and require its own reviewed merge PR. Internal documentation hosting remains separately conditional on H-15.
 
-**Evidence / blocker (2026-10-23):** The owner explicitly authorized publication. Renovate PRs #23, #24 and #25 were merged after their required checks passed. The combined candidate also updates Vite/Vitest and vulnerable transitives; frozen installation and npm audit pass with zero reported vulnerabilities. Final validation, exact merged revision, CI, tag and Release evidence belong in the [publication record](foundation-acceptance.md#authorized-publication). No actual product upgrade or deployment is authorized.
+**Evidence / blocker (2026-10-23):** The owner authorized publication; Renovate PRs #23/#24/#25 and release PR #26 merged after their required checks passed. Complete local validation and [merged-revision CI](https://github.com/GabriellMDias/Orion/actions/runs/40041617040) passed. The published [v3.0.0 Release](https://github.com/GabriellMDias/Orion/releases/tag/v3.0.0) and immutable annotated tag resolve to `aafb920a3616f51c0da4b145dbee61a4bf5c3cc7`. See the [publication record](foundation-acceptance.md#authorized-publication) for validation and advisory-state timing. No actual product upgrade or deployment is authorized.
 
 ## New action template
 
